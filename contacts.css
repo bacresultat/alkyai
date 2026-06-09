@@ -1,0 +1,535 @@
+/* ----- Reset & Typo ----- */
+body {
+  margin: 0;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: #f4f6f9;
+  color: #212529;
+  line-height: 1.6;
+  font-size: 16px;
+  overflow-x: hidden;
+}
+
+/* ----- Header Hero Section ----- */
+.hero {
+  background: linear-gradient(135deg, #003366, #007bff);
+  color: white;
+  padding: 60px 20px;
+  text-align: center;
+  animation: fadeInDown 1.2s ease-in-out;
+}
+.temoignages-alkyai {
+  background-color: #f9fafb;
+  padding: 4rem 1rem;
+  font-family: 'Inter', sans-serif;
+}
+.scroll-down-container {
+  cursor: pointer;
+  text-align: center;
+  margin: 30px auto 50px;
+  user-select: none;
+  width: 80px;
+}
+
+.scroll-down-arrow {
+  display: block;
+  margin: 0 auto;
+  animation: bounceDown 1.5s infinite;
+  stroke: red;
+}
+
+.scroll-down-text {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: red;
+  font-style: italic;
+  font-weight: 600;
+  user-select: none;
+}
+
+@keyframes bounceDown {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+.temoignages-alkyai .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+  
+}
+
+.temoignages-alkyai .title {
+  font-size: 2.2rem;
+  margin-bottom: -80px;
+  color: #111;
+  margin-top: 1px;
+
+  
+  font-size: 22px;
+}
+
+.temoignages-alkyai .intro {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 3rem;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.avis-grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.profil {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.profil img {
+  width: 60px;
+  height: 60px;
+  border-radius: 100px;
+  object-fit: cover;
+  border: 2px solid #00c3ff;
+}
+
+.profil h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #111;
+}
+
+.profil .role {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.commentaire {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+.fake-comment-section {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #f4f4f4;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+}
+
+.fake-comment-section h2 {
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+  color: #333;
+  text-align: center;
+}
+
+.comment-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.comment-box textarea {
+  padding: 10px;
+  font-size: 1rem;
+  resize: vertical;
+  height: 100px;
+  border-radius: 6px;
+  border: 1px solid #bbb;
+  background-color: #fff;
+}
+
+.comment-box button {
+  align-self: flex-end;
+  padding: 8px 16px;
+  background-color: #ddd;
+  border: none;
+  border-radius: 6px;
+  
+  color: #666;
+}
+
+.video {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 80px;
+  animation: logoBounce 2s infinite;
+  border-radius: 40%; /* ✅ Cela rend l’image ronde */
+}
+.payment-icons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 19px;
+  align-items: center;
+}
+.security-message {
+  background: #e9f7ef;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95em;
+  animation: fadeIn 0.8s ease-in;
+}
+.trusted-footer {
+  background: #f1f3f5;
+  color: #343a40;
+  text-align: center;
+  padding: 30px 20px;
+  font-size: 0.9em;
+  border-top: 1px solid #dee2e6;
+}
+
+.trust-messages p {
+  margin: 6px 0;
+}
+.service-notice {
+  background-color: #e3f2fd;
+  padding: 20px;
+  text-align: center;
+  font-size: 0.95em;
+  color: #0d47a1;
+  border-top: 1px solid #bbdefb;
+  border-bottom: 1px solid #bbdefb;
+  margin-top: 40px;
+  border-radius: 8px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  animation: fadeIn 1s ease;
+}
+
+.service-notice p {
+  margin: 8px 0;
+}
+.email-hint {
+  color: #555;
+  font-size: 0.85em;
+  margin-top: 5px;
+  display: block;
+  font-style: italic;
+}
+
+.trust-messages a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.trust-messages a:hover {
+  text-decoration: underline;
+}
+
+.legal {
+  margin-top: 20px;
+  font-size: 0.85em;
+  color: #666;
+}
+
+
+.lock-icon {
+  font-size: 1.5em;
+}
+
+.payment-icons img {
+  height: 24px;
+  opacity: 0.9;
+  transition: transform 0.2s ease;
+}
+
+.payment-icons img:hover {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+.site-title {
+  font-size: 2.8em;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.subtitle {
+  font-size: 1.3em;
+  font-weight: 300;
+  opacity: 0.9;
+}
+
+/* ----- Intro Text ----- */
+.intro {
+  padding: 40px 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  animation: fadeInUp 1.5s ease-out;
+}
+
+.intro h2 {
+  font-size: 1.8em;
+  color: #003366;
+  margin-bottom: 15px;
+}
+
+/* ----- Form Section ----- */
+.form-section {
+  background: white;
+  padding: 40px 30px;
+  max-width: 600px;
+  margin: 40px auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  animation: fadeIn 1.8s ease-in-out;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-top: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+input,
+select {
+  padding: 12px;
+  font-size: 1em;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  margin-top: 6px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input:focus,
+select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  outline: none;
+}
+
+button {
+  margin-top: 25px;
+  padding: 14px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.2);
+}
+
+button:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+}
+.form-section h2 {
+  text-align: center;
+}
+
+#error-message {
+  margin-top: 10px;
+  color: red;
+  font-size: 0.95em;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+/* ----- Spinner & Loading ----- */
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #007bff;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 20px auto;
+}
+
+/* ----- Footer ----- */
+footer {
+  background: #e9ecef;
+  text-align: center;
+  padding: 30px;
+  font-size: 0.95em;
+  color: #555;
+  margin-top: 60px;
+  border-top: 1px solid #ddd;
+}
+
+/* ----- Keyframe Animations ----- */
+@keyframes logoBounce {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (max-width: 600px) {
+  .site-title {
+    font-size: 2em;
+  }
+
+  .subtitle {
+    font-size: 1.1em;
+  }
+
+  .intro h2 {
+    font-size: 1.5em;
+  }
+
+  .form-section {
+    padding: 30px 15px;
+    margin: 20px 10px;
+  }
+
+  input,
+  select {
+    font-size: 1em;
+    padding: 10px;
+  }
+
+  button {
+    font-size: 1em;
+    padding: 12px;
+  }
+
+  .payment-icons {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .security-message {
+    font-size: 0.9em;
+    padding: 12px;
+  }
+
+  .service-notice {
+    font-size: 0.9em;
+    padding: 15px;
+  }
+
+  footer {
+    font-size: 0.85em;
+    padding: 20px 10px;
+  }
+
+  .trusted-footer {
+    font-size: 0.85em;
+    padding: 20px 10px;
+  }
+}
+.official-logos {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+  animation: fadeIn 1.2s ease-in;
+}
+
+.official-logos img {
+  height: 42px;
+  max-width: 120px;
+  object-fit: contain;
+  opacity: 0.9;
+  transition: transform 0.3s ease;
+  border-radius: 8px; /* ✅ coins arrondis */
+}
+
+.official-logos img:hover {
+  transform: scale(1.05);
+  opacity: 1;
+}
+.payment-delay-message {
+  text-align: center;
+  font-size: 0.85em;
+  color: #6c757d;
+  margin-top: 30px;
+  margin-bottom: 10px;
+  font-style: italic;
+}

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlkyAI – Résultats BAC-Brevet 2025/2026</title>
+  <link rel="stylesheet" href="contacts.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  
+  <link rel="icon" href="9448bfc1-2cb2-46be-924a-c9d4da2d4d9f.png" type="image/png">
+</head>
+<body>
+  <header class="hero">
+    <div class="logo-container">
+      <img src="9448bfc1-2cb2-46be-924a-c9d4da2d4d9f.png" alt="Logo AlkyAI" class="logo">
+      <h1 class="site-title">AlkyAI</h1>
+      <p class="subtitle">Obtiens tes résultats du BAC et Brevet 2025/2026 <strong>sans procédure</strong></p>
+    </div>
+    <div class="official-logos">
+      <img src="Logo_du_Gouvernement_de_la_République_française_(2020).svg.png" alt="Logo Parcoursup" />
+      <img src="Logo-parcoursup-bis.jpg" alt="Logo Éducation nationale" />
+      <img src="logo-ministere-education-nationale.jpg" alt="Logo Gouvernement" />
+    </div>
+  </header>
+
+  <section class="intro">
+    <h2>Un service rapide, confidentiel et accessible pour tout les lycéens, collégiens et étudiants de France !</h2>
+    <p>
+      AlkyAI utilise l’intelligence artificielle et les informations officielles pour retrouver vos résultats <strong>du BAC et du Brevet !</strong>
+    </p>
+  </section>
+
+  <section class="form-section">
+    <div class="security-message">
+      <span class="lock-icon">🔒</span>
+      <p>
+        Paiement 100% sécurisé via <a href="https://paypal.com" target="_blank" rel="noopener noreferrer">PayPal</a>. Aucune information bancaire n’est stockée sur notre site.
+      </p>
+    </div>
+
+    <h2>Faire une demande</h2>
+    <form id="payment-form">
+      <label for="name">Nom, Prénom :</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="email">Adresse mail :</label>
+      <input type="email" id="email" name="email" required>
+
+      <label for="academy">Académie :</label>
+      <select id="academy" name="academy" required>
+        <option value="">-- Choisir une académie --</option>
+        <option value="Aix-Marseille">Aix-Marseille</option>
+        <option value="Amiens">Amiens</option>
+        <option value="Besançon">Besançon</option>
+        <option value="Bordeaux">Bordeaux</option>
+        <option value="Clermont-Ferrand">Clermont-Ferrand</option>
+        <option value="Corse">Corse</option>
+        <option value="Créteil">Créteil</option>
+        <option value="Dijon">Dijon</option>
+        <option value="Grenoble">Grenoble</option>
+        <option value="Guadeloupe">Guadeloupe</option>
+        <option value="Guyane">Guyane</option>
+        <option value="La Réunion">La Réunion</option>
+        <option value="Lille">Lille</option>
+        <option value="Limoges">Limoges</option>
+        <option value="Lyon">Lyon</option>
+        <option value="Martinique">Martinique</option>
+        <option value="Mayotte">Mayotte</option>
+        <option value="Montpellier">Montpellier</option>
+        <option value="Nancy-Metz">Nancy-Metz</option>
+        <option value="Nantes">Nantes</option>
+        <option value="Nice">Nice</option>
+        <option value="Orléans-Tours">Orléans-Tours</option>
+        <option value="Paris">Paris</option>
+        <option value="Poitiers">Poitiers</option>
+        <option value="Reims">Reims</option>
+        <option value="Rennes">Rennes</option>
+        <option value="Rouen">Rouen</option>
+        <option value="Strasbourg">Strasbourg</option>
+        <option value="Toulouse">Toulouse</option>
+        <option value="Versailles">Versailles</option>
+        <option value="Wallis-et-Futuna">Wallis-et-Futuna</option>
+        <option value="Saint-Pierre-et-Miquelon">Saint-Pierre-et-Miquelon</option>
+        <option value="Polynésie française">Polynésie française</option>
+        <option value="Nouvelle-Calédonie">Nouvelle-Calédonie</option>
+        <option value="Autres">Autres</option>
+      </select>
+
+      <label for="subject">Entrez le nom du diplôme passé (BAC ou Brevet):</label>
+      <input type="text" id="subject" name="subject">
+      <!-- Bouton PayPal -->
+
+
+
+      <!-- Le bouton Stripe est supprimé, PayPal sera affiché automatiquement -->
+      <div id="paypal-button-container" style="margin-top:20px;"></div>
+      <p class="payment-delay-message">
+        ⏳ Le chargement du paiement peut prendre quelques minutes en raison d'une forte affluence.
+      </p>
+
+      <div class="payment-icons">
+        <img src="Apple_Pay_logo.svg.png" alt="Apple Pay">
+        <img src="Mastercard-logo.svg.webp" alt="Mastercard">
+        <!-- Logo Stripe supprimé -->
+        <img src="Google_Pay_Logo.svg.png" alt="Google Pay">
+        <img src="Visa-Logo-2006–2014.jpg" alt="Visa">
+        <!-- Ajouter PayPal si tu veux un logo -->
+        <img src="Paypal_2014_logo.png" alt="PayPal">
+      </div>
+
+    </form>
+
+    <!-- Bouton PayPal -->
+   
+  </section>
+
+  <section class="service-notice">
+    <p>📩 Les résultats sont envoyés par email après paiement.<small class="email-hint">Veuillez entrer une adresse email valide – vos résultats y seront envoyées.</small></p>
+    <p>💸 Satisfait ou remboursé : vous pouvez demander un remboursement en cas d’erreur ou d’insatisfaction.</p>
+  </section>
+<section class="temoignages-alkyai">
+  <div class="container">
+    <h2 class="title">📢 Ils ont obtenus leur résultats...</h2>
+    <p class="intro">
+      
+    </p>
+
+    <div class="avis-grid">
+
+      <!-- Témoignage 1 -->
+      <div class="card">
+        <div class="profil">
+          <img src="tiktok.jpg" alt="LinaWave" />
+          <div>
+            <h3>@les_fifousssss</h3>
+            
+          </div>
+        </div>
+        <p class="commentaire">
+          “olololo le 6 en philo chui dead”
+        </p>
+        
+      </div>
+
+      <!-- Témoignage 2 -->
+      <div class="card">
+        <div class="profil">
+          <img src="insta.jpg" alt="ZackBoost" />
+          <div>
+            <h3>@zacknot</h3>
+            
+          </div>
+        </div>
+        <p class="commentaire">
+          “votez la pétition pour arréter le bac”
+        </p>
+       
+      </div>
+
+      <!-- Témoignage 3 -->
+      <div class="card">
+        <div class="profil">
+          <img src="cartoon-tiktok-pfp.avif" alt="MayaFlow" />
+          <div>
+            <h3>@mistraworld</h3>
+            
+          </div>
+        </div>
+        <p class="commentaire">
+          “purée 14 en maths”
+        </p>
+        
+      </div>
+      <div class="card">
+        <div class="profil">
+          <img src="" alt="jerome" />
+          <div>
+            <h3>@jeromestble</h3>
+            
+          </div>
+        </div>
+        <p class="commentaire">
+          “aïe 😢"
+        </p>
+        
+      </div>
+      <div class="card">
+        <div class="profil">
+          <img src="" alt="yanisbnda" />
+          <div>
+            <h3>@yanisbenouda</h3>
+            
+          </div>
+        </div>
+        <p class="commentaire">
+          “ouiiiiiiiiiiiiiiiiiiiiiiiiii j'aiiii mon baccccc”
+        </p>
+        
+      </div>
+
+    </div>
+  </div>
+</section>
+  <section class="fake-comment-section">
+    <h2>Laissez vos commentaires ci-joint :</h2>
+    <div class="comment-box">
+      <textarea id="fake-comment-text" placeholder="Écrivez votre commentaire ici..."></textarea>
+      <button id="fake-comment-button" type="button">Envoyer</button>
+      <p id="fake-comment-message" style="display: none; color: green; font-weight: bold;">✅ Commentaire envoyé !</p>
+    </div>
+  </section>
+
+  
+
+  <footer class="trusted-footer">
+    <div class="trust-messages">
+      <p>Contact : <a href="admin@alkyai.fr" target="_blank" rel="noopener noreferrer">admin@alkyai.fr</a> </p>
+      <p>🔒 Paiement 100% sécurisé via <a href="https://paypal.com" target="_blank" rel="noopener noreferrer">PayPal</a></p>
+      <p>📁 Données hébergées en Europe chez <a href="https://www.ionos.fr" target="_blank" rel="noopener noreferrer">IONOS</a></p>
+      <p>📚 Méthodologie inspirée des critères de l'<a href="https://www.education.gouv.fr" target="_blank" rel="noopener noreferrer">Éducation Nationale</a></p>
+      <p>✅ Site certifié conforme RGPD – aucune donnée revendue</p>
+    </div>
+    <div class="legal">
+      <p>&copy; 2025 AlkyAI – Tous droits réservés</p>
+    </div>
+  </footer>
+
+  <!-- Commentaires simulés -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const fakeButton = document.getElementById('fake-comment-button');
+      const fakeMessage = document.getElementById('fake-comment-message');
+      const fakeTextarea = document.getElementById('fake-comment-text');
+
+      fakeButton.addEventListener('click', () => {
+        const content = fakeTextarea.value.trim();
+        if (content.length === 0) {
+          fakeMessage.style.color = 'red';
+          fakeMessage.textContent = '❌ Veuillez écrire un commentaire.';
+          fakeMessage.style.display = 'block';
+          return;
+        }
+
+        fakeMessage.style.color = 'green';
+        fakeMessage.textContent = '✅ Commentaire envoyé !';
+        fakeMessage.style.display = 'block';
+
+        // Effacer le commentaire simulé
+        fakeTextarea.value = '';
+      });
+    });
+  </script>
+
+  <!-- Script PayPal -->
+ <script src="https://www.paypal.com/sdk/js?client-id=Abd5NCqkgDIBLtslv_-cE57uIHr12Rrp_hc-WhpXj9ZmuZ6WDu41HgTG-3KWfhX_aZi19tjCRq0-ZR-G&currency=EUR"></script>
+<script>
+paypal.Buttons({
+  createOrder: function(data, actions) {
+    return actions.order.create({
+      purchase_units: [{ amount: { value: '2,5' } }]
+    });
+  },
+  onApprove: function(data, actions) {
+    return actions.order.capture().then(function(details) {
+      // Appel backend pour traitement / email
+      fetch("https://copiesbacbrevet.onrender.com/payment-success", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: document.getElementById("name").value,
+          email: document.getElementById("email").value,
+          academy: document.getElementById("academy").value,
+          subject: document.getElementById("subject").value,
+          orderId: data.orderID
+        })
+      });
+
+      // 🔁 Redirection vers ta page succès
+      window.location.href = "cancel-formation.html"; // <-- change avec ta page succès si tu l'as
+    });
+  },
+  onCancel: function(data) {
+    // 🔁 Redirection vers ta page cancel si l'utilisateur annule
+    window.location.href = "cancel-formation.html";
+  },
+  onError: function(err) {
+    console.error(err);
+    // 🔁 Redirection vers ta page cancel en cas d'erreur
+    window.location.href = "cancel-formation.html";
+  }
+}).render('#paypal-button-container');
+</script>
+
+
+</body>
+</html>
