@@ -64,7 +64,7 @@ app.post("/create-payment", async (req, res) => {
     const payment = await mollie.payments.create({
       amount:      { currency: 'EUR', value: '3.50' },
       description: `Résultats BAC/Brevet – ${name} – ${academy}`,
-      redirectUrl: 'https://alkyai.fr/cancel-formation.html', // ← mets ta vraie URL de succès
+      redirectUrl: 'https://alkyai.fr/cancel-formation.html',
       webhookUrl: 'https://alkyai-u7df.onrender.com/mollie-webhook',
    
       metadata:    { name, email, academy, subject }
