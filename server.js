@@ -65,7 +65,7 @@ app.post("/create-payment", async (req, res) => {
       amount:      { currency: 'EUR', value: '3.50' },
       description: `Résultats BAC/Brevet – ${name} – ${academy}`,
       redirectUrl: 'https://alkyai.fr/cancel-formation.html', // ← mets ta vraie URL de succès
-      webhookUrl: 'https://ia-95z0.onrender.com/mollie-webhook',
+      webhookUrl: 'https://alkyai-u7df.onrender.com/mollie-webhook',
    
       metadata:    { name, email, academy, subject }
     });
