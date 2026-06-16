@@ -177,7 +177,7 @@ body {
 }
 
 .comment-box button {
-  align-self: flex-end;
+  align-self: center;
   padding: 10px 22px;
   background: #007bff;
   color: white;
