@@ -11,11 +11,102 @@
 </head>
 <body>
 
+ <!-- MENU -->
+<nav class="navbar">
+  <a href="#" class="navbar-logo">
+    <span>AlkyAI</span>
+  </a>
+
+  <div class="navbar-links" id="navbarLinks">
+    <a href="#demande">Résultats</a>
+    <a href="#moyennes">Moyennes</a>
+    <a href="#chat">Chat</a>
+    <a href="#contact">Contact</a>
+    <a href="#demande" class="navbar-cta mobile-cta">Obtenir mes résultats →</a>
+  </div>
+
+  <a href="#demande" class="navbar-cta desktop-cta">Obtenir mes résultats →</a>
+
+  <button class="navbar-toggle" id="navbarToggle" aria-label="Ouvrir le menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<style>
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: white;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    padding: 0 30px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Inter', sans-serif;
+  }
+  .navbar-logo {
+    display: flex; align-items: center; gap: 10px; text-decoration: none;
+    font-size: 1.4rem; font-weight: 800; color: #555; letter-spacing: -0.5px;
+  }
+  .navbar-links {
+    display: flex; align-items: center; gap: 4px;
+    position: absolute; left: 50%; transform: translateX(-50%);
+  }
+  .navbar-links a {
+    text-decoration: none; color: #555; font-size: 1rem; font-weight: 600;
+    padding: 8px 12px; border-radius: 8px; transition: background .2s, color .2s;
+  }
+  .navbar-links a:hover {
+    background: #f0f4ff; color: #1168f5;
+  }
+  .navbar-cta {
+    text-decoration: none; background: #1168f5; color: white; font-size: 1rem;
+    font-weight: 700; padding: 9px 16px; border-radius: 8px; white-space: nowrap;
+  }
+  .mobile-cta { display: none; }
+  .navbar-toggle {
+    display: none; flex-direction: column; justify-content: center; gap: 5px;
+    width: 32px; height: 32px; background: none; border: none; cursor: pointer; padding: 0;
+  }
+  .navbar-toggle span {
+    display: block; height: 2px; width: 100%; background: #555; border-radius: 2px;
+    transition: all .25s ease;
+  }
+  .navbar-toggle.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .navbar-toggle.active span:nth-child(2) { opacity: 0; }
+  .navbar-toggle.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  @media (max-width: 768px) {
+    .navbar-links {
+      position: absolute; top: 60px; left: 0; right: 0; transform: none;
+      background: white; flex-direction: column; align-items: stretch; gap: 0;
+      box-shadow: 0 8px 12px rgba(0,0,0,0.08);
+      max-height: 0; overflow: hidden; transition: max-height .3s ease;
+    }
+    .navbar-links.open { max-height: 400px; }
+    .navbar-links a { padding: 14px 24px; border-radius: 0; }
+    .mobile-cta { display: inline-block; margin: 12px 24px; text-align: center; }
+    .desktop-cta { display: none; }
+    .navbar-toggle { display: flex; }
+  }
+</style>
+
+<script>
+  const toggleBtn = document.getElementById('navbarToggle');
+  const links = document.getElementById('navbarLinks');
+  toggleBtn.addEventListener('click', () => {
+    toggleBtn.classList.toggle('active');
+    links.classList.toggle('open');
+  });
+</script>
+
   <header class="hero">
     <div class="logo-container">
       <img src="9448bfc1-2cb2-46be-924a-c9d4da2d4d9f.png" alt="Logo AlkyAI" class="logo">
       <h1 class="site-title">AlkyAI</h1>
-      <p class="subtitle">Obtiens tes résultats du BAC et du Brevet 2026 <strong>sans procédure</strong></p>
+      <p class="subtitle">Obtiens tes résultats du BAC et du Brevet 2026 <strong>avant tout le monde !</strong></p>
     </div>
     <div class="official-logos">
       <img src="Logo_du_Gouvernement_de_la_République_française_(2020).svg.png" alt="Logo Parcoursup" />
@@ -25,14 +116,14 @@
   </header>
 
   <section class="intro">
-    <h2>Un service rapide, confidentiel et accessible pour tous les lycéens, collégiens et étudiants de France !</h2>
-    <p>AlkyAI utilise l'intelligence artificielle et les informations officielles pour retrouver vos résultats <strong>du BAC et du Brevet !</strong></p>
+    <h2>Un service rapide, confidentiel et accessible pour tous les lycéens, collégiens et étudiants de France </h2>
+    <p>AlkyAI utilise l'intelligence artificielle et les informations officielles pour retrouver vos résultats <strong>du BAC et du Brevet </strong></p>
   </section>
 
-  <section class="form-section">
+  <section class="form-section" id="demande">
     <div class="security-message">
       <span class="lock-icon">🔒</span>
-      <p>Paiement 100% sécurisé via <a href="https://mollie.com" target="_blank" rel="noopener noreferrer">Mollie</a>. Aucune information bancaire n'est stockée sur notre site.</p>
+      <p>Paiement 100% sécurisé. Aucune information bancaire n'est stockée sur notre site.</p>
     </div>
 
     <h2>Faire une demande</h2>
@@ -119,94 +210,30 @@
     <p>📩 Les résultats sont envoyés par email après paiement.<small class="email-hint">Veuillez entrer une adresse email valide – vos résultats y seront envoyés.</small></p>
     <p>💸 Satisfait ou remboursé : vous pouvez demander un remboursement en cas d'erreur ou d'insatisfaction.</p>
   </section>
-<div style="
-  max-width: 700px;
-  margin: 30px auto;
-  font-family: 'Inter', sans-serif;
-">
-  <div style="
-    background: white;
-    border-radius: 16px;
-    padding: 28px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.07);
-  ">
-    <h3 style="text-align:center; font-size:1rem; color:#111; margin:0 0 20px 0;">
-      📊 Moyennes en direct – BAC & Brevet 2026
-      <span style="display:inline-block; width:8px; height:8px; background:#28a745; border-radius:50%; margin-left:6px; vertical-align:middle; animation: pulse 1.5s infinite;"></span>
-    </h3>
 
-    <div id="stats-grid" style="
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 14px;
-    ">
-      <!-- généré par JS -->
+  <!-- MOYENNES EN DIRECT -->
+  <div id="moyennes" style="max-width:700px; margin:30px auto; font-family:'Inter',sans-serif;">
+    <div style="background:white; border-radius:16px; padding:28px; box-shadow:0 8px 30px rgba(0,0,0,0.07);">
+      <h3 style="text-align:center; font-size:1rem; color:#111; margin:0 0 20px 0;">
+        📊 Moyennes en direct – BAC & Brevet 2026
+        <span style="display:inline-block; width:8px; height:8px; background:#28a745; border-radius:50%; margin-left:6px; vertical-align:middle; animation:pulse 1.5s infinite;"></span>
+      </h3>
+      <div id="stats-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:14px;"></div>
+      <p style="text-align:center; font-size:0.72rem; color:#bbb; margin-top:18px;">
+        Moyennes calculées en temps réel sur les demandes AlkyAI · Mise à jour toutes les secondes
+      </p>
     </div>
-
-    <p style="text-align:center; font-size:0.72rem; color:#bbb; margin-top:18px;">
-      Moyennes calculées en temps réel sur les demandes AlkyAI · Mise à jour toutes les secondes
-    </p>
   </div>
-</div>
 
-<script>
-  const matieres = [
-    { nom: "Mathématiques", emoji: "📐", base: 11.4 },
-    { nom: "Français", emoji: "📝", base: 12.8 },
-    { nom: "Philosophie", emoji: "🧠", base: 10.2 },
-    { nom: "Histoire-Géo", emoji: "🌍", base: 13.1 },
-    { nom: "Anglais", emoji: "🇬🇧", base: 12.3 },
-    { nom: "SVT", emoji: "🧬", base: 11.9 },
-    { nom: "Physique-Chimie", emoji: "⚗️", base: 11.1 },
-    { nom: "SES", emoji: "📈", base: 12.6 },
-    { nom: "Espagnol", emoji: "🇪🇸", base: 13.4 },
-    { nom: "EPS", emoji: "🏃", base: 14.2 },
-    { nom: "Brevet - Maths", emoji: "📐", base: 10.8 },
-    { nom: "Brevet - Français", emoji: "📝", base: 12.1 },
-  ];
-
-  const grid = document.getElementById('stats-grid');
-
-  // Créer les cartes
-  matieres.forEach((m, i) => {
-    const card = document.createElement('div');
-    card.style.cssText = `
-      background: #f8f9fa;
-      border-radius: 12px;
-      padding: 14px 10px;
-      text-align: center;
-    `;
-    card.innerHTML = `
-      <div style="font-size:1.4rem;">${m.emoji}</div>
-      <div style="font-size:0.75rem; color:#666; margin:4px 0 8px; font-weight:600;">${m.nom}</div>
-      <div id="note-${i}" style="font-size:1.5rem; font-weight:800; color:#1168f5;">${m.base.toFixed(1)}</div>
-      <div style="font-size:0.65rem; color:#bbb;">/20</div>
-    `;
-    grid.appendChild(card);
-  });
-
-  // Faire fluctuer les notes légèrement
-  setInterval(() => {
-    matieres.forEach((m, i) => {
-      const variation = (Math.random() - 0.5) * 0.2;
-      m.base = Math.min(20, Math.max(8, m.base + variation));
-      const el = document.getElementById(`note-${i}`);
-      if (el) el.textContent = m.base.toFixed(1);
-    });
-  }, 1500);
-</script>
-  <!-- CHAT UNIQUE -->
-  <section class="temoignages-alkyai">
+  <!-- CHAT EN DIRECT -->
+  <section class="temoignages-alkyai" id="chat">
     <div class="container">
       <h2 class="title"><span class="live-dot"></span> Chat en direct – Réactions des élèves</h2>
-
       <div class="live-chat-box" id="live-chat"></div>
-
       <div class="chat-input-area">
         <input type="text" id="chat-input" placeholder="Écrivez votre message..." maxlength="150">
         <button id="chat-send-btn">Envoyer</button>
       </div>
-
       <div class="chat-rules">
         <p class="rules-title">📋 Règlement du chat</p>
         <ul>
@@ -221,10 +248,15 @@
     </div>
   </section>
 
+  <!-- FORMULAIRE DE CONTACT -->
+  <section id="contact" >
+    
+  </section>
+
   <footer class="trusted-footer">
     <div class="trust-messages">
       <p>Contact : <a href="mailto:admin@alkyai.fr">admin@alkyai.fr</a></p>
-      <p>🔒 Paiement 100% sécurisé via <a href="https://mollie.com" target="_blank" rel="noopener noreferrer">Mollie</a></p>
+      <p>🔒 Paiement 100% sécurisé</p>
       <p>📁 Données hébergées en Europe chez <a href="https://www.ionos.fr" target="_blank" rel="noopener noreferrer">IONOS</a></p>
       <p>📚 Méthodologie inspirée des critères de l'<a href="https://www.education.gouv.fr" target="_blank" rel="noopener noreferrer">Éducation Nationale</a></p>
       <p>✅ Site certifié conforme RGPD – aucune donnée revendue</p>
@@ -234,128 +266,202 @@
     </div>
   </footer>
 
-  <!-- Script Mollie -->
+  <!-- Script paiement -->
   <script>
-  document.getElementById('mollie-pay-button').addEventListener('click', function () {
-    const name   = document.getElementById('name').value.trim();
-    const email  = document.getElementById('email').value.trim();
-    const academy = document.getElementById('academy').value;
-    const errMsg = document.getElementById('mollie-error-msg');
+    document.getElementById('mollie-pay-button').addEventListener('click', function () {
+      const name    = document.getElementById('name').value.trim();
+      const email   = document.getElementById('email').value.trim();
+      const academy = document.getElementById('academy').value;
+      const errMsg  = document.getElementById('mollie-error-msg');
 
-    if (!name || !email || !academy) {
-      errMsg.textContent = '❌ Veuillez remplir tous les champs obligatoires.';
-      errMsg.style.display = 'block';
-      return;
-    }
+      if (!name || !email || !academy) {
+        errMsg.textContent = '❌ Veuillez remplir tous les champs obligatoires.';
+        errMsg.style.display = 'block';
+        return;
+      }
 
-    window.location.href = 'https://square.link/u/M2iQkDqQ';
-  });
-</script>
+      window.location.href = 'https://square.link/u/M2iQkDqQ';
+    });
+  </script>
 
-  <!-- Script Chat -->
+  <!-- Script contact -->
+  <script>
+    document.getElementById('contact-send-btn').addEventListener('click', async function () {
+      const name    = document.getElementById('contact-name').value.trim();
+      const email   = document.getElementById('contact-email').value.trim();
+      const message = document.getElementById('contact-message').value.trim();
+      const success = document.getElementById('contact-success');
+      const error   = document.getElementById('contact-error');
+
+      if (!name || !email || !message) {
+        error.style.display = 'block';
+        success.style.display = 'none';
+        return;
+      }
+
+      try {
+        await fetch('https://alkyai-u7df.onrender.com/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, message })
+        });
+        success.style.display = 'block';
+        error.style.display = 'none';
+        document.getElementById('contact-name').value = '';
+        document.getElementById('contact-email').value = '';
+        document.getElementById('contact-message').value = '';
+      } catch (err) {
+        error.textContent = '❌ Erreur lors de l\'envoi. Réessayez.';
+        error.style.display = 'block';
+      }
+    });
+  </script>
+
+  <!-- Script moyennes -->
+  <script>
+    const matieres = [
+      { nom: "Mathématiques", emoji: "📐", base: 11.4 },
+      { nom: "Français", emoji: "📝", base: 12.8 },
+      { nom: "Philosophie", emoji: "🧠", base: 10.2 },
+      { nom: "Histoire-Géo", emoji: "🌍", base: 13.1 },
+      { nom: "Anglais", emoji: "🇬🇧", base: 12.3 },
+      { nom: "SVT", emoji: "🧬", base: 11.9 },
+      { nom: "Physique-Chimie", emoji: "⚗️", base: 11.1 },
+      { nom: "SES", emoji: "📈", base: 12.6 },
+      { nom: "Espagnol", emoji: "🇪🇸", base: 13.4 },
+      { nom: "EPS", emoji: "🏃", base: 14.2 },
+      { nom: "Brevet - Maths", emoji: "📐", base: 10.8 },
+      { nom: "Brevet - Français", emoji: "📝", base: 12.1 },
+    ];
+
+    const grid = document.getElementById('stats-grid');
+    matieres.forEach((m, i) => {
+      const card = document.createElement('div');
+      card.style.cssText = 'background:#f8f9fa; border-radius:12px; padding:14px 10px; text-align:center;';
+      card.innerHTML = `
+        <div style="font-size:1.4rem;">${m.emoji}</div>
+        <div style="font-size:0.75rem; color:#666; margin:4px 0 8px; font-weight:600;">${m.nom}</div>
+        <div id="note-${i}" style="font-size:1.5rem; font-weight:800; color:#1168f5;">${m.base.toFixed(1)}</div>
+        <div style="font-size:0.65rem; color:#bbb;">/20</div>
+      `;
+      grid.appendChild(card);
+    });
+
+    setInterval(() => {
+      matieres.forEach((m, i) => {
+        const variation = (Math.random() - 0.5) * 0.2;
+        m.base = Math.min(20, Math.max(8, m.base + variation));
+        const el = document.getElementById(`note-${i}`);
+        if (el) el.textContent = m.base.toFixed(1);
+      });
+    }, 1500);
+  </script>
+
+  <!-- Script chat -->
   <script>
     const messages = [
-  { name: "les_fifousssss", text: "olololo le 6 en philo chui dead 💀", color: "#e74c3c" },
-  { name: "zacknot", text: "votez la pétition pour arrêter le bac svp", color: "#8e44ad" },
-  { name: "mistraworld", text: "purée 14 en maths je suis choqué", color: "#2980b9" },
-  { name: "jeromestble", text: "aïe 😢 j'ose même pas regarder", color: "#e67e22" },
-  { name: "yanisbenouda", text: "ouiiiii j'ai mon bac !!! 🎉🎉🎉", color: "#27ae60" },
-  { name: "lina.wave", text: "mention bien je pleure de joie 😭", color: "#e91e8c" },
-  { name: "rayan_bx", text: "j'ai eu mes résultats avant tout le monde grâce à AlkyAI", color: "#007bff" },
-  { name: "sofiab_13", text: "merci AlkyAI ça marche trop vite 🙏", color: "#009688" },
-  { name: "kevthedream", text: "mention TB les gars je suis mort 🔥", color: "#ff5722" },
-  { name: "camille.rlt", text: "le brevet c'est validé !! 1 an de galère", color: "#9c27b0" },
-  { name: "thomasD_59", text: "15 en français je savais même pas que c'était possible lol", color: "#3f51b5" },
-  { name: "noor.official", text: "AlkyAI m'a sauvé la vie j'attendais depuis des heures", color: "#f44336" },
-  { name: "mathis_73", text: "8 en SVT je vais pleurer dans mon coin", color: "#795548" },
-  { name: "juliette.brs", text: "17 en histoire géo !!! je suis trop contente 😭", color: "#e91e8c" },
-  { name: "amine.off", text: "franchement AlkyAI c'est ouf j'ai eu mes notes en 2 min", color: "#00bcd4" },
-  { name: "oceane_13", text: "mention AB validée je suis soulagée", color: "#4caf50" },
-  { name: "hugo.bvx", text: "12 en philo c'est pas si mal je pensais couler", color: "#ff9800" },
-  { name: "sara.mtp", text: "merci AlkyAI sans vous j'aurais attendu jusqu'à demain", color: "#e91e63" },
-  { name: "alexis_nord", text: "9 en maths j'aurais dû écouter en cours 😭", color: "#f44336" },
-  { name: "chloe.paris", text: "18 en français je rêve encore", color: "#9c27b0" },
-  { name: "baptiste.44", text: "j'ai le brevet !!! ma mère elle pleure lol", color: "#27ae60" },
-  { name: "inaya.off", text: "7 en physique chimie c'est une catastrophe", color: "#e74c3c" },
-  { name: "lucas_bx33", text: "AlkyAI top vraiment les résultats arrivent direct par mail", color: "#1168f5" },
-  { name: "emma.strasbourg", text: "mention TB avec les félicitations je suis en PLS de joie", color: "#e91e8c" },
-  { name: "yanis_06", text: "16 en maths j'arrive toujours pas à y croire", color: "#2196f3" },
-  { name: "priya.idf", text: "brevet mention TB 🎉 merci AlkyAI", color: "#009688" },
-  { name: "clement.rouen", text: "10 pile en philo juste assez lol", color: "#ff5722" },
-  { name: "jade.lyon", text: "j'avais trop peur de regarder mais AlkyAI m'a envoyé direct", color: "#8e44ad" },
-  { name: "romain.lille", text: "13 en SES c'est honnête je valide", color: "#3f51b5" },
-  { name: "lena.nantes", text: "mention B au brevet trop contente 😍", color: "#e91e63" },
-  { name: "adam.93", text: "6 en anglais je suis une honte internationale", color: "#e74c3c" },
-  { name: "pauline.grenoble", text: "AlkyAI c'est vraiment pratique les résultats sans stress", color: "#00bcd4" },
-  { name: "mehdi.toulouse", text: "19 en histoire géo je suis le meilleur de la classe", color: "#ff9800" },
-  { name: "zoe.bordeaux", text: "j'ai raté de 2 points c'est une blague la vie", color: "#f44336" },
-  { name: "enzo.marseille", text: "mention TB j'arrive même pas à réaliser 🔥🔥", color: "#27ae60" },
-  { name: "tiphaine.rennes", text: "15 en philo ma prof va pas le croire", color: "#9c27b0" },
-  { name: "nadir.idf", text: "AlkyAI ça m'a évité d'attendre devant le lycée comme un fou", color: "#1168f5" },
-  { name: "clara.montpellier", text: "brevet obtenu !!! je suis trop heureuse 😭😭", color: "#e91e8c" },
-  { name: "ethan.nice", text: "11 en SVT j'aurais pu faire pire", color: "#795548" },
-  { name: "amina.paris", text: "merci AlkyAI résultats reçus par mail direct c'est parfait", color: "#009688" },
-  { name: "gabriel.dijon", text: "8 en maths j'aurais dû travailler bah voilà", color: "#e74c3c" },
-  { name: "manon.angers", text: "17 en français je suis trop fière 🥹", color: "#e91e63" },
-  { name: "ilyes.91", text: "j'avais jamais eu 14 en physique de ma vie", color: "#2196f3" },
-  { name: "lucie.strasbourg", text: "AlkyAI m'a envoyé mes notes avant que le site officiel plante lol", color: "#ff5722" },
-  { name: "pierre.nimes", text: "mention B c'est cool j'espérais pas mieux", color: "#4caf50" },
-  { name: "sara.94", text: "6 en SVT et 16 en histoire comment c'est possible", color: "#ff9800" },
-  { name: "felix.metz", text: "je recommande AlkyAI vraiment rapide et efficace", color: "#00bcd4" },
-  { name: "anais.pau", text: "brevet mention TB à 13 ans j'assure trop 😭", color: "#9c27b0" },
-  { name: "walid.idf", text: "12 en philo c'est pas la honte bon", color: "#3f51b5" },
-  { name: "elisa.lyon", text: "mention AB au bac ma famille est trop fière 🥲", color: "#e91e8c" },
-  { name: "theo.caen", text: "10.5 en maths et maintenant je respire", color: "#795548" },
-  { name: "nadia.13", text: "AlkyAI j'ai reçu mes résultats en quelques minutes top service", color: "#1168f5" },
-  { name: "corentin.brest", text: "mention TB avec les félicitations du jury 😭🔥", color: "#27ae60" },
-  { name: "yasmine.34", text: "7 en anglais je suis une catastrophe vivante", color: "#f44336" },
-  { name: "titouan.lr", text: "14 en maths je suis surpris moi-même lol", color: "#2196f3" },
-  { name: "camelia.reims", text: "merci AlkyAI trop pratique pour avoir ses notes vite", color: "#e91e63" },
-  { name: "soren.alsace", text: "j'ai le bac mention B je pleure de joie", color: "#9c27b0" },
-  { name: "imane.92", text: "15 en SES 13 en philo j'aurais pas cru", color: "#ff9800" },
-  { name: "robin.67", text: "brevet en poche direction les vacances 🏖️", color: "#4caf50" },
-  { name: "celia.toulon", text: "AlkyAI franchement je comprends pas pourquoi j'ai attendu le site officiel avant", color: "#00bcd4" },
-  { name: "maxime.69", text: "16 en histoire 8 en physique c'est un personnage", color: "#e74c3c" },
-  { name: "lola.pau", text: "mention TB au brevet je suis une machine 💪", color: "#e91e8c" },
-  { name: "karim.93", text: "j'attendais depuis 8h du mat AlkyAI m'a envoyé à 10h pile", color: "#1168f5" },
-  { name: "nina.grenoble", text: "18 en français au bac je réalise toujours pas", color: "#9c27b0" },
-  { name: "dorian.56", text: "10 en philo 10 en maths équilibre parfait lol", color: "#ff5722" },
-  { name: "fatou.idf", text: "merci AlkyAI 🙏 résultats reçus rapidement", color: "#009688" },
-  { name: "simon.tours", text: "j'ai raté le bac de 3 points je veux disparaître", color: "#f44336" },
-  { name: "lea.roubaix", text: "AlkyAI c'est top sérieux le site Cyclades plantait", color: "#2196f3" },
-  { name: "omar.06", text: "13 en maths mention B je suis content", color: "#3f51b5" },
-  { name: "sarah.42", text: "j'ai le brevet mention TB et je savais même pas 😭", color: "#e91e63" },
-  { name: "kevin.57", text: "6 en philo c'était couru d'avance", color: "#795548" },
-  { name: "alice.poitiers", text: "AlkyAI m'a vraiment évité le stress de l'attente merci", color: "#00bcd4" },
-  { name: "nabil.idf", text: "mention AB j'aurais voulu TB mais bon je prends", color: "#ff9800" },
-  { name: "paulina.73", text: "19 en SVT je suis une scientifique confirmée 🔬", color: "#27ae60" },
-  { name: "dylan.76", text: "bac pro validé 🎉 direction le boulot", color: "#4caf50" },
-  { name: "rania.34", text: "merci AlkyAI le mail est arrivé en 5 min chrono", color: "#1168f5" },
-  { name: "bastien.clermont", text: "11 partout c'est régulier au moins lol", color: "#ff5722" },
-  { name: "myriam.13", text: "mention TB au bac techno j'aurais jamais cru 😭", color: "#e91e8c" },
-  { name: "antoine.rouen", text: "9 en anglais j'aurais dû regarder plus de séries", color: "#e74c3c" },
-  { name: "lena.63", text: "AlkyAI merci vraiment le site officiel marchait pas", color: "#9c27b0" },
-  { name: "adam.bx", text: "15 en philo ma vie a changé", color: "#2196f3" },
-  { name: "jasmine.idf", text: "brevet validé 🎉 je suis trop soulagée", color: "#009688" },
-  { name: "edouard.51", text: "j'ai eu le bac mention B sans réviser je suis un génie", color: "#ff9800" },
-  { name: "melissa.13", text: "AlkyAI ça devrait être gratuit tellement c'est utile", color: "#e91e63" },
-  { name: "samir.91", text: "17 en histoire j'aurais jamais pensé", color: "#3f51b5" },
-  { name: "victoria.tours", text: "mention TB avec félicitations du jury je suis en PLS 😭🔥", color: "#27ae60" },
-  { name: "nicolas.67", text: "8 en maths 8 en physique au moins c'est cohérent", color: "#795548" },
-  { name: "ines.marseille", text: "merci AlkyAI résultats reçus direct dans ma boite mail", color: "#1168f5" },
-  { name: "theo.59", text: "mention B au brevet j'attendais plus que ça", color: "#4caf50" },
-  { name: "selma.idf", text: "16 en français je suis choquée positivement", color: "#e91e8c" },
-  { name: "loic.35", text: "j'ai failli rater de 0.5 point mon coeur", color: "#f44336" },
-  { name: "ambre.54", text: "AlkyAI trop bien j'ai eu mes résultats avant mes parents lol", color: "#00bcd4" },
-  { name: "younes.93", text: "13 en SVT 11 en physique je valide tranquille", color: "#2196f3" },
-  { name: "helene.31", text: "mention TB au bac S je suis morte de joie 🔥", color: "#9c27b0" },
-  { name: "julien.76", text: "bac pro mention B direction BTS l'année prochaine", color: "#ff9800" },
-  { name: "maya.idf", text: "AlkyAI franchement service au top résultats rapides", color: "#009688" },
-  { name: "axel.69", text: "10.2 en maths le jury m'a sauvé la vie", color: "#ff5722" },
-  { name: "camille.13", text: "mention AB j'espérais TB mais je suis soulagée quand même", color: "#e91e63" },
-  { name: "remi.44", text: "brevet obtenu 🎉 adieu collège bonjour lycée", color: "#27ae60" },
-  { name: "sofia.06", text: "merci AlkyAI sans vous j'aurais paniqué toute la matinée", color: "#1168f5" },
-];
+      { name: "les_fifousssss", text: "olololo le 6 en philo chui dead 💀", color: "#e74c3c" },
+      { name: "zacknot", text: "votez la pétition pour arrêter le bac svp", color: "#8e44ad" },
+      { name: "mistraworld", text: "purée 14 en maths je suis choqué", color: "#2980b9" },
+      { name: "jeromestble", text: "aïe 😢 j'ose même pas regarder", color: "#e67e22" },
+      { name: "yanisbenouda", text: "ouiiiii j'ai mon bac !!! 🎉🎉🎉", color: "#27ae60" },
+      { name: "lina.wave", text: "mention bien je pleure de joie 😭", color: "#e91e8c" },
+      { name: "rayan_bx", text: "j'ai eu mes résultats avant tout le monde grâce à AlkyAI", color: "#007bff" },
+      { name: "sofiab_13", text: "merci AlkyAI ça marche trop vite 🙏", color: "#009688" },
+      { name: "kevthedream", text: "mention TB les gars je suis mort 🔥", color: "#ff5722" },
+      { name: "camille.rlt", text: "le brevet c'est validé !! 1 an de galère", color: "#9c27b0" },
+      { name: "thomasD_59", text: "15 en français je savais même pas que c'était possible lol", color: "#3f51b5" },
+      { name: "noor.official", text: "AlkyAI m'a sauvé la vie j'attendais depuis des heures", color: "#f44336" },
+      { name: "mathis_73", text: "8 en SVT je vais pleurer dans mon coin", color: "#795548" },
+      { name: "juliette.brs", text: "17 en histoire géo !!! je suis trop contente 😭", color: "#e91e8c" },
+      { name: "amine.off", text: "franchement AlkyAI c'est ouf j'ai eu mes notes en 2 min", color: "#00bcd4" },
+      { name: "oceane_13", text: "mention AB validée je suis soulagée", color: "#4caf50" },
+      { name: "hugo.bvx", text: "12 en philo c'est pas si mal je pensais couler", color: "#ff9800" },
+      { name: "sara.mtp", text: "merci AlkyAI sans vous j'aurais attendu jusqu'à demain", color: "#e91e63" },
+      { name: "alexis_nord", text: "9 en maths j'aurais dû écouter en cours 😭", color: "#f44336" },
+      { name: "chloe.paris", text: "18 en français je rêve encore", color: "#9c27b0" },
+      { name: "baptiste.44", text: "j'ai le brevet !!! ma mère elle pleure lol", color: "#27ae60" },
+      { name: "inaya.off", text: "7 en physique chimie c'est une catastrophe", color: "#e74c3c" },
+      { name: "lucas_bx33", text: "AlkyAI top vraiment les résultats arrivent direct par mail", color: "#1168f5" },
+      { name: "emma.strasbourg", text: "mention TB avec les félicitations je suis en PLS de joie", color: "#e91e8c" },
+      { name: "yanis_06", text: "16 en maths j'arrive toujours pas à y croire", color: "#2196f3" },
+      { name: "priya.idf", text: "brevet mention TB 🎉 merci AlkyAI", color: "#009688" },
+      { name: "clement.rouen", text: "10 pile en philo juste assez lol", color: "#ff5722" },
+      { name: "jade.lyon", text: "j'avais trop peur de regarder mais AlkyAI m'a envoyé direct", color: "#8e44ad" },
+      { name: "romain.lille", text: "13 en SES c'est honnête je valide", color: "#3f51b5" },
+      { name: "lena.nantes", text: "mention B au brevet trop contente 😍", color: "#e91e63" },
+      { name: "adam.93", text: "6 en anglais je suis une honte internationale", color: "#e74c3c" },
+      { name: "pauline.grenoble", text: "AlkyAI c'est vraiment pratique les résultats sans stress", color: "#00bcd4" },
+      { name: "mehdi.toulouse", text: "19 en histoire géo je suis le meilleur de la classe", color: "#ff9800" },
+      { name: "zoe.bordeaux", text: "j'ai raté de 2 points c'est une blague la vie", color: "#f44336" },
+      { name: "enzo.marseille", text: "mention TB j'arrive même pas à réaliser 🔥🔥", color: "#27ae60" },
+      { name: "tiphaine.rennes", text: "15 en philo ma prof va pas le croire", color: "#9c27b0" },
+      { name: "nadir.idf", text: "AlkyAI ça m'a évité d'attendre devant le lycée comme un fou", color: "#1168f5" },
+      { name: "clara.montpellier", text: "brevet obtenu !!! je suis trop heureuse 😭😭", color: "#e91e8c" },
+      { name: "ethan.nice", text: "11 en SVT j'aurais pu faire pire", color: "#795548" },
+      { name: "amina.paris", text: "merci AlkyAI résultats reçus par mail direct c'est parfait", color: "#009688" },
+      { name: "gabriel.dijon", text: "8 en maths j'aurais dû travailler bah voilà", color: "#e74c3c" },
+      { name: "manon.angers", text: "17 en français je suis trop fière 🥹", color: "#e91e63" },
+      { name: "ilyes.91", text: "j'avais jamais eu 14 en physique de ma vie", color: "#2196f3" },
+      { name: "lucie.strasbourg", text: "AlkyAI m'a envoyé mes notes avant que le site officiel plante lol", color: "#ff5722" },
+      { name: "pierre.nimes", text: "mention B c'est cool j'espérais pas mieux", color: "#4caf50" },
+      { name: "sara.94", text: "6 en SVT et 16 en histoire comment c'est possible", color: "#ff9800" },
+      { name: "felix.metz", text: "je recommande AlkyAI vraiment rapide et efficace", color: "#00bcd4" },
+      { name: "anais.pau", text: "brevet mention TB à 13 ans j'assure trop 😭", color: "#9c27b0" },
+      { name: "walid.idf", text: "12 en philo c'est pas la honte bon", color: "#3f51b5" },
+      { name: "elisa.lyon", text: "mention AB au bac ma famille est trop fière 🥲", color: "#e91e8c" },
+      { name: "theo.caen", text: "10.5 en maths et maintenant je respire", color: "#795548" },
+      { name: "nadia.13", text: "AlkyAI j'ai reçu mes résultats en quelques minutes top service", color: "#1168f5" },
+      { name: "corentin.brest", text: "mention TB avec les félicitations du jury 😭🔥", color: "#27ae60" },
+      { name: "yasmine.34", text: "7 en anglais je suis une catastrophe vivante", color: "#f44336" },
+      { name: "titouan.lr", text: "14 en maths je suis surpris moi-même lol", color: "#2196f3" },
+      { name: "camelia.reims", text: "merci AlkyAI trop pratique pour avoir ses notes vite", color: "#e91e63" },
+      { name: "soren.alsace", text: "j'ai le bac mention B je pleure de joie", color: "#9c27b0" },
+      { name: "imane.92", text: "15 en SES 13 en philo j'aurais pas cru", color: "#ff9800" },
+      { name: "robin.67", text: "brevet en poche direction les vacances 🏖️", color: "#4caf50" },
+      { name: "celia.toulon", text: "AlkyAI franchement je comprends pas pourquoi j'ai attendu le site officiel avant", color: "#00bcd4" },
+      { name: "maxime.69", text: "16 en histoire 8 en physique c'est un personnage", color: "#e74c3c" },
+      { name: "lola.pau", text: "mention TB au brevet je suis une machine 💪", color: "#e91e8c" },
+      { name: "karim.93", text: "j'attendais depuis 8h du mat AlkyAI m'a envoyé à 10h pile", color: "#1168f5" },
+      { name: "nina.grenoble", text: "18 en français au bac je réalise toujours pas", color: "#9c27b0" },
+      { name: "dorian.56", text: "10 en philo 10 en maths équilibre parfait lol", color: "#ff5722" },
+      { name: "fatou.idf", text: "merci AlkyAI 🙏 résultats reçus rapidement", color: "#009688" },
+      { name: "simon.tours", text: "j'ai raté le bac de 3 points je veux disparaître", color: "#f44336" },
+      { name: "lea.roubaix", text: "AlkyAI c'est top sérieux le site Cyclades plantait", color: "#2196f3" },
+      { name: "omar.06", text: "13 en maths mention B je suis content", color: "#3f51b5" },
+      { name: "sarah.42", text: "j'ai le brevet mention TB et je savais même pas 😭", color: "#e91e63" },
+      { name: "kevin.57", text: "6 en philo c'était couru d'avance", color: "#795548" },
+      { name: "alice.poitiers", text: "AlkyAI m'a vraiment évité le stress de l'attente merci", color: "#00bcd4" },
+      { name: "nabil.idf", text: "mention AB j'aurais voulu TB mais bon je prends", color: "#ff9800" },
+      { name: "paulina.73", text: "19 en SVT je suis une scientifique confirmée 🔬", color: "#27ae60" },
+      { name: "dylan.76", text: "bac pro validé 🎉 direction le boulot", color: "#4caf50" },
+      { name: "rania.34", text: "merci AlkyAI le mail est arrivé en 5 min chrono", color: "#1168f5" },
+      { name: "bastien.clermont", text: "11 partout c'est régulier au moins lol", color: "#ff5722" },
+      { name: "myriam.13", text: "mention TB au bac techno j'aurais jamais cru 😭", color: "#e91e8c" },
+      { name: "antoine.rouen", text: "9 en anglais j'aurais dû regarder plus de séries", color: "#e74c3c" },
+      { name: "lena.63", text: "AlkyAI merci vraiment le site officiel marchait pas", color: "#9c27b0" },
+      { name: "adam.bx", text: "15 en philo ma vie a changé", color: "#2196f3" },
+      { name: "jasmine.idf", text: "brevet validé 🎉 je suis trop soulagée", color: "#009688" },
+      { name: "edouard.51", text: "j'ai eu le bac mention B sans réviser je suis un génie", color: "#ff9800" },
+      { name: "melissa.13", text: "AlkyAI ça devrait être gratuit tellement c'est utile", color: "#e91e63" },
+      { name: "samir.91", text: "17 en histoire j'aurais jamais pensé", color: "#3f51b5" },
+      { name: "victoria.tours", text: "mention TB avec félicitations du jury je suis en PLS 😭🔥", color: "#27ae60" },
+      { name: "nicolas.67", text: "8 en maths 8 en physique au moins c'est cohérent", color: "#795548" },
+      { name: "ines.marseille", text: "merci AlkyAI résultats reçus direct dans ma boite mail", color: "#1168f5" },
+      { name: "theo.59", text: "mention B au brevet j'attendais plus que ça", color: "#4caf50" },
+      { name: "selma.idf", text: "16 en français je suis choquée positivement", color: "#e91e8c" },
+      { name: "loic.35", text: "j'ai failli rater de 0.5 point mon coeur", color: "#f44336" },
+      { name: "ambre.54", text: "AlkyAI trop bien j'ai eu mes résultats avant mes parents lol", color: "#00bcd4" },
+      { name: "younes.93", text: "13 en SVT 11 en physique je valide tranquille", color: "#2196f3" },
+      { name: "helene.31", text: "mention TB au bac S je suis morte de joie 🔥", color: "#9c27b0" },
+      { name: "julien.76", text: "bac pro mention B direction BTS l'année prochaine", color: "#ff9800" },
+      { name: "maya.idf", text: "AlkyAI franchement service au top résultats rapides", color: "#009688" },
+      { name: "axel.69", text: "10.2 en maths le jury m'a sauvé la vie", color: "#ff5722" },
+      { name: "camille.13", text: "mention AB j'espérais TB mais je suis soulagée quand même", color: "#e91e63" },
+      { name: "remi.44", text: "brevet obtenu 🎉 adieu collège bonjour lycée", color: "#27ae60" },
+      { name: "sofia.06", text: "merci AlkyAI sans vous j'aurais paniqué toute la matinée", color: "#1168f5" },
+    ];
+
     const chat = document.getElementById('live-chat');
     let index = 0;
 
@@ -369,7 +475,7 @@
       const div = document.createElement('div');
       div.classList.add('chat-msg');
       div.innerHTML = `
-        <div class="chat-avatar" style="background: linear-gradient(135deg, ${color}, #00c3ff);">${initiale}</div>
+        <div class="chat-avatar" style="background:linear-gradient(135deg,${color},#00c3ff);">${initiale}</div>
         <div class="chat-bubble">
           <div class="chat-name">@${name}</div>
           <div class="chat-text">${text}</div>
