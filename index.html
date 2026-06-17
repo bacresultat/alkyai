@@ -26,8 +26,7 @@
   </div>
 
   <a href="#demande" class="navbar-cta desktop-cta">Obtenir mes résultats →</a>
-
-  <button class="navbar-toggle" id="navbarToggle" aria-label="Ouvrir le menu">
+  <button class="navbar-toggle" id="navbarToggle" type="button" aria-label="Ouvrir le menu">
     <span></span><span></span><span></span>
   </button>
 </nav>
@@ -66,43 +65,50 @@
     font-weight: 700; padding: 9px 16px; border-radius: 8px; white-space: nowrap;
   }
   .mobile-cta { display: none; }
+
   .navbar-toggle {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  width: 32px;
-  height: 32px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  margin: 0 0 0 auto; /* le pousse à droite quoi qu'il arrive */
-  box-sizing: border-box;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
-}
-.navbar-toggle::-moz-focus-inner {
-  border: 0;
-}
-.navbar-toggle:focus,
-.navbar-toggle:active {
-  outline: none;
-  background: none;
-}
-.navbar-toggle span {
-  display: block;
-  height: 2px;
-  width: 100%;
-  background: #555;
-  border-radius: 2px;
-  transition: all .25s ease;
-  pointer-events: none;
-}
-.navbar-toggle.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.navbar-toggle.active span:nth-child(2) { opacity: 0; }
-.navbar-toggle.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 32px;
+    height: 32px;
+    background: transparent !important;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin: 0 0 0 auto;
+    box-sizing: border-box;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  .navbar-toggle::-moz-focus-inner {
+    border: 0;
+  }
+  .navbar-toggle:focus,
+  .navbar-toggle:active,
+  .navbar-toggle:hover {
+    outline: none;
+    background: transparent !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  .navbar-toggle span {
+    display: block;
+    height: 2px;
+    width: 100%;
+    background: #555;
+    border-radius: 2px;
+    transition: all .25s ease;
+    pointer-events: none;
+  }
+  .navbar-toggle.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .navbar-toggle.active span:nth-child(2) { opacity: 0; }
+  .navbar-toggle.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
   @media (max-width: 768px) {
     .navbar-links {
@@ -122,12 +128,21 @@
 <script>
   const toggleBtn = document.getElementById('navbarToggle');
   const links = document.getElementById('navbarLinks');
+
   toggleBtn.addEventListener('click', () => {
     toggleBtn.classList.toggle('active');
     links.classList.toggle('open');
   });
+
+  links.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      toggleBtn.classList.remove('active');
+      links.classList.remove('open');
+    });
+  });
 </script>
 
+  
   <header class="hero">
     <div class="logo-container">
       <img src="9448bfc1-2cb2-46be-924a-c9d4da2d4d9f.png" alt="Logo AlkyAI" class="logo">
