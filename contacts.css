@@ -98,7 +98,21 @@ body {
     font-size:.9rem;
     color:#666;
 }
+.titre-container {
+    text-align: center;
+}
 
+.titre-demande {
+    display: inline-block;
+    color: #1168f5;
+    border: 2px solid #1168f5;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: 600;
+    background: #eff6ff;
+    margin: 15px 0;
+}
 @media(max-width:768px){
 
     .about-top{
