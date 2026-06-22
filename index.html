@@ -661,6 +661,11 @@
       { name: "remi4", text: "brevet obtenu 🎉 adieu collège bonjour lycée", color: "#27ae60" },
       { name: "sofia6989", text: "merci  sans vous j'aurais paniqué toute la matinée", color: "#1168f5" },
     ];
+    // Mélange aléatoire des messages
+for (let i = messages.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [messages[i], messages[j]] = [messages[j], messages[i]];
+}
 
     const chat = document.getElementById('live-chat');
     let index = 0;
@@ -692,8 +697,15 @@
       index++;
     }
 
-    autoMessage();
-    setInterval(autoMessage, 2500);
+    function startChat() {
+  autoMessage();
+
+  const delay = 1500 + Math.random() * 5000; // entre 1,5 et 6,5 sec
+
+  setTimeout(startChat, delay);
+}
+
+startChat();
 
     document.getElementById('chat-send-btn').addEventListener('click', () => {
       const input = document.getElementById('chat-input');
