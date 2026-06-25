@@ -222,8 +222,8 @@
         <option value="Nouvelle-Calédonie">Nouvelle-Calédonie</option>
         <option value="Autres">Autres</option>
       </select>
-      <label for="academy">Diplôme :</label>
-      <select id="academy" name="academy" required>
+      <label for="diplome">Diplôme :</label>
+<select id="diplome" name="diplome" required>
         <option value="">Choisir un diplôme</option>
         <option value="Aix-Marseille">Baccalauréat</option>
         <option value="Amiens">Brevet</option>
@@ -231,74 +231,71 @@
         
         <option value="Autres">Autres</option>
       </select>
-       <label for="academy">Matière :</label>
-      <select id="academy" name="academy" required>
-        <option value="">Choisir une matière</option>
+       <label>Matière : <span style="color:red;">*</span></label>
+<fieldset id="academy-group" style="border: 1px solid #ccc; border-radius: 6px; padding: 12px; max-height: 300px; overflow-y: auto;">
+  <legend>Choisissez une ou plusieurs matières</legend>
 
-<option value="Allemand">Allemand</option>
-<option value="Anglais">Anglais</option>
-<option value="Arabe">Arabe</option>
-<option value="Arts appliqués">Arts appliqués</option>
-<option value="Arts plastiques">Arts plastiques</option>
-<option value="Basque">Basque</option>
-<option value="Biotechnologies">Biotechnologies</option>
-<option value="Chinois">Chinois</option>
-<option value="Création et innovation technologiques">Création et innovation technologiques</option>
-<option value="Droit et économie">Droit et économie</option>
-<option value="Économie-Droit">Économie-Droit</option>
-<option value="Économie-Gestion">Économie-Gestion</option>
-<option value="Éducation musicale">Éducation musicale</option>
-<option value="EMC">Enseignement moral et civique (EMC)</option>
-<option value="Enseignement scientifique">Enseignement scientifique</option>
-<option value="EPS">Éducation physique et sportive (EPS)</option>
-<option value="Espagnol">Espagnol</option>
-<option value="Français">Français</option>
-<option value="Génie civil">Génie civil</option>
-<option value="Génie électrique">Génie électrique</option>
-<option value="Génie mécanique">Génie mécanique</option>
-<option value="Grand Oral">Grand Oral</option>
-<option value="Grec">Grec</option>
-<option value="HGGSP">Histoire-Géographie, Géopolitique et Sciences politiques (HGGSP)</option>
-<option value="Histoire-Géographie">Histoire-Géographie</option>
-<option value="HLP">Humanités, Littérature et Philosophie (HLP)</option>
-<option value="Hôtellerie-Restauration">Hôtellerie-Restauration</option>
-<option value="Italien">Italien</option>
-<option value="Japonais">Japonais</option>
-<option value="Langue vivante A">Langue vivante A</option>
-<option value="Langue vivante B">Langue vivante B</option>
-<option value="Latin">Latin</option>
-<option value="LLCA">Littérature, Langues et Cultures de l'Antiquité (LLCA)</option>
-<option value="LLCE">Langues, Littératures et Cultures Étrangères (LLCE)</option>
-<option value="Management">Management</option>
-<option value="Management, sciences de gestion et numérique">Management, sciences de gestion et numérique</option>
-<option value="Mathématiques">Mathématiques</option>
-<option value="Mathématiques complémentaires">Mathématiques complémentaires</option>
-<option value="Mathématiques expertes">Mathématiques expertes</option>
-<option value="Métiers de l'accueil">Métiers de l'accueil</option>
-<option value="Numérique et Sciences Informatiques">Numérique et Sciences Informatiques (NSI)</option>
-<option value="Oral du brevet">Oral du brevet</option>
-<option value="Philosophie">Philosophie</option>
-<option value="Physique-Chimie">Physique-Chimie</option>
-<option value="Portugais">Portugais</option>
-<option value="Prévention Santé Environnement">Prévention Santé Environnement (PSE)</option>
-<option value="Projet">Projet</option>
-<option value="Russe">Russe</option>
-<option value="Sciences">Sciences</option>
-<option value="Sciences de gestion et numérique">Sciences de gestion et numérique</option>
-<option value="Sciences de l'ingénieur">Sciences de l'ingénieur (SI)</option>
-<option value="Sciences de la vie et de la Terre">Sciences de la vie et de la Terre (SVT)</option>
-<option value="Sciences et technologies de laboratoire">Sciences et technologies de laboratoire</option>
-<option value="Sciences et technologies sanitaires et sociales">Sciences et technologies sanitaires et sociales</option>
-<option value="SES">Sciences économiques et sociales (SES)</option>
-<option value="SII">Sciences industrielles de l'ingénieur (SII)</option>
-<option value="Spécialité professionnelle">Spécialité professionnelle</option>
-<option value="Technologie">Technologie</option>
-       
-       
-        
-        
-        <option value="Autres">Autres</option>
-      </select>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Allemand"> Allemand</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Anglais"> Anglais</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Arabe"> Arabe</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Arts appliqués"> Arts appliqués</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Arts plastiques"> Arts plastiques</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Basque"> Basque</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Biotechnologies"> Biotechnologies</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Chinois"> Chinois</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Création et innovation technologiques"> Création et innovation technologiques</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Droit et économie"> Droit et économie</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Économie-Droit"> Économie-Droit</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Économie-Gestion"> Économie-Gestion</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Éducation musicale"> Éducation musicale</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="EMC"> Enseignement moral et civique (EMC)</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Enseignement scientifique"> Enseignement scientifique</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="EPS"> Éducation physique et sportive (EPS)</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Espagnol"> Espagnol</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Français"> Français</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Génie civil"> Génie civil</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Génie électrique"> Génie électrique</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Génie mécanique"> Génie mécanique</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Grand Oral"> Grand Oral</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Grec"> Grec</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="HGGSP"> Histoire-Géographie, Géopolitique et Sciences politiques (HGGSP)</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Histoire-Géographie"> Histoire-Géographie</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="HLP"> Humanités, Littérature et Philosophie (HLP)</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Hôtellerie-Restauration"> Hôtellerie-Restauration</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Italien"> Italien</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Japonais"> Japonais</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Langue vivante A"> Langue vivante A</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Langue vivante B"> Langue vivante B</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Latin"> Latin</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="LLCA"> Littérature, Langues et Cultures de l'Antiquité (LLCA)</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="LLCE"> Langues, Littératures et Cultures Étrangères (LLCE)</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Management"> Management</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Management, sciences de gestion et numérique"> Management, sciences de gestion et numérique</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Mathématiques"> Mathématiques</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Mathématiques complémentaires"> Mathématiques complémentaires</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Mathématiques expertes"> Mathématiques expertes</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Métiers de l'accueil"> Métiers de l'accueil</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Numérique et Sciences Informatiques"> Numérique et Sciences Informatiques (NSI)</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Oral du brevet"> Oral du brevet</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Philosophie"> Philosophie</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Physique-Chimie"> Physique-Chimie</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Portugais"> Portugais</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Prévention Santé Environnement"> Prévention Santé Environnement (PSE)</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Projet"> Projet</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Russe"> Russe</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Sciences"> Sciences</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Sciences de gestion et numérique"> Sciences de gestion et numérique</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Sciences de l'ingénieur"> Sciences de l'ingénieur (SI)</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Sciences de la vie et de la Terre"> Sciences de la vie et de la Terre (SVT)</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Sciences et technologies de laboratoire"> Sciences et technologies de laboratoire</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Sciences et technologies sanitaires et sociales"> Sciences et technologies sanitaires et sociales</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="SES"> Sciences économiques et sociales (SES)</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="SII"> Sciences industrielles de l'ingénieur (SII)</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Spécialité professionnelle"> Spécialité professionnelle</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Technologie"> Technologie</label>
+  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Autres"> Autres</label>
+</fieldset>
+<small id="academy-error" style="color:red; display:none;">Veuillez sélectionner au moins une matière.</small>
 
       
       
@@ -467,24 +464,87 @@
   </footer>
 
   <!-- Script paiement -->
-  <script>
-    document.getElementById('mollie-pay-button').addEventListener('click', function () {
-      const name    = document.getElementById('name').value.trim();
-      const email   = document.getElementById('email').value.trim();
-      const academy = document.getElementById('academy').value;
-      const errMsg  = document.getElementById('mollie-error-msg');
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
-      if (!name || !email || !academy) {
-        errMsg.textContent = '❌ Veuillez remplir tous les champs obligatoires.';
-        errMsg.style.display = 'block';
-        return;
-      }
+  const paymentLinks = {
+    1: "https://square.link/u/CwGZx0rQ",
+    2: "https://square.link/u/iXPwJLpc",
+    3: "https://square.link/u/p14lk9VV",
+    4: "https://square.link/u/rwaoQJ3a",
+    5: "https://square.link/u/rnmMsg58",
+    6: "https://square.link/u/STlyX3k1",
+    7: "https://square.link/u/FvkIp2oe",
+    8: "https://square.link/u/IKnyDJB3",
+    9: "https://square.link/u/FcArZyHP",
+    10: "https://square.link/u/NLldxRKX"
+  };
 
-      window.location.href = 'https://square.link/u/CwGZx0rQ';
+  const button = document.getElementById('mollie-pay-button');
+
+  if (!button) {
+    console.error("Bouton mollie-pay-button introuvable");
+    return;
+  }
+
+  button.addEventListener('click', function () {
+
+    const errorMsg = document.getElementById('mollie-error-msg');
+    const academyError = document.getElementById('academy-error');
+
+    if (errorMsg) errorMsg.style.display = 'none';
+    if (academyError) academyError.style.display = 'none';
+
+    const nom = document.getElementById('name')?.value.trim() || '';
+    const prenom = document.getElementById('prenom')?.value.trim() || '';
+    const email = document.getElementById('email')?.value.trim() || '';
+    const academie = document.getElementById('academy')?.value || '';
+    const diplome = document.getElementById('diplome')?.value || '';
+
+    const nombreMatieres =
+      document.querySelectorAll('.academy-cb:checked').length;
+
+    console.log({
+      nom,
+      prenom,
+      email,
+      academie,
+      diplome,
+      nombreMatieres
     });
-  </script>
 
-  <!-- Script contact -->
+    if (!nom || !prenom || !email || !academie || !diplome) {
+      if (errorMsg) {
+        errorMsg.textContent =
+          "Merci de remplir tous les champs du formulaire.";
+        errorMsg.style.display = 'block';
+      }
+      return;
+    }
+
+    if (nombreMatieres === 0) {
+      if (academyError) academyError.style.display = 'block';
+      return;
+    }
+
+    const lien = paymentLinks[nombreMatieres];
+
+    if (!lien) {
+      if (errorMsg) {
+        errorMsg.textContent =
+          "Trop de matières sélectionnées. Veuillez en sélectionner 10 au maximum.";
+        errorMsg.style.display = 'block';
+      }
+      return;
+    }
+
+    console.log("Redirection vers :", lien);
+
+    // Ouvre le lien de paiement
+    window.location.assign(lien);
+  });
+});
+</script>  <!-- Script contact -->
   <script>
     document.getElementById('contact-send-btn').addEventListener('click', async function () {
       const name    = document.getElementById('contact-name').value.trim();
@@ -566,9 +626,9 @@
       { name: "jeromestble", text: "aïe 😢 j'ose même pas regarder", color: "#e67e22" },
       { name: "yanisbenouda", text: "ouiiiii j'ai mon bac !!! 🎉🎉🎉", color: "#27ae60" },
       { name: "lina.wave", text: "mention bien je pleure de joie 😭", color: "#e91e8c" },
-      { name: "rayan_bx", text: "j'ai eu mes résultats avant tout le monde ", color: "#007bff" },
-      { name: "sofiab_13", text: "merci  ça marche trop vite 🙏", color: "#009688" },
-      { name: "kevthedream", text: "mention TB les gars je suis mort 🔥", color: "#ff5722" },
+      { name: "rayan_bx", text: "j'espere la france win ", color: "#007bff" },
+      { name: "sofiab_13", text: "merci ça marche🙏", color: "#009688" },
+      { name: "kevthedream", text: "mention TB les gars  🔥", color: "#ff5722" },
       { name: "camille.rlt", text: "le brevet c'est validé !! 1 an de galère", color: "#9c27b0" },
       { name: "thomasD_59", text: "15 en français je savais même pas que c'était possible lol", color: "#3f51b5" },
       { name: "noor.official", text: "Alkyai m'a sauvé la vie j'attendais depuis des heures", color: "#f44336" },
