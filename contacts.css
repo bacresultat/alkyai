@@ -101,7 +101,105 @@ body {
 .titre-container {
     text-align: center;
 }
+.stats-section{
+  max-width: 900px;
+  margin: 40px auto;
+  font-family: 'Inter', sans-serif;
+  padding: 0 15px;
+}
 
+.stats-card{
+  background: white;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.07);
+}
+
+.stats-title{
+  text-align:center;
+  font-size: 1rem;
+  margin-bottom: 25px;
+  color:#111;
+}
+
+.live-dot{
+  display:inline-block;
+  width:8px;
+  height:8px;
+  background:#28a745;
+  border-radius:50%;
+  margin-left:6px;
+  animation:pulse 1.5s infinite;
+}
+
+.stats-wrapper{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.stats-block h4{
+  text-align:center;
+  margin-bottom:10px;
+  color:#333;
+}
+
+.stats-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap:12px;
+}
+
+.stat-card{
+  background:#f8f9fa;
+  border-radius:12px;
+  padding:12px;
+  text-align:center;
+  transition: transform .2s;
+}
+
+.stat-card:hover{
+  transform: translateY(-3px);
+}
+
+.stat-emoji{
+  font-size:1.3rem;
+}
+
+.stat-name{
+  font-size:0.72rem;
+  color:#666;
+  font-weight:600;
+  margin:4px 0;
+}
+.stat-value{
+  font-size:1.4rem;
+  font-weight:800;
+  color:#1168f5;
+}
+
+.stat-value.indispo{
+  color:#999;
+  font-size:1rem;
+}
+.stat-value{
+  font-size:1.4rem;
+  font-weight:800;
+  color:#1168f5;
+}
+
+.stats-footer{
+  text-align:center;
+  font-size:0.75rem;
+  color:#aaa;
+  margin-top:18px;
+}
+
+@media(max-width:768px){
+  .stats-wrapper{
+    grid-template-columns:1fr;
+  }
+}
 .titre-demande {
     display: inline-block;
     color: #1168f5;
