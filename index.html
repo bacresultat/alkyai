@@ -317,12 +317,77 @@
       <p id="mollie-error-msg" style="display:none; color:red; font-weight:bold;"></p>
 
       <div class="payment-icons">
-        <img src="Apple_Pay_logo.svg.png" alt="Apple Pay">
-        <img src="Mastercard-logo.svg.webp" alt="Mastercard">
-        <img src="Google_Pay_Logo.svg.png" alt="Google Pay">
-        <img src="Visa-Logo-2006–2014.jpg" alt="Visa">
-        <img src="Paypal_2014_logo.png" alt="PayPal">
-      </div>
+  <img src="Apple_Pay_logo.svg.png" alt="Apple Pay">
+  <img src="Mastercard-logo.svg.webp" alt="Mastercard">
+  <img src="Google_Pay_Logo.svg.png" alt="Google Pay">
+  <img src="Visa-Logo-2006–2014.jpg" alt="Visa">
+  <img src="Paypal_2014_logo.png" alt="PayPal">
+</div>
+
+<p class="pricing-note">
+  <strong>Tarification flexible :</strong><br>
+  1 matière : <span class="price">2,80€</span><br>
+  Chaque matière supplémentaire : <span class="price">+2,00€</span><br>
+  <span class="small-text">Offre adaptée aux besoins des étudiants.</span>
+</p>
+
+<style>
+.payment-icons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.payment-icons img {
+  height: 28px;
+  object-fit: contain;
+  filter: grayscale(10%);
+  transition: transform 0.2s ease;
+}
+.pricing-note {
+  background: #f8f9fb;
+  border: 1px solid #e6e8ee;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  color: #333;
+  max-width: 320px;
+  line-height: 1.4;
+
+  /* AJOUT POUR CENTRER */
+  margin: 0 auto;
+  text-align: center;
+}
+.payment-icons img:hover {
+  transform: scale(1.08);
+  filter: grayscale(0%);
+}
+
+.pricing-note {
+  background: #f8f9fb;
+  border: 1px solid #e6e8ee;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  color: #333;
+  max-width: 320px;
+  line-height: 1.4;
+}
+
+.pricing-note .price {
+  font-weight: bold;
+  color: #1a73e8;
+}
+
+.pricing-note .small-text {
+  font-size: 12px;
+  color: #666;
+}
+</style>
     </form>
   </section>
 
