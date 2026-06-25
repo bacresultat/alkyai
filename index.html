@@ -19,8 +19,8 @@
 
   <div class="navbar-links" id="navbarLinks">
     <a href="#demande">Résultats</a>
-    <a href="#moyennes">Moyennes</a>
-    <a href="#chat">LiveChat</a>
+    <a href="#moyennes">Moyennes Live</a>
+    <a href="#chat">Chat Live</a>
     
     <a href="#contact">Contact</a>
     <a href="#apropos">Qui sommes-nous ?</a>
@@ -332,18 +332,39 @@
   </section>
 
   <!-- MOYENNES EN DIRECT -->
-  <div id="moyennes" style="max-width:700px; margin:30px auto; font-family:'Inter',sans-serif;">
-    <div style="background:white; border-radius:16px; padding:28px; box-shadow:0 8px 30px rgba(0,0,0,0.07);">
-      <h3 style="text-align:center; font-size:1rem; color:#111; margin:0 0 20px 0;">
-        📊 Moyennes en direct – BAC & Brevet 2026
-        <span style="display:inline-block; width:8px; height:8px; background:#28a745; border-radius:50%; margin-left:6px; vertical-align:middle; animation:pulse 1.5s infinite;"></span>
-      </h3>
-      <div id="stats-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:14px;"></div>
-      <p style="text-align:center; font-size:0.72rem; color:#bbb; margin-top:18px;">
-        Moyennes calculées en temps réel sur les demandes AlkyAI · Mise à jour toutes les secondes
-      </p>
+  <!-- MOYENNES EN DIRECT -->
+<div id="moyennes" class="stats-section">
+  <div class="stats-card">
+
+    <h3 class="stats-title">
+      📊 Moyennes en direct – BAC & Brevet 2026
+      <span class="live-dot"></span>
+    </h3>
+
+    <div class="stats-wrapper">
+
+      <!-- BAC -->
+      <div class="stats-block">
+        <h4>🎓 BAC</h4>
+        <div id="stats-bac" class="stats-grid"></div>
+      </div>
+
+      <!-- BREvet -->
+      <div class="stats-block">
+        <h4>📘 Brevet</h4>
+        <div id="stats-brevet" class="stats-grid"></div>
+      </div>
+
     </div>
+
+    <p class="stats-footer">
+      Moyennes en temps réel · Mise à jour automatique · Certaines matières ne sont pas disponibles pour le moment
+       <br>
+       Les moyennes sont calculées à partir des données récoltées par notre IA.
+    </p>
+
   </div>
+</div>
 
   <!-- CHAT EN DIRECT -->
   <section class="temoignages-alkyai" id="chat">
@@ -579,43 +600,132 @@ document.addEventListener('DOMContentLoaded', function () {
 
   <!-- Script moyennes -->
   <script>
-    const matieres = [
-      { nom: "Mathématiques", emoji: "📐", base: 11.4 },
-      { nom: "Français", emoji: "📝", base: 12.8 },
-      { nom: "Philosophie", emoji: "🧠", base: 10.2 },
-      { nom: "Histoire-Géo", emoji: "🌍", base: 13.1 },
-      { nom: "Anglais", emoji: "🇬🇧", base: 12.3 },
-      { nom: "SVT", emoji: "🧬", base: 11.9 },
-      { nom: "Physique-Chimie", emoji: "⚗️", base: 11.1 },
-      { nom: "SES", emoji: "📈", base: 12.6 },
-      { nom: "Espagnol", emoji: "🇪🇸", base: 13.4 },
-      { nom: "EPS", emoji: "🏃", base: 14.2 },
-      { nom: "Brevet - Maths", emoji: "📐", base: 10.8 },
-      { nom: "Brevet - Français", emoji: "📝", base: 12.1 },
-    ];
 
-    const grid = document.getElementById('stats-grid');
-    matieres.forEach((m, i) => {
-      const card = document.createElement('div');
-      card.style.cssText = 'background:#f8f9fa; border-radius:12px; padding:14px 10px; text-align:center;';
-      card.innerHTML = `
-        <div style="font-size:1.4rem;">${m.emoji}</div>
-        <div style="font-size:0.75rem; color:#666; margin:4px 0 8px; font-weight:600;">${m.nom}</div>
-        <div id="note-${i}" style="font-size:1.5rem; font-weight:800; color:#1168f5;">${m.base.toFixed(1)}</div>
-        <div style="font-size:0.65rem; color:#bbb;">/20</div>
-      `;
-      grid.appendChild(card);
-    });
+const matieresBAC = [
+  { nom:"Mathématiques", emoji:"📐", base:11.4 },
+  { nom:"Français", emoji:"📝", base:12.8 },
+  { nom:"Philosophie", emoji:"🧠", base:10.2 },
+  { nom:"Histoire-Géographie", emoji:"🌍", base:13.1 },
+  { nom:"Anglais (LVA)", emoji:"🇬🇧", base:12.3 },
+  { nom:"Espagnol (LVB)", emoji:"🇪🇸", base:13.4 },
+  { nom:"Allemand", emoji:"🇩🇪", base:11.7 },
+  { nom:"Enseignement scientifique", emoji:"🔬", base:11.6 },
+  { nom:"EMC", emoji:"⚖️", base:12.4 },
+  { nom:"EPS", emoji:"🏃", base:14.2 },
 
-    setInterval(() => {
-      matieres.forEach((m, i) => {
-        const variation = (Math.random() - 0.5) * 0.2;
-        m.base = Math.min(20, Math.max(8, m.base + variation));
-        const el = document.getElementById(`note-${i}`);
-        if (el) el.textContent = m.base.toFixed(1);
-      });
-    }, 1500);
-  </script>
+  { nom:"SVT", emoji:"🧬", base:11.9 },
+  { nom:"Physique-Chimie", emoji:"⚗️", base:11.1 },
+  { nom:"SES", emoji:"📈", base:12.6 },
+  { nom:"NSI", emoji:"💻", base:12.0 },
+  { nom:"HGGSP", emoji:"🏛️", base:13.0 },
+  { nom:"HLP", emoji:"📚", base:11.8 },
+  { nom:"LLCE", emoji:"🌎", base:12.4 },
+  { nom:"LLCA", emoji:"🏺", base:11.5 },
+  { nom:"Sciences de l'Ingénieur", emoji:"⚙️", base:11.3 },
+  { nom:"Arts", emoji:"🎨", base:13.2 },
+
+  { nom:"Grand Oral", emoji:"🎤", base:"Indisponible" },
+
+  { nom:"Maths expertes", emoji:"➗", base:11.0 },
+  { nom:"Maths complémentaires", emoji:"📏", base:12.1 },
+  { nom:"Latin", emoji:"🏛️", base:13.1 },
+  { nom:"Grec", emoji:"📜", base:12.7 }
+];
+
+const matieresBREVET = [
+  { nom:"Français", emoji:"📝", base:"Indisponible" },
+  { nom:"Mathématiques", emoji:"📐", base:"Indisponible" },
+  { nom:"Histoire-Géographie", emoji:"🌍", base:"Indisponible" },
+  { nom:"EMC", emoji:"⚖️", base:"Indisponible" },
+
+  { nom:"Physique-Chimie", emoji:"⚗️", base:"Indisponible" },
+  { nom:"SVT", emoji:"🧬", base:"Indisponible" },
+  { nom:"Technologie", emoji:"💻", base:"Indisponible" },
+
+  { nom:"Oral du brevet", emoji:"🎤", base:"Indisponible" },
+
+  { nom:"Contrôle continu - Français", emoji:"📝", base:"Indisponible" },
+  { nom:"Contrôle continu - Maths", emoji:"📐", base:"Indisponible" },
+  { nom:"Contrôle continu - Histoire-Géo", emoji:"🌍", base:"Indisponible" },
+  { nom:"Contrôle continu - Sciences", emoji:"🔬", base:"Indisponible" },
+  { nom:"Contrôle continu - Langues", emoji:"🌐", base:"Indisponible" },
+  { nom:"Contrôle continu - Arts", emoji:"🎨", base:"Indisponible" },
+  { nom:"Contrôle continu - EPS", emoji:"🏃", base:"Indisponible" }
+];
+
+function createCard(m, i, prefix){
+
+  const card = document.createElement("div");
+  card.className = "stat-card";
+
+  card.innerHTML = `
+    <div class="stat-emoji">${m.emoji}</div>
+
+    <div class="stat-name">
+      ${m.nom}
+    </div>
+
+    <div id="${prefix}-${i}" class="stat-value">
+      ${typeof m.base === "number"
+        ? m.base.toFixed(1)
+        : m.base}
+    </div>
+
+    ${
+      typeof m.base === "number"
+      ? '<div style="font-size:0.65rem;color:#bbb;">/20</div>'
+      : '<div style="font-size:0.65rem;color:#ff9800;font-weight:600;">En attente</div>'
+    }
+  `;
+
+  return card;
+}
+
+function render(list, containerId, prefix){
+
+  const container = document.getElementById(containerId);
+
+  list.forEach((m, i) => {
+    container.appendChild(
+      createCard(m, i, prefix)
+    );
+  });
+
+}
+
+render(matieresBAC, "stats-bac", "bac");
+render(matieresBREVET, "stats-brevet", "brevet");
+
+setInterval(() => {
+
+  matieresBAC.forEach((m, i) => {
+
+    if(typeof m.base !== "number") return;
+
+    const variation =
+      (Math.random() - 0.5) * 0.25;
+
+    m.base = Math.min(
+      20,
+      Math.max(
+        8,
+        m.base + variation
+      )
+    );
+
+    const el =
+      document.getElementById(`bac-${i}`);
+
+    if(el){
+      el.textContent =
+        m.base.toFixed(1);
+    }
+
+  });
+
+}, 1500);
+
+</script>
 
   <!-- Script chat -->
   <script>
