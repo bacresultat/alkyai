@@ -353,7 +353,12 @@ body {
 .mobile-sticky-btn {
   display: none;
 }
-
+.sous-titre {
+  font-size: 13px;
+  color: #666;
+  margin-top: 4px;
+  text-align: center;
+}
 @media (max-width: 768px) {
 
   .mobile-sticky-btn {
