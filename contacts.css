@@ -350,7 +350,40 @@ body {
   animation: bounceDown 1.5s infinite;
   stroke: red;
 }
+.mobile-sticky-btn {
+  display: none;
+}
 
+@media (max-width: 768px) {
+
+  .mobile-sticky-btn {
+    display: flex;
+    position: fixed;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+
+    justify-content: center;
+    align-items: center;
+
+    background: #1168f5;
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+
+    padding: 15px;
+    border-radius: 14px;
+
+    box-shadow: 0 8px 25px rgba(17,104,245,.35);
+
+    z-index: 9999;
+  }
+
+  .mobile-sticky-btn:hover {
+    color: white;
+  }
+}
 .scroll-down-text {
   display: block;
   margin-top: 6px;

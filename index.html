@@ -24,10 +24,10 @@
     
     <a href="#contact">Contact</a>
     <a href="#apropos">Qui sommes-nous ?</a>
-    <a href="#demande" class="navbar-cta mobile-cta">Obtenir mes résultats →</a>
+    <a href="#demande" class="navbar-cta mobile-cta">Accéder à mes résultats →</a>
   </div>
 
-  <a href="#demande" class="navbar-cta desktop-cta">Obtenir mes résultats →</a>
+  <a href="#demande" class="navbar-cta desktop-cta">Accéder à mes résultats →</a>
   <button class="navbar-toggle" id="navbarToggle" type="button" aria-label="Ouvrir le menu">
     <span></span><span></span><span></span>
   </button>
@@ -241,6 +241,7 @@
         <option value="Autres">Autres</option>
       </select>
        <label>Matière : <span style="color:red;">*</span></label>
+       
 <fieldset id="academy-group" style="border: 1px solid #ccc; border-radius: 6px; padding: 12px; max-height: 300px; overflow-y: auto;">
   <legend>Choisissez une ou plusieurs matières</legend>
 
@@ -321,7 +322,7 @@
         cursor: pointer;
         width: 100%;
       ">
-        Obtenir mes résultats
+        Accéder à mes résultats
       </button>
       <p id="mollie-error-msg" style="display:none; color:red; font-weight:bold;"></p>
 
@@ -984,6 +985,20 @@ startChat();
       if (e.key === 'Enter') document.getElementById('chat-send-btn').click();
     });
   </script>
+<a href="#demande" class="mobile-sticky-btn">
+  Accéder à mes résultats
+</a>
+<script>
+const stickyBtn = document.querySelector(".mobile-sticky-btn");
+const form = document.getElementById("demande");
 
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    stickyBtn.style.display = entry.isIntersecting ? "none" : "flex";
+  });
+});
+
+observer.observe(form);
+</script>
 </body>
 </html>
