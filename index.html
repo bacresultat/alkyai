@@ -775,27 +775,36 @@ render(matieresBREVET, "stats-brevet", "brevet");
 
 setInterval(() => {
 
+  // BAC
   matieresBAC.forEach((m, i) => {
 
-    if(typeof m.base !== "number") return;
+    if (typeof m.base !== "number") return;
 
-    const variation =
-      (Math.random() - 0.5) * 0.25;
+    const variation = (Math.random() - 0.5) * 0.25;
 
-    m.base = Math.min(
-      20,
-      Math.max(
-        8,
-        m.base + variation
-      )
-    );
+    m.base = Math.min(20, Math.max(8, m.base + variation));
 
-    const el =
-      document.getElementById(`bac-${i}`);
+    const el = document.getElementById(`bac-${i}`);
 
-    if(el){
-      el.textContent =
-        m.base.toFixed(1);
+    if (el) {
+      el.textContent = m.base.toFixed(1);
+    }
+
+  });
+
+  // BREVET
+  matieresBREVET.forEach((m, i) => {
+
+    if (typeof m.base !== "number") return;
+
+    const variation = (Math.random() - 0.5) * 0.25;
+
+    m.base = Math.min(20, Math.max(8, m.base + variation));
+
+    const el = document.getElementById(`brevet-${i}`);
+
+    if (el) {
+      el.textContent = m.base.toFixed(1);
     }
 
   });
