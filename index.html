@@ -1,1008 +1,258 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AlkyAI | Vos Résultats du BAC/Brevet en Avance</title>
-  <link rel="stylesheet" href="contacts.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="icon" href="9448bfc1-2cb2-46be-924a-c9d4da2d4d9f.png" type="image/png">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ALKYAI – la carte des blocus en direct</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#160a2e;--bg2:#241046;--lime:#d9ff3f;--hot:#ff3d6e;--ice:#7ae7ff;--mint:#5cffb0;--tx:#fff;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);font:400 16px/1.4 'DM Sans',system-ui,sans-serif;overflow:hidden}
+#map{position:fixed;inset:0;background:var(--bg)}
+.glass{background:rgba(22,10,46,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:2px solid rgba(217,255,63,.55)}
+.top{position:fixed;z-index:1000;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top,0px));display:flex;gap:10px;align-items:center;pointer-events:none}
+.top>*{pointer-events:auto}
+.logo{font:400 26px/1 Anton,Impact,sans-serif;letter-spacing:.02em;background:var(--lime);color:var(--bg);padding:10px 14px 8px;transform:rotate(-4deg);box-shadow:4px 4px 0 var(--hot);flex:none}
+.sbox{flex:1;max-width:640px;position:relative}
+#q{width:100%;height:56px;border-radius:99px;border:3px solid var(--lime);background:#fff;color:var(--bg);padding:0 22px 0 50px;font:700 18px 'DM Sans',sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.45),0 0 0 6px rgba(217,255,63,.18)}
+#q::placeholder{color:#6b5a93;font-weight:500}
+#q:focus-visible{outline:3px solid var(--hot);outline-offset:3px}
+.sbox::before{content:'🔎';position:absolute;left:18px;top:14px;font-size:20px;z-index:1}
+.tag{position:absolute;right:14px;top:-12px;background:var(--hot);color:#fff;font:400 13px Anton,Impact,sans-serif;letter-spacing:.04em;padding:2px 9px;transform:rotate(3deg)}
+#sug{position:absolute;left:0;right:0;top:62px;border-radius:18px;overflow:auto;max-height:50vh}
+.sg{display:block;width:100%;text-align:left;font:inherit;color:#fff;background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.15);padding:11px 18px;cursor:pointer}
+.sg:hover,.sg:focus-visible{background:rgba(217,255,63,.18)}
+.sg b{display:block}.sg small{opacity:.75}
+.fabs{position:fixed;z-index:1000;right:12px;top:calc(86px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:10px}
+.fab{width:52px;height:52px;border-radius:16px;font-size:22px;cursor:pointer;color:#fff;display:grid;place-items:center;transition:transform .12s}
+.fab:hover{transform:scale(1.08)}
+.fab.on{background:var(--lime);color:var(--bg);border-color:var(--lime)}
+.fab.hot{background:var(--hot);border-color:#fff}
+.fab:focus-visible,button:focus-visible,.item:focus-visible{outline:3px solid var(--hot);outline-offset:2px}
+.panel{position:fixed;z-index:999;left:12px;top:calc(86px + env(safe-area-inset-top,0px));bottom:12px;width:350px;border-radius:22px;display:flex;flex-direction:column;overflow:hidden}
+.ph{display:flex;align-items:center;gap:10px;padding:14px 16px;border:0;background:var(--bg2);color:#fff;cursor:pointer;width:100%;text-align:left;font:inherit}
+.ph b{font:400 34px/1 Anton,Impact,sans-serif;color:var(--hot)}
+.ph span{flex:1;font-weight:700;font-size:14px;line-height:1.15}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 0}
+.chip{border:2px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:99px;padding:4px 12px;font:700 13px 'DM Sans',sans-serif;cursor:pointer}
+.chip.on{background:var(--lime);color:var(--bg);border-color:var(--lime)}
+#list{overflow:auto;padding:12px 14px 14px;flex:1}
+.item{display:block;width:100%;text-align:left;font:inherit;color:#fff;background:rgba(255,255,255,.07);border:0;border-left:6px solid var(--c,#fff);border-radius:12px;padding:10px 12px;margin-bottom:9px;cursor:pointer}
+.item:hover{background:rgba(255,255,255,.14)}
+.item b{display:block;font-size:15px}.item small{opacity:.75}
+.k{display:inline-block;font:400 12px Anton,Impact,sans-serif;letter-spacing:.05em;background:var(--c,#fff);color:var(--bg);padding:1px 8px;margin-right:6px;border-radius:4px}
+.empty{padding:14px;border:2px dashed rgba(255,255,255,.4);border-radius:12px}
+.note{font-size:12px;opacity:.65;padding:0 14px 12px}
+@media(max-width:760px){
+ .logo{font-size:20px;padding:8px 10px 6px}
+ #q{height:50px;font-size:16px}
+ .panel{left:8px;right:8px;top:auto;bottom:calc(8px + env(safe-area-inset-bottom,0px));width:auto;max-height:42vh}
+ .panel.shut{max-height:64px}.panel.shut #list,.panel.shut .chips,.panel.shut .note{display:none}
+ .fabs{top:calc(76px + env(safe-area-inset-top,0px))}
+}
+.mk{display:block;width:20px;height:20px;border-radius:50%;background:var(--c);border:3px solid #fff;position:relative;box-shadow:0 0 14px var(--c)}
+.mk::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:3px solid var(--c);animation:r 2s infinite}
+@keyframes r{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.8);opacity:0}}
+.me{width:16px;height:16px;border-radius:50%;background:#3b8cff;border:3px solid #fff}
+.leaflet-popup-content-wrapper{border-radius:14px;background:#fff;color:var(--bg)}
+.leaflet-popup-content{font:500 14px/1.4 'DM Sans',sans-serif}
+.pop button{margin-top:8px;background:var(--hot);color:#fff;border:0;border-radius:99px;padding:8px 14px;font:700 14px 'DM Sans',sans-serif;cursor:pointer}
+dialog{border:3px solid var(--lime);background:var(--bg2);color:#fff;border-radius:20px;padding:22px;max-width:410px;width:calc(100% - 28px)}
+dialog::backdrop{background:rgba(10,4,24,.75)}
+dialog h3{font:400 30px Anton,Impact,sans-serif;margin:0 0 6px;color:var(--lime)}
+dialog label{display:block;font-weight:700;margin-top:10px;font-size:14px}
+dialog input,dialog select,dialog textarea{width:100%;padding:10px 12px;border:2px solid #fff;border-radius:10px;background:var(--bg);color:#fff;font:500 15px 'DM Sans',sans-serif;margin-top:4px}
+.go{background:var(--hot);color:#fff;border:0;border-radius:99px;padding:11px 20px;font:700 15px 'DM Sans',sans-serif;cursor:pointer}
+.no{background:transparent;color:#fff;border:2px solid #fff;border-radius:99px;padding:9px 18px;font:700 15px 'DM Sans',sans-serif;cursor:pointer}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,160px);background:var(--lime);color:var(--bg);padding:11px 20px;font-weight:700;border-radius:99px;z-index:3000;transition:transform .25s;max-width:92vw;text-align:center}
+#toast.on{transform:translate(-50%,0)}
+@media(max-width:760px){#toast{bottom:calc(76px + env(safe-area-inset-bottom,0px))}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
-
- <!-- MENU -->
-<nav class="navbar">
-  <a href="#" class="navbar-logo">
-    <span>AlkyAI</span>
-  </a>
-
-  <div class="navbar-links" id="navbarLinks">
-    <a href="#demande">Résultats</a>
-    <a href="#moyennes">Moyennes Live</a>
-    <a href="#chat">Chat Live</a>
-    
-    <a href="#contact">Contact</a>
-    <a href="#apropos">Qui sommes-nous ?</a>
-    <a href="#demande" class="navbar-cta mobile-cta">Accéder à mes résultats →</a>
-  </div>
-
-  <a href="#demande" class="navbar-cta desktop-cta">Accéder à mes résultats →</a>
-  <button class="navbar-toggle" id="navbarToggle" type="button" aria-label="Ouvrir le menu">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
-
-<style>
-  .navbar {
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    background: white;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    padding: 0 30px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-family: 'Inter', sans-serif;
-  }
-  .navbar-logo {
-    display: flex; align-items: center; gap: 10px; text-decoration: none;
-    font-size: 1.4rem; font-weight: 800; color: #555; letter-spacing: -0.5px;
-  }
-  .navbar-links {
-    display: flex; align-items: center; gap: 4px;
-    position: absolute; left: 50%; transform: translateX(-50%);
-  }
-  .navbar-links a {
-    text-decoration: none; color: #555; font-size: 1rem; font-weight: 600;
-    padding: 8px 12px; border-radius: 8px; transition: background .2s, color .2s;
-  }
-  .navbar-links a:hover {
-    background: #f0f4ff; color: #1168f5;
-  }
-  .navbar-cta {
-    text-decoration: none; background: #1168f5; color: white; font-size: 1rem;
-    font-weight: 700; padding: 9px 16px; border-radius: 8px; white-space: nowrap;
-  }
-  .mobile-cta { display: none; }
-
-  .navbar-toggle {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    width: 32px;
-    height: 32px;
-    background: transparent !important;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    margin: 0 0 0 auto;
-    box-sizing: border-box;
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    -webkit-tap-highlight-color: transparent !important;
-    touch-action: manipulation;
-    user-select: none;
-  }
-  .navbar-toggle::-moz-focus-inner {
-    border: 0;
-  }
-  .navbar-toggle:focus,
-  .navbar-toggle:active,
-  .navbar-toggle:hover {
-    outline: none;
-    background: transparent !important;
-    -webkit-tap-highlight-color: transparent !important;
-  }
-  .navbar-toggle span {
-    display: block;
-    height: 2px;
-    width: 100%;
-    background: #555;
-    border-radius: 2px;
-    transition: all .25s ease;
-    pointer-events: none;
-  }
-  .navbar-toggle.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-  .navbar-toggle.active span:nth-child(2) { opacity: 0; }
-  .navbar-toggle.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
-  @media (max-width: 768px) {
-    .navbar-links {
-      position: absolute; top: 60px; left: 0; right: 0; transform: none;
-      background: white; flex-direction: column; align-items: stretch; gap: 0;
-      box-shadow: 0 8px 12px rgba(0,0,0,0.08);
-      max-height: 0; overflow: hidden; transition: max-height .3s ease;
-    }
-    .navbar-links.open { max-height: 400px; }
-    .navbar-links a { padding: 14px 24px; border-radius: 0; }
-    .mobile-cta { display: inline-block; margin: 12px 24px; text-align: center; }
-    .desktop-cta { display: none; }
-    .navbar-toggle { display: flex; }
-    /* AJOUTE CECI */
-.navbar-links .mobile-cta {
-  background: #1168f5;
-  color: #fff !important;
-}
-
-.navbar-links .mobile-cta:hover {
-  color: #fff !important;
-}
-  }
-</style>
-
-<script>
-  const toggleBtn = document.getElementById('navbarToggle');
-  const links = document.getElementById('navbarLinks');
-
-  toggleBtn.addEventListener('click', () => {
-    toggleBtn.classList.toggle('active');
-    links.classList.toggle('open');
-  });
-
-  links.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-      toggleBtn.classList.remove('active');
-      links.classList.remove('open');
-    });
-  });
-</script>
-
-  
-  <header class="hero">
-    <div class="logo-container">
-      <img src="9448bfc1-2cb2-46be-924a-c9d4da2d4d9f.png" alt="Logo AlkyAI" class="logo">
-      <h1 class="site-title">AlkyAI</h1>
-      <p class="subtitle">Obtiens tes résultats du BAC et du Brevet 2026 <strong>avant tout le monde !</strong></p>
-    </div>
-    <div class="official-logos">
-      <img src="Logo_du_Gouvernement_de_la_République_française_(2020).svg.png" alt="Logo Parcoursup" />
-      
-      <img src="logo-ministere-education-nationale.jpg" alt="Logo Gouvernement" />
-      <img src="images123131.JPG" alt="Logo Gouvernement" />
-    </div>
-  </header>
-
-  <section class="intro">
-    <h2>Un service rapide, confidentiel et accessible pour tous les lycéens, collégiens et étudiants de France. </h2>
-    <p>AlkyAI utilise l'intelligence artificielle et les informations officielles pour retrouver vos résultats <strong>du BAC et du Brevet. </strong></p>
-  </section>
-<div class="live-activity">
-  <span class="live-dot"></span>
-  <span><strong id="counter">19 824</strong> élèves ont obtenu leur résultat</span>
+<div id="map" role="application" aria-label="Carte de France des blocus"></div>
+<div class="top">
+  <div class="logo">ALKYAI</div>
+  <div class="sbox"><span class="tag">TOUTE LA FRANCE</span><div id="sug" class="glass" style="display:none"></div>
+    <input id="q" type="search" autocomplete="off" placeholder="Tape ton lycée, ta fac, ton collège…" aria-label="Rechercher un établissement"></div>
 </div>
-  <section class="form-section" id="demande">
-    <div class="security-message">
-      <span class="lock-icon">🔒</span>
-      <p>Paiement 100% sécurisé par SumUp. Aucune information bancaire n'est stockée sur notre site. <strong>Les fonds obtenus sont réinvestis dans nos centres de recherches.</strong> </p>
-    </div>
-
-    <div class="titre-container">
-    <h2 class="titre-demande">Obtenir mes résultats</h2>
-<p class="sous-titre">Remplissez le formulaire pour recevoir vos résultats rapidement</p>
+<div class="fabs">
+  <button class="fab glass" id="loc" aria-label="Me localiser" title="Me localiser">📍</button>
+  <button class="fab glass on" id="sat" aria-pressed="true" aria-label="Satellite" title="Satellite / plan">🛰️</button>
+  <button class="fab glass on" id="sch" aria-pressed="true" aria-label="Afficher les établissements" title="Établissements">🏫</button>
+  <button class="fab hot" id="rep" aria-label="Signaler un blocus" title="Signaler">✊</button>
 </div>
-    <form id="payment-form">
-      <label for="name">Nom :</label>
-      <input type="text" id="name" name="name" required>
-
-      <label for="prenom">Prénom :</label>
-      <input type="text" id="prenom" name="prenom" required>
-
-      <label for="email">Adresse mail :</label>
-      <input type="email" id="email" name="email" required>
-
-      <label for="academy">Académie :</label>
-      <select id="academy" name="academy" required>
-        <option value="">Choisir une académie</option>
-        <option value="Aix-Marseille">Aix-Marseille</option>
-        <option value="Amiens">Amiens</option>
-        <option value="Besançon">Besançon</option>
-        <option value="Bordeaux">Bordeaux</option>
-        <option value="Clermont-Ferrand">Clermont-Ferrand</option>
-        <option value="Corse">Corse</option>
-        <option value="Créteil">Créteil</option>
-        <option value="Dijon">Dijon</option>
-        <option value="Grenoble">Grenoble</option>
-        <option value="Guadeloupe">Guadeloupe</option>
-        <option value="Guyane">Guyane</option>
-        <option value="La Réunion">La Réunion</option>
-        <option value="Lille">Lille</option>
-        <option value="Limoges">Limoges</option>
-        <option value="Lyon">Lyon</option>
-        <option value="Martinique">Martinique</option>
-        <option value="Mayotte">Mayotte</option>
-        <option value="Montpellier">Montpellier</option>
-        <option value="Nancy-Metz">Nancy-Metz</option>
-        <option value="Nantes">Nantes</option>
-        <option value="Nice">Nice</option>
-        <option value="Orléans-Tours">Orléans-Tours</option>
-        <option value="Paris">Paris</option>
-        <option value="Poitiers">Poitiers</option>
-        <option value="Reims">Reims</option>
-        <option value="Rennes">Rennes</option>
-        <option value="Rouen">Rouen</option>
-        <option value="Strasbourg">Strasbourg</option>
-        <option value="Toulouse">Toulouse</option>
-        <option value="Versailles">Versailles</option>
-        <option value="Wallis-et-Futuna">Wallis-et-Futuna</option>
-        <option value="Saint-Pierre-et-Miquelon">Saint-Pierre-et-Miquelon</option>
-        <option value="Polynésie française">Polynésie française</option>
-        <option value="Nouvelle-Calédonie">Nouvelle-Calédonie</option>
-        <option value="Autres">Autres</option>
-      </select>
-      <label for="diplome">Diplôme :</label>
-<select id="diplome" name="diplome" required>
-        <option value="">Choisir un diplôme</option>
-        <option value="Aix-Marseille">Baccalauréat</option>
-        <option value="Amiens">Brevet</option>
-        
-        
-        <option value="Autres">Autres</option>
-      </select>
-       <label>Matière : <span style="color:red;">*</span></label>
-       
-<fieldset id="academy-group" style="border: 1px solid #ccc; border-radius: 6px; padding: 12px; max-height: 300px; overflow-y: auto;">
-  <legend>Choisissez une ou plusieurs matières</legend>
-
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Allemand"> Allemand</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Anglais"> Anglais</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Arabe"> Arabe</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Arts appliqués"> Arts appliqués</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Arts plastiques"> Arts plastiques</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Basque"> Basque</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Biotechnologies"> Biotechnologies</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Chinois"> Chinois</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Création et innovation technologiques"> Création et innovation technologiques</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Droit et économie"> Droit et économie</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Économie-Droit"> Économie-Droit</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Économie-Gestion"> Économie-Gestion</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Éducation musicale"> Éducation musicale</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="EMC"> Enseignement moral et civique (EMC)</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Enseignement scientifique"> Enseignement scientifique</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="EPS"> Éducation physique et sportive (EPS)</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Espagnol"> Espagnol</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Français"> Français</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Génie civil"> Génie civil</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Génie électrique"> Génie électrique</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Génie mécanique"> Génie mécanique</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Grand Oral"> Grand Oral</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Grec"> Grec</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="HGGSP"> Histoire-Géographie, Géopolitique et Sciences politiques (HGGSP)</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Histoire-Géographie"> Histoire-Géographie</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="HLP"> Humanités, Littérature et Philosophie (HLP)</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Hôtellerie-Restauration"> Hôtellerie-Restauration</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Italien"> Italien</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Japonais"> Japonais</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Langue vivante A"> Langue vivante A</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Langue vivante B"> Langue vivante B</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Latin"> Latin</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="LLCA"> Littérature, Langues et Cultures de l'Antiquité (LLCA)</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="LLCE"> Langues, Littératures et Cultures Étrangères (LLCE)</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Management"> Management</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Management, sciences de gestion et numérique"> Management, sciences de gestion et numérique</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Mathématiques"> Mathématiques</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Mathématiques complémentaires"> Mathématiques complémentaires</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Mathématiques expertes"> Mathématiques expertes</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Métiers de l'accueil"> Métiers de l'accueil</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Numérique et Sciences Informatiques"> Numérique et Sciences Informatiques (NSI)</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Oral du brevet"> Oral du brevet</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Philosophie"> Philosophie</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Physique-Chimie"> Physique-Chimie</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Portugais"> Portugais</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Prévention Santé Environnement"> Prévention Santé Environnement (PSE)</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Projet"> Projet</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Russe"> Russe</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Sciences"> Sciences</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Sciences de gestion et numérique"> Sciences de gestion et numérique</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Sciences de l'ingénieur"> Sciences de l'ingénieur (SI)</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Sciences de la vie et de la Terre"> Sciences de la vie et de la Terre (SVT)</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Sciences et technologies de laboratoire"> Sciences et technologies de laboratoire</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Sciences et technologies sanitaires et sociales"> Sciences et technologies sanitaires et sociales</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="SES"> Sciences économiques et sociales (SES)</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="SII"> Sciences industrielles de l'ingénieur (SII)</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Spécialité professionnelle"> Spécialité professionnelle</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Technologie"> Technologie</label>
-  <label style="display:block; margin-bottom:6px;"><input type="checkbox" class="academy-cb" name="academy[]" value="Autres"> Autres</label>
-</fieldset>
-<small id="academy-error" style="color:red; display:none;">Veuillez sélectionner au moins une matière.</small>
-
-      
-      
-
-      <button id="mollie-pay-button" type="button" style="
-        margin-top: 20px;
-        background-color: #1168f5;
-        color: white;
-        border: none;
-        padding: 14px 28px;
-        font-size: 16px;
-        font-weight: bold;
-        border-radius: 8px;
-        cursor: pointer;
-        width: 100%;
-      ">
-        Accéder à mes résultats
-      </button>
-      <p id="mollie-error-msg" style="display:none; color:red; font-weight:bold;"></p>
-
-      <div class="payment-icons">
-  <img src="Apple_Pay_logo.svg.png" alt="Apple Pay">
-  <img src="Mastercard-logo.svg.webp" alt="Mastercard">
-  <img src="Google_Pay_Logo.svg.png" alt="Google Pay">
-  <img src="Visa-Logo-2006–2014.jpg" alt="Visa">
-  <img src="Paypal_2014_logo.png" alt="PayPal">
-</div>
-
-<p class="pricing-note">
-  <strong>Tarification flexible :</strong><br>
-  1 matière : <span class="price">4,80€</span><br>
-  Chaque matière supplémentaire : <span class="price">+2,00€</span><br>
-  <span class="small-text">Offre adaptée aux besoins des étudiants.</span>
-</p>
-
-<style>
-.payment-icons {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
-
-.payment-icons img {
-  height: 28px;
-  object-fit: contain;
-  filter: grayscale(10%);
-  transition: transform 0.2s ease;
-}
-
-.payment-icons img:hover {
-  transform: scale(1.08);
-  filter: grayscale(0%);
-}
-
-.pricing-note {
-  background: #f8f9fb;
-  border: 1px solid #e6e8ee;
-  padding: 12px 14px;
-  border-radius: 10px;
-  font-family: Arial, sans-serif;
-  font-size: 14px;
-  color: #333;
-  max-width: 320px;
-  line-height: 1.4;
-}
-
-.pricing-note .price {
-  font-weight: bold;
-  color: #1a73e8;
-}
-
-.pricing-note .small-text {
-  font-size: 12px;
-  color: #666;
-}
-</style>
-    </form>
-  </section>
-
-  <section class="service-notice">
-    <p>📩 Les résultats sont envoyés par email après acceptation des conditions de paiement.<small class="email-hint">Veuillez entrer une adresse email valide, vos résultats y seront envoyés suivant les corrections de vos copies en cours.</small></p>
-    <p>💸 Satisfait ou remboursé : vous pouvez demander un remboursement en cas d'erreur ou d'insatisfaction.</p>
-    
-  <style>
-  .pricing-note {
-  background: #f8f9fb;
-  border: 1px solid #e6e8ee;
-  padding: 12px 14px;
-  border-radius: 10px;
-  font-family: Arial, sans-serif;
-  font-size: 14px;
-  color: #333;
-  max-width: 320px;
-  line-height: 1.4;
-
-  /* AJOUT POUR CENTRER */
-  margin: 0 auto;
-  text-align: center;
-}
-</style>
-    
-  </section>
-  
-
-  <!-- MOYENNES EN DIRECT -->
-  <!-- MOYENNES EN DIRECT -->
-<div id="moyennes" class="stats-section">
-  <div class="stats-card">
-
-    <h3 class="stats-title">
-      📊 Moyennes en direct – BAC & Brevet 2026
-      <span class="live-dot"></span>
-    </h3>
-    <p class="stats-footer1">
-  <span style="color:#d32f2f;font-weight:bold;">
-    ⚠️ Important :
-  </span>
-  Les moyennes affichées en direct sont calculées <strong>à partir des résultats des élèves ayant obtenu leurs notes en avance sur notre site.</strong> Grâce à ces contributions, notre IA les analyse et les met à jour en temps réel afin de vous fournir une estimation des moyennes du BAC et du Brevet.
-</p>
-
-    <div class="stats-wrapper">
-
-      <!-- BAC -->
-      <div class="stats-block">
-        <h4>🎓 BAC</h4>
-        <div id="stats-bac" class="stats-grid"></div>
-      </div>
-
-      <!-- BREvet -->
-      <div class="stats-block">
-        <h4>📘 Brevet</h4>
-        <div id="stats-brevet" class="stats-grid"></div>
-      </div>
-
-    </div>
-
-    <p class="stats-footer">
-      Moyennes en temps réel · Mise à jour automatique · Certaines matières ne sont pas disponibles pour le moment
-       <br>
-       Les moyennes sont calculées à partir des données récoltées par notre IA.
-    </p>
-
-  </div>
-</div>
-
-  <!-- CHAT EN DIRECT -->
-  <section class="temoignages-alkyai" id="chat">
-    <div class="container">
-      <h2 class="title"><span class="live-dot"></span> Chat en direct – Réactions des élèves</h2>
-      <div class="live-chat-box" id="live-chat"></div>
-      <div class="chat-input-area">
-        <input type="text" id="chat-input" placeholder="Écrivez votre message..." maxlength="150">
-        <button id="chat-send-btn">Envoyer</button>
-      </div>
-      <div class="chat-rules">
-        <p class="rules-title">📋 Règlement du chat</p>
-        <ul>
-          <li>Les insultes, propos haineux ou discriminatoires sont strictement interdits.</li>
-          <li>Tout commentaire raciste, sexiste ou homophobe sera supprimé.</li>
-          <li>Le harcèlement envers d'autres utilisateurs est prohibé.</li>
-          <li>Les spams et liens externes ne sont pas autorisés.</li>
-          <li>AlkyAI se réserve le droit de modérer sans préavis.</li>
-          <li>En publiant, vous acceptez nos <a href="#">conditions d'utilisation</a>.</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-  
-
-  
-<section id="apropos" class="about-section">
-
-    <div class="about-card">
-
-        <div class="about-top">
-
-            <div class="about-text">
-
-                <h2>🤖 Qui sommes-nous ?</h2>
-
-                <p>
-                    AlkyAI a été développé pour aider les candidats du BAC et du Brevet
-                    à obtenir leurs résultats <strong>en avance</strong> (avant le 01/07/2026 dans la plupart des cas).
-                </p>
-
-                <p>
-                    Notre intelligence artificielle analyse automatiquement les informations
-                    fournies lors de votre demande (nom, prénom, académie, diplôme et matière)
-                    puis effectue des recherches avancées afin d'identifier les données
-                    correspondant à votre profil et de retrouver vos résultats.
-                </p>
-
-                <p>
-                    Une fois les corrections terminées et les informations disponibles,
-                    notre système est capable de détecter rapidement les mises à jour
-                    et d'accélérer leur traitement afin de vous transmettre <strong>sans délai</strong> vos résultats.
-                </p>
-
-                <p>
-                    AlkyAI est un projet conçu par des ingénieurs et chercheurs spécialisés
-                    en intelligence artificielle, notamment issus de CentraleSupélec,
-                    avec un objectif simple : rendre l'accès aux résultats scolaires
-                    <strong>plus rapide et plus fluide</strong>.
-                </p>
-
-            </div>
-
-            <div class="about-photo">
-
-                <img src="45fdecf6-31a8-414d-a604-ab8ca1e1a196.png" alt="Fondateur AlkyAI">
-
-                <div class="about-photo-info">
-                    <strong>Équipe AlkyAI</strong>
-                    <span>CentraleSupélec • IA • Data Science</span>
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="about-features">
-
-            
-
-            <div class="feature-box">
-                <span>🧠</span>
-                <h3>Intelligence artificielle</h3>
-                <p>Analyse avancée des informations fournies.</p>
-            </div>
-
-            <div class="feature-box">
-                <span>🔒</span>
-                <h3>Confidentiel</h3>
-                <p>Traitement sécurisé des demandes.</p>
-            </div>
-            <div class="feature-box">
-                <span>🏦</span>
-                <h3>Argent</h3>
-                <p>Les fonds obtenus sont réinvestis dans nos centres de recherches.</p>
-            </div>
-
-        </div>
-
-    </div>
-
+<section class="panel glass" id="panel">
+  <button class="ph" id="ph" aria-label="Replier ou déplier"><b id="nc">0</b><span id="pt">blocus signalés en France<br><small id="st" style="font-weight:500;opacity:.7">Chargement…</small></span>▾</button>
+  <div class="chips" id="chips"></div>
+  <div id="list" aria-live="polite"></div>
+  <p class="note">Signalements vérifiés avant publication. Jamais de données personnelles : seulement des lieux collectifs.</p>
 </section>
-<!-- FORMULAIRE DE CONTACT -->
-  <section id="contact" >
-    
-  </section>
-  <footer class="trusted-footer">
-    <div class="trust-messages">
-      <p>Contact : <a href="mailto:admin@alkyai.fr">admin@alkyai.fr</a></p>
-      <p>🔒 Paiement 100% sécurisé</p>
-      <p>📁 Données hébergées en Europe chez <a href="https://www.ionos.fr" target="_blank" rel="noopener noreferrer">IONOS</a></p>
-      <p>📚 Méthodologie inspirée des critères de l'<a href="https://www.education.gouv.fr" target="_blank" rel="noopener noreferrer">Éducation Nationale</a></p>
-      <p>✅ Site certifié conforme RGPD – aucune donnée revendue</p>
-    </div>
-    <div class="legal">
-      <p>&copy; 2025 AlkyAI – Tous droits réservés</p>
-    </div>
-  </footer>
-
-  <!-- Script paiement -->
+<dialog id="dlg">
+  <h3>Signaler un blocus</h3>
+  <form method="dialog" id="f">
+    <label>Type<select id="ft"><option value="blocus">Blocus</option><option value="manif">Manifestation</option><option value="aide">Secours / eau</option><option value="rdv">Rendez-vous</option></select></label>
+    <label>Lieu<input id="fn" required maxlength="80"></label>
+    <label>Infos utiles (facultatif)<textarea id="fc" rows="3" maxlength="200"></textarea></label>
+    <p style="display:flex;gap:10px;margin:16px 0 0"><button class="go" value="ok">Envoyer</button><button class="no" value="cancel">Annuler</button></p>
+  </form>
+</dialog>
+<div id="toast" role="status"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-
-  const paymentLinks = {
-    1: "https://pay.sumup.com/b2c/QC1QR2HK",
-    2: "https://pay.sumup.com/b2c/Q0Z2U2FM",
-    3: "https://pay.sumup.com/b2c/Q3EVP3P0",
-    4: "https://pay.sumup.com/b2c/QPRBQ3JJ",
-    5: "https://pay.sumup.com/b2c/QKZTYN6V",
-    6: "https://pay.sumup.com/b2c/Q241B0Z8",
-    7: "https://pay.sumup.com/b2c/QF3J7NQG",
-    8: "https://pay.sumup.com/b2c/QN55DNVP",
-    9: "https://pay.sumup.com/b2c/Q3TD176B",
-    10: "https://pay.sumup.com/b2c/QODNHO1L"
-  };
-
-  const button = document.getElementById('mollie-pay-button');
-
-  if (!button) {
-    console.error("Bouton mollie-pay-button introuvable");
-    return;
-  }
-
-  button.addEventListener('click', function () {
-
-    const errorMsg = document.getElementById('mollie-error-msg');
-    const academyError = document.getElementById('academy-error');
-
-    if (errorMsg) errorMsg.style.display = 'none';
-    if (academyError) academyError.style.display = 'none';
-
-    const nom = document.getElementById('name')?.value.trim() || '';
-    const prenom = document.getElementById('prenom')?.value.trim() || '';
-    const email = document.getElementById('email')?.value.trim() || '';
-    const academie = document.getElementById('academy')?.value || '';
-    const diplome = document.getElementById('diplome')?.value || '';
-
-    const nombreMatieres =
-      document.querySelectorAll('.academy-cb:checked').length;
-
-    console.log({
-      nom,
-      prenom,
-      email,
-      academie,
-      diplome,
-      nombreMatieres
-    });
-
-    if (!nom || !prenom || !email || !academie || !diplome) {
-      if (errorMsg) {
-        errorMsg.textContent =
-          "Merci de remplir tous les champs du formulaire.";
-        errorMsg.style.display = 'block';
-      }
-      return;
-    }
-
-    if (nombreMatieres === 0) {
-      if (academyError) academyError.style.display = 'block';
-      return;
-    }
-
-    const lien = paymentLinks[nombreMatieres];
-
-    if (!lien) {
-      if (errorMsg) {
-        errorMsg.textContent =
-          "Trop de matières sélectionnées. Veuillez en sélectionner 10 au maximum.";
-        errorMsg.style.display = 'block';
-      }
-      return;
-    }
-
-    console.log("Redirection vers :", lien);
-
-    // Ouvre le lien de paiement
-    window.location.assign(lien);
-  });
-});
-</script>  <!-- Script contact -->
-  <script>
-    document.getElementById('contact-send-btn').addEventListener('click', async function () {
-      const name    = document.getElementById('contact-name').value.trim();
-      const email   = document.getElementById('contact-email').value.trim();
-      const message = document.getElementById('contact-message').value.trim();
-      const success = document.getElementById('contact-success');
-      const error   = document.getElementById('contact-error');
-
-      if (!name || !email || !message) {
-        error.style.display = 'block';
-        success.style.display = 'none';
-        return;
-      }
-
-      try {
-        await fetch('https://alkyai-u7df.onrender.com/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, message })
-        });
-        success.style.display = 'block';
-        error.style.display = 'none';
-        document.getElementById('contact-name').value = '';
-        document.getElementById('contact-email').value = '';
-        document.getElementById('contact-message').value = '';
-      } catch (err) {
-        error.textContent = '❌ Erreur lors de l\'envoi. Réessayez.';
-        error.style.display = 'block';
-      }
-    });
-  </script>
-
-  <!-- Script moyennes -->
-  <script>
-
-const matieresBAC = [
-  { nom:"Mathématiques", emoji:"📐", base:11.4 },
-  { nom:"Français", emoji:"📝", base:12.8 },
-  { nom:"Philosophie", emoji:"🧠", base:10.2 },
-  { nom:"Histoire-Géographie", emoji:"🌍", base:13.1 },
-  { nom:"Anglais (LVA)", emoji:"🇬🇧", base:12.3 },
-  { nom:"Espagnol (LVB)", emoji:"🇪🇸", base:13.4 },
-  { nom:"Allemand", emoji:"🇩🇪", base:11.7 },
-  { nom:"Enseignement scientifique", emoji:"🔬", base:11.6 },
-  { nom:"EMC", emoji:"⚖️", base:12.4 },
-  { nom:"EPS", emoji:"🏃", base:14.2 },
-
-  { nom:"SVT", emoji:"🧬", base:11.9 },
-  { nom:"Physique-Chimie", emoji:"⚗️", base:11.1 },
-  { nom:"SES", emoji:"📈", base:12.6 },
-  { nom:"NSI", emoji:"💻", base:12.0 },
-  { nom:"HGGSP", emoji:"🏛️", base:13.0 },
-  { nom:"HLP", emoji:"📚", base:11.8 },
-  { nom:"LLCE", emoji:"🌎", base:12.4 },
-  { nom:"LLCA", emoji:"🏺", base:11.5 },
-  { nom:"Sciences de l'Ingénieur", emoji:"⚙️", base:11.3 },
-  { nom:"Arts", emoji:"🎨", base:13.2 },
-
-  { nom:"Grand Oral", emoji:"🎤", base:"Indisponible" },
-
-  { nom:"Maths expertes", emoji:"➗", base:11.0 },
-  { nom:"Maths complémentaires", emoji:"📏", base:12.1 },
-  { nom:"Latin", emoji:"🏛️", base:13.1 },
-  { nom:"Grec", emoji:"📜", base:12.7 }
+/* ===== CONFIG ===== */
+var SB_URL='',SB_KEY='';   // Supabase (table reports). Vide = mode démo
+var DATA_URL='',POST_URL='',REFRESH_MS=15000;
+var TYPES={blocus:['Blocus','#ff3d6e'],manif:['Manif','#d9ff3f'],aide:['Secours','#5cffb0'],rdv:['RDV','#ffffff']};
+/* Faits relayés par la presse (positions approximatives, dates = dernier signalement) */
+var SAMPLE=[
+{id:'s1',type:'manif',name:'Place de la République (Paris)',lat:48.8675,lng:2.3637,status:'Manif samedi 17/10 à 14h',note:'Appel de l’USL ; Unef, Union étudiante, Fage',updated:'2026-10-15T09:00:00Z',source:'Sortiraparis'},
+{id:'s2',type:'blocus',name:'Lycée Jacques Deyder (Épinay-sur-Seine)',lat:48.9535,lng:2.3140,status:'Blocage signalé',note:'Environ 3 semaines selon un élève',updated:'2026-10-14T12:00:00Z',source:'Public Sénat'},
+{id:'s3',type:'blocus',name:'Lycée Saint-Charles (Marseille)',lat:43.3045,lng:5.3805,status:'Bloqué depuis 6h45',note:'Journée du 13/10',updated:'2026-10-13T05:00:00Z',source:'Euronews'},
+{id:'s4',type:'blocus',name:'Lyon et Rhône : 7 établissements perturbés',lat:45.764,lng:4.8357,status:'Perturbations signalées',note:'Selon la préfecture, 13/10',updated:'2026-10-13T09:00:00Z',source:'Euronews'},
+{id:'s5',type:'blocus',name:'Lycée Brequigny (Rennes)',lat:48.0906,lng:-1.6948,status:'Tensions signalées',note:'Blocage du 29/09',updated:'2026-09-29T10:00:00Z',source:'AFP / Maritima'},
+{id:'s6',type:'blocus',name:'Lycée Magendie (Bordeaux)',lat:44.8444,lng:-0.5820,status:'Entrée bloquée',note:'Blocage du 29/09',updated:'2026-09-29T10:00:00Z',source:'AFP / Maritima'},
+{id:'s7',type:'blocus',name:'Lycée César-Baggio (Lille)',lat:50.6244,lng:3.0505,status:'Tensions signalées',note:'Blocage du 29/09',updated:'2026-09-29T10:00:00Z',source:'AFP / Maritima'}
 ];
-
-const matieresBREVET = [
-  { nom:"Français", emoji:"📝", base:11.8 },
-  { nom:"Mathématiques", emoji:"📐", base:10.9 },
-  { nom:"Histoire-Géographie", emoji:"🌍", base:12.7 },
-  { nom:"EMC", emoji:"⚖️", base:13.0 },
-
-  { nom:"Physique-Chimie", emoji:"⚗️", base:11.5 },
-  { nom:"SVT", emoji:"🧬", base:12.1 },
-  { nom:"Technologie", emoji:"💻", base:"Indisponible" },
-
-  { nom:"Oral du brevet", emoji:"🎤", base:12.5 },
-
-  { nom:"Contrôle continu - Français", emoji:"📝", base:12.0 },
-  { nom:"Contrôle continu - Maths", emoji:"📐", base:11.4 },
-  { nom:"Contrôle continu - Histoire-Géo", emoji:"🌍", base:12.8 },
-  { nom:"Contrôle continu - Sciences", emoji:"🔬", base:11.9 },
-  { nom:"Contrôle continu - Langues", emoji:"🌐", base:13.2 },
-  { nom:"Contrôle continu - Arts", emoji:"🎨", base:13.6 },
-  { nom:"Contrôle continu - EPS", emoji:"🏃", base:14.1 }
-];
-
-function createCard(m, i, prefix){
-
-  const card = document.createElement("div");
-  card.className = "stat-card";
-
-  card.innerHTML = `
-    <div class="stat-emoji">${m.emoji}</div>
-
-    <div class="stat-name">
-      ${m.nom}
-    </div>
-
-    <div id="${prefix}-${i}" class="stat-value">
-      ${typeof m.base === "number"
-        ? m.base.toFixed(1)
-        : m.base}
-    </div>
-
-    ${
-      typeof m.base === "number"
-      ? '<div style="font-size:0.65rem;color:#bbb;">/20</div>'
-      : '<div style="font-size:0.65rem;color:#ff9800;font-weight:600;">En attente</div>'
-    }
-  `;
-
-  return card;
+var items=[],on={blocus:1,manif:1,aide:1,rdv:1},userPos=null,repMode=false,pending=null,pendingEid=null,me=null,mode='feed',sq=0,terr=0,tmr=0,S={},enc=encodeURIComponent;
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function toast(s){var t=$('toast');t.textContent=s;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on')},3200)}
+function ago(iso){var m=Math.round((Date.now()-new Date(iso))/60000);if(isNaN(m))return'';if(m<60)return'il y a '+Math.max(m,1)+' min';if(m<1440)return'il y a '+Math.round(m/60)+' h';return'il y a '+Math.round(m/1440)+' j'}
+ 
+/* ===== Carte (France entière par défaut) ===== */
+var map=L.map('map',{zoomControl:false}).setView([46.6,2.4],6);
+var sat=L.layerGroup([
+ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Imagery © Esri'}),
+ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19})]).addTo(map);
+var plan=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
+var ml=L.layerGroup().addTo(map),sl=L.layerGroup().addTo(map);
+sat.eachLayer(function(l){l.on('tileerror',function(){if(++terr===6&&$('sat').getAttribute('aria-pressed')==='true'){$('sat').click();toast('Satellite bloqué ici : plan affiché. Ouvre la page dans ton navigateur.')}})});
+$('sat').onclick=function(){var s=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',s);this.classList.toggle('on',s);if(s){map.removeLayer(plan);sat.addTo(map)}else{map.removeLayer(sat);plan.addTo(map)}};
+$('sch').onclick=function(){var s=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',s);this.classList.toggle('on',s);if(s){sl.addTo(map);loadSchools()}else map.removeLayer(sl)};
+$('ph').onclick=function(){$('panel').classList.toggle('shut')};
+if(innerWidth<=760)$('panel').classList.add('shut');
+ 
+/* ===== Géolocalisation ===== */
+$('loc').onclick=function(){
+ if(!navigator.geolocation){toast('Géolocalisation indisponible');return}
+ navigator.geolocation.getCurrentPosition(function(p){
+  userPos=[p.coords.latitude,p.coords.longitude];
+  if(me)map.removeLayer(me);me=L.marker(userPos,{icon:L.divIcon({className:'',html:'<div class="me"></div>',iconSize:[16,16]})}).addTo(map);
+  map.flyTo(userPos,14);toast('Carte centrée sur toi');
+ },function(){toast('Autorise la localisation (HTTPS requis)')},{enableHighAccuracy:true,timeout:10000});
+};
+ 
+/* ===== Signalements & blocus en direct ===== */
+Object.keys(TYPES).forEach(function(k){var b=document.createElement('button');b.className='chip on';b.textContent=TYPES[k][0];b.onclick=function(){on[k]=on[k]?0:1;b.classList.toggle('on',!!on[k]);render()};$('chips').appendChild(b)});
+function render(){
+ ml.clearLayers();
+ var vis=items.filter(function(i){return on[i.type]}).sort(function(a,b){return new Date(b.updated)-new Date(a.updated)});
+ $('nc').textContent=items.filter(function(i){return i.type==='blocus'}).length;
+ var h='';
+ vis.forEach(function(i,n){var t=TYPES[i.type]||TYPES.rdv;
+  i._m=L.marker([i.lat,i.lng],{icon:L.divIcon({className:'',html:'<span class="mk" style="--c:'+t[1]+'"></span>',iconSize:[20,20]})}).addTo(ml);
+  i._m.bindPopup('<b>'+esc(i.name)+'</b><br>'+esc(i.status||'')+'<br><small>'+esc(i.note||'')+'</small><br><small>Source : '+esc(i.source||'—')+' · '+ago(i.updated)+'</small>');
+  h+='<button class="item" style="--c:'+t[1]+'" data-n="'+n+'"><span class="k">'+t[0]+'</span><b>'+esc(i.name)+'</b><small>'+esc(i.status||'')+' · '+ago(i.updated)+'</small></button>'});
+ if(mode!=='feed')return;
+ $('list').innerHTML=h||'<div class="empty">Aucun signalement. Sois le premier : touche ✊ puis la carte.</div>';
+ $('list').querySelectorAll('.item').forEach(function(el){var i=vis[+el.dataset.n];el.onclick=function(){map.flyTo([i.lat,i.lng],15);setTimeout(function(){i._m.openPopup()},700)}});
 }
-
-function render(list, containerId, prefix){
-
-  const container = document.getElementById(containerId);
-
-  list.forEach((m, i) => {
-    container.appendChild(
-      createCard(m, i, prefix)
-    );
-  });
-
+function setSt(d){$('st').textContent=d?'Infos de presse · signalements à venir':'En direct · maj '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
+function load(){
+ if(SB_URL)DATA_URL=SB_URL+'/rest/v1/reports?moderation=eq.approved&select=*';
+ var loc=items.filter(function(i){return i.local});
+ if(!DATA_URL){items=SAMPLE.concat(loc);setSt(true);render();return}
+ fetch(DATA_URL,{cache:'no-store',headers:SB_KEY?{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}:{}}).then(function(r){return r.json()}).then(function(d){d.forEach(function(x){x.status=x.status||(x.type==='blocus'?'Blocus signalé':'Signalé')});items=d.concat(loc);setSt(false);render()}).catch(function(){items=SAMPLE.concat(loc);setSt(true);render()});
 }
-
-render(matieresBAC, "stats-bac", "bac");
-render(matieresBREVET, "stats-brevet", "brevet");
-
-setInterval(() => {
-
-  // BAC
-  matieresBAC.forEach((m, i) => {
-
-    if (typeof m.base !== "number") return;
-
-    const variation = (Math.random() - 0.5) * 0.25;
-
-    m.base = Math.min(20, Math.max(8, m.base + variation));
-
-    const el = document.getElementById(`bac-${i}`);
-
-    if (el) {
-      el.textContent = m.base.toFixed(1);
-    }
-
-  });
-
-  // BREVET
-  matieresBREVET.forEach((m, i) => {
-
-    if (typeof m.base !== "number") return;
-
-    const variation = (Math.random() - 0.5) * 0.25;
-
-    m.base = Math.min(20, Math.max(8, m.base + variation));
-
-    const el = document.getElementById(`brevet-${i}`);
-
-    if (el) {
-      el.textContent = m.base.toFixed(1);
-    }
-
-  });
-
-}, 1500);
-
-</script>
-
-  <!-- Script chat -->
-  <script>
-    const messages = [
-     { name: "user483921", text: "olololo le 6 en philo chui dead 💀", color: "#e74c3c" },
-{ name: "user918204", text: "votez la pétition pour arrêter le bac svp", color: "#8e44ad" },
-{ name: "user374019", text: "purée 14 en maths je suis choqué", color: "#2980b9" },
-{ name: "user650193", text: "aïe 😢 j'ose même pas regarder", color: "#e67e22" },
-{ name: "user209583", text: "ouiiiii j'ai mon bac !!! 🎉🎉🎉", color: "#27ae60" },
-{ name: "user775104", text: "mention bien je pleure de joie 😭", color: "#e91e8c" },
-{ name: "user391847", text: "j'espere la france win ", color: "#007bff" },
-{ name: "user840516", text: "merci ça marche🙏", color: "#009688" },
-{ name: "user562901", text: "mention TB les gars  🔥", color: "#ff5722" },
-{ name: "user118405", text: "le brevet c'est validé !! 1 an de galère", color: "#9c27b0" },
-{ name: "user664210", text: "15 en français je savais même pas que c'était possible lol", color: "#3f51b5" },
-{ name: "user902771", text: "sa m'a sauvé la vie j'attendais depuis des heures", color: "#f44336" },
-{ name: "user315990", text: "8 en SVT je vais pleurer dans mon coin", color: "#795548" },
-{ name: "user777203", text: "17 en histoire géo !!! je suis trop contente 😭", color: "#e91e8c" },
-{ name: "user480112", text: "franchement c'est ouf j'ai eu mes notes en 2 min", color: "#00bcd4" },
-{ name: "user663019", text: "mention AB validée je suis soulagée", color: "#4caf50" },
-{ name: "user510884", text: "12 en philo c'est pas si mal je pensais couler", color: "#ff9800" },
-{ name: "user229650", text: "merci sans vous j'aurais attendu jusqu'à demain", color: "#e91e63" },
-{ name: "user801447", text: "9 en maths j'aurais dû écouter en cours 😭", color: "#f44336" },
-{ name: "user119876", text: "18 en français je rêve encore", color: "#9c27b0" },
-{ name: "user940221", text: "j'ai le brevet !!! ma mère elle pleure lol", color: "#27ae60" },
-{ name: "user384902", text: "7 en physique chimie c'est une catastrophe", color: "#e74c3c" },
-{ name: "user672315", text: "top vraiment les résultats arrivent direct par mail", color: "#1168f5" },
-{ name: "user590812", text: "mention TB avec les félicitations je suis en PLS de joie", color: "#e91e8c" },
-{ name: "user143908", text: "16 en maths j'arrive toujours pas à y croire", color: "#2196f3" },
-{ name: "user778901", text: "brevet mention TB 🎉 merci", color: "#009688" },
-{ name: "user451209", text: "10 pile en philo juste assez lol", color: "#ff5722" },
-{ name: "user998120", text: "j'avais trop peur de regarder mais le service m'a envoyé direct", color: "#8e44ad" },
-{ name: "user332781", text: "13 en SES c'est honnête je valide", color: "#3f51b5" },
-{ name: "user650887", text: "mention B au brevet trop contente 😍", color: "#e91e63" },
-{ name: "user271905", text: "6 en anglais je suis une honte internationale", color: "#e74c3c" },
-{ name: "user880412", text: "c'est vraiment pratique les résultats sans stress", color: "#00bcd4" },
-{ name: "user115009", text: "19 en histoire géo je suis le meilleur de la classe", color: "#ff9800" },
-{ name: "user947200", text: "j'ai raté de 2 points c'est une blague la vie", color: "#f44336" },
-{ name: "user503118", text: "mention TB j'arrive même pas à réaliser 🔥🔥", color: "#27ae60" },
-{ name: "user719006", text: "15 en philo ma prof va pas le croire", color: "#9c27b0" },
-{ name: "user668210", text: "ça m'a évité d'attendre devant le lycée comme un fou", color: "#1168f5" },
-{ name: "user390884", text: "brevet obtenu !!! je suis trop heureuse 😭😭", color: "#e91e8c" },
-{ name: "user842001", text: "11 en SVT j'aurais pu faire pire", color: "#795548" },
-{ name: "user561299", text: "merci le service résultats reçus par mail direct c'est parfait", color: "#009688" },
-{ name: "user990183", text: "8 en maths j'aurais dû travailler bah voilà", color: "#e74c3c" },
-{ name: "user213780", text: "17 en français je suis trop fière 🥹", color: "#e91e63" },
-{ name: "user776510", text: "j'avais jamais eu 14 en physique de ma vie", color: "#2196f3" },
-{ name: "user184902", text: "le service m'a envoyé mes notes avant que le site officiel plante lol", color: "#ff5722" },
-{ name: "user650120", text: "mention B c'est cool j'espérais pas mieux", color: "#4caf50" },
-{ name: "user908771", text: "6 en SVT et 16 en histoire comment c'est possible", color: "#ff9800" },
-{ name: "user331009", text: "je recommande le service vraiment rapide et efficace", color: "#00bcd4" },
-{ name: "user772901", text: "brevet mention TB à 13 ans j'assure trop 😭", color: "#9c27b0" },
-{ name: "user510099", text: "12 en philo c'est pas la honte bon", color: "#3f51b5" },
-{ name: "user884201", text: "mention AB au bac ma famille est trop fière 🥲", color: "#e91e8c" },
-{ name: "user230918", text: "10.5 en maths et maintenant je respire", color: "#795548" },
-{ name: "user669010", text: "le service j'ai reçu mes résultats en quelques minutes top service", color: "#1168f5" },
-{ name: "user991774", text: "mention TB avec les félicitations du jury 😭🔥", color: "#27ae60" },
-{ name: "user445901", text: "7 en anglais je suis une catastrophe vivante", color: "#f44336" },
-{ name: "user882190", text: "14 en maths je suis surpris moi-même lol", color: "#2196f3" },
-{ name: "user120983", text: "merci trop pratique pour avoir ses notes vite", color: "#e91e63" },
-{ name: "user553218", text: "j'ai le bac mention B je pleure de joie", color: "#9c27b0" },
-{ name: "user774190", text: "15 en SES 13 en philo j'aurais pas cru", color: "#ff9800" },
-{ name: "user330119", text: "brevet en poche direction les vacances 🏖️", color: "#4caf50" },
-{ name: "user908210", text: "franchement je comprends pas pourquoi j'ai attendu le site officiel avant", color: "#00bcd4" },
-{ name: "user661002", text: "16 en histoire 8 en physique c'est un personnage", color: "#e74c3c" },
-{ name: "user771903", text: "mention TB au brevet je suis une machine 💪", color: "#e91e8c" },
-{ name: "user112908", text: "j'attendais depuis 8h du mat le service m'a envoyé à 10h pile", color: "#1168f5" },
-{ name: "user885012", text: "18 en français au bac je réalise toujours pas", color: "#9c27b0" },
-{ name: "user209104", text: "10 en philo 10 en maths équilibre parfait lol", color: "#ff5722" },
-{ name: "user667901", text: "merci 🙏 résultats reçus rapidement", color: "#009688" },
-{ name: "user551230", text: "j'ai raté le bac de 3 points je veux disparaître", color: "#f44336" },
-{ name: "user993881", text: "c'est top sérieux le site Cyclades plantait", color: "#2196f3" },
-{ name: "user441209", text: "13 en maths mention B je suis content", color: "#3f51b5" },
-{ name: "user882771", text: "j'ai le brevet mention TB et je savais même pas 😭", color: "#e91e63" },
-{ name: "user310019", text: "6 en philo c'était couru d'avance", color: "#795548" },
-{ name: "user660812", text: "le service m'a vraiment évité le stress de l'attente merci", color: "#00bcd4" },
-{ name: "user119004", text: "mention AB j'aurais voulu TB mais bon je prends", color: "#ff9800" },
-{ name: "user772100", text: "19 en SVT je suis une scientifique confirmée 🔬", color: "#27ae60" },
-{ name: "user551008", text: "bac pro validé 🎉 direction le boulot", color: "#4caf50" },
-{ name: "user904210", text: "merci le mail est arrivé en 5 min chrono", color: "#1168f5" },
-{ name: "user330918", text: "11 partout c'est régulier au moins lol", color: "#ff5722" },
-{ name: "user771230", text: "mention TB au bac techno j'aurais jamais cru 😭", color: "#e91e8c" },
-{ name: "user882004", text: "9 en anglais j'aurais dû regarder plus de séries", color: "#e74c3c" },
-{ name: "user112230", text: "merci vraiment le site officiel marchait pas", color: "#9c27b0" },
-{ name: "user665019", text: "15 en philo ma vie a changé", color: "#2196f3" },
-{ name: "user330990", text: "brevet validé 🎉 je suis trop soulagée", color: "#009688" },
-{ name: "user990021", text: "j'ai eu le bac mention B sans réviser je suis un génie", color: "#ff9800" },
-{ name: "user441002", text: "ça devrait être gratuit tellement c'est utile", color: "#e91e63" },
-{ name: "user882910", text: "17 en histoire j'aurais jamais pensé", color: "#3f51b5" },
-{ name: "user550120", text: "mention TB avec félicitations du jury je suis en PLS 😭🔥", color: "#27ae60" },
-{ name: "user119876", text: "8 en maths 8 en physique au moins c'est cohérent", color: "#795548" },
-{ name: "user660991", text: "merci résultats reçus direct dans ma boite mail", color: "#1168f5" },
-{ name: "user771119", text: "mention B au brevet j'attendais plus que ça", color: "#4caf50" },
-{ name: "user330101", text: "16 en français je suis choquée positivement", color: "#e91e8c" },
-{ name: "user990909", text: "j'ai failli rater de 0.5 point mon coeur", color: "#f44336" },
-{ name: "user551199", text: "trop bien j'ai eu mes résultats avant mes parents lol", color: "#00bcd4" },
-{ name: "user882333", text: "13 en SVT 11 en physique je valide tranquille", color: "#2196f3" },
-{ name: "user112345", text: "mention TB au bac S je suis morte de joie 🔥", color: "#9c27b0" },
-{ name: "user665432", text: "bac pro mention B direction BTS l'année prochaine", color: "#ff9800" },
-{ name: "user330444", text: "franchement service au top résultats rapides", color: "#009688" },
-{ name: "user771555", text: "10.2 en maths le jury m'a sauvé la vie", color: "#ff5722" },
-{ name: "user882666", text: "mention AB j'espérais TB mais je suis soulagée quand même", color: "#e91e63" },
-{ name: "user119777", text: "brevet obtenu 🎉 adieu collège bonjour lycée", color: "#27ae60" },
-{ name: "user660888", text: "merci sans vous j'aurais paniqué toute la matinée", color: "#1168f5" },
-    ];
-    // Mélange aléatoire des messages
-for (let i = messages.length - 1; i > 0; i--) {
-  const j = Math.floor(Math.random() * (i + 1));
-  [messages[i], messages[j]] = [messages[j], messages[i]];
+$('rep').onclick=function(){repMode=!repMode;this.classList.toggle('on',repMode);map.getContainer().style.cursor=repMode?'crosshair':'';if(repMode)toast('Touche l’endroit exact sur la carte')};
+map.on('click',function(e){if(!repMode)return;pending=e.latlng;pendingEid=null;repMode=false;$('rep').classList.remove('on');map.getContainer().style.cursor='';$('f').reset();$('dlg').showModal()});
+$('f').onsubmit=function(){
+ if(!$('fn').value.trim()||!pending)return;
+ var it={id:'u'+Date.now(),type:$('ft').value,name:$('fn').value.trim(),lat:pending.lat,lng:pending.lng,status:'À vérifier',note:$('fc').value.trim(),updated:new Date().toISOString(),source:'Signalement',local:true,eid:pendingEid};
+ items.push(it);render();toast('Merci ! Ton signalement part en modération');
+ if(SB_URL||POST_URL)fetch(SB_URL?SB_URL+'/rest/v1/reports':POST_URL,{method:'POST',headers:SB_URL?{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,Prefer:'return=minimal'}:{'Content-Type':'application/json'},body:JSON.stringify(SB_URL?{type:it.type,name:it.name,lat:it.lat,lng:it.lng,note:it.note,eid:it.eid||null}:it)}).catch(function(){toast('Envoi impossible, réessaie')});
+};
+ 
+/* ===== Établissements de toute la France (open data officiel, repli OpenStreetMap) ===== */
+var V1='https://data.education.gouv.fr/api/records/1.0/search/?dataset=fr-en-annuaire-education';
+var V1E='https://data.enseignementsup-recherche.gouv.fr/api/records/1.0/search/?dataset=fr-esr-principaux-etablissements-enseignement-superieur';
+function j(u){return fetch(u).then(function(r){if(!r.ok)throw 0;return r.json()})}
+function colorOf(t){return/^Lyc/i.test(t)?'#ffffff':/^Coll/i.test(t)?'#7ae7ff':'#d9ff3f'}
+function add(o){
+ if(S[o.id])return S[o.id];S[o.id]=o;
+ o.m=L.circleMarker([o.lat,o.lng],{radius:7,color:'#160a2e',weight:2,fillColor:colorOf(o.type),fillOpacity:1}).addTo(sl);
+ o.m.bindPopup('<div class="pop"><b>'+esc(o.name)+'</b><br><small>'+esc(o.type)+(o.pub?' · '+esc(o.pub):'')+'</small><br>'+esc(o.adr)+' '+esc(o.cp)+' '+esc(o.commune)+'<br><button data-sid="'+esc(o.id)+'">✊ Signaler un blocus ici</button></div>');
+ return o;
 }
-
-    const chat = document.getElementById('live-chat');
-    let index = 0;
-
-    function getTime() {
-      const now = new Date();
-      return now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-    }
-
-    function addMessage(name, text, color) {
-      const initiale = name[0].toUpperCase();
-      const div = document.createElement('div');
-      div.classList.add('chat-msg');
-      div.innerHTML = `
-        <div class="chat-avatar" style="background:linear-gradient(135deg,${color},#00c3ff);">${initiale}</div>
-        <div class="chat-bubble">
-          <div class="chat-name">@${name}</div>
-          <div class="chat-text">${text}</div>
-          <div class="chat-time">${getTime()}</div>
-        </div>
-      `;
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
-    }
-
-    function autoMessage() {
-      const msg = messages[index % messages.length];
-      addMessage(msg.name, msg.text, msg.color);
-      index++;
-    }
-
-    function startChat() {
-  autoMessage();
-
-  const delay = 1500 + Math.random() * 5000; // entre 1,5 et 6,5 sec
-
-  setTimeout(startChat, delay);
+function rec(r,uni){
+ var f=r.fields||{},g=r.geometry&&r.geometry.coordinates,la,ln;
+ if(g){ln=g[0];la=g[1]}else{la=f.latitude;ln=f.longitude}
+ var name=f.nom_etablissement||f.uo_lib||f.nom;if(!name||la==null||ln==null)return null;
+ return add({id:(uni?'u':'e')+(r.recordid||name+la),name:name,lat:la,lng:ln,type:f.type_etablissement||(uni?'Université':'Établissement'),commune:f.nom_commune||f.com_nom||'',cp:f.code_postal||'',adr:f.adresse_1||f.adresse_uai||'',pub:f.statut_public_prive||''});
 }
-
-startChat();
-
-    document.getElementById('chat-send-btn').addEventListener('click', () => {
-      const input = document.getElementById('chat-input');
-      const text = input.value.trim();
-      if (!text) return;
-      addMessage('user102478', text, '#007bff');
-      input.value = '';
-    });
-
-    document.getElementById('chat-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') document.getElementById('chat-send-btn').click();
-    });
-  </script>
-<a href="#demande" class="mobile-sticky-btn">
-  Accéder à mes résultats
-</a>
-<script>
-const stickyBtn = document.querySelector(".mobile-sticky-btn");
-const form = document.getElementById("demande");
-
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    stickyBtn.style.display = entry.isIntersecting ? "none" : "flex";
-  });
-});
-
-observer.observe(form);
+function edu(u,q,rows,uni){return j(u+'&rows='+rows+q).then(function(d){return(d.records||[]).map(function(r){return rec(r,uni)}).filter(Boolean)})}
+function osm(v){
+ function one(q){return j('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=10&countrycodes=fr&q='+enc(q)).then(function(a){return a.filter(function(r){return r.category==='amenity'&&/school|college|university/.test(r.type)}).map(function(r){var p=String(r.display_name).split(',');return add({id:'o'+r.place_id,name:r.name||p[0],lat:+r.lat,lng:+r.lon,type:r.type==='university'?'Université':'Établissement',commune:p.slice(1,3).join(',').trim(),cp:'',adr:'',pub:''})})})}
+ return one(v).then(function(r){return r.length?r:one('lycée '+v)});
+}
+function loadSchools(){
+ if(map.getZoom()<12||$('sch').getAttribute('aria-pressed')!=='true')return;
+ var c=map.getCenter(),rad=Math.min(20000,Math.round(c.distanceTo(map.getBounds().getNorthEast()))),g='&geofilter.distance='+c.lat+','+c.lng+','+rad;
+ edu(V1,g+'&q='+enc('type_etablissement:"Lycée"'),100).catch(function(){return edu(V1,g,100)}).catch(function(){});
+ edu(V1E,g,50,true).catch(function(){});
+}
+function isSec(o){return/^(Lyc|Coll|EREA)/i.test(o.type)}
+function safe(p){return p.then(function(r){return{ok:1,r:r}},function(){return{ok:0,r:[]}})}
+function rec2(f){var la=f.latitude||(f.position&&f.position.lat),ln=f.longitude||(f.position&&f.position.lon);if(!f.nom_etablissement||la==null||ln==null)return null;return add({id:'e'+(f.identifiant_de_l_etablissement||f.nom_etablissement+la),name:f.nom_etablissement,lat:la,lng:ln,type:f.type_etablissement||'Établissement',commune:f.nom_commune||'',cp:f.code_postal||'',adr:f.adresse_1||'',pub:f.statut_public_prive||''})}
+function v2(v){return j('https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-annuaire-education/records?limit=25&where='+enc('search(nom_etablissement,"'+v+'")')).then(function(d){return(d.results||[]).map(rec2).filter(Boolean)})}
+function find(v){
+ var q='&q='+enc(v);
+ return Promise.all([safe(edu(V1,q,25)),safe(edu(V1E,q,8,true))]).then(function(a){
+  var sec=a[0].r.filter(isSec),r=(sec.length?sec:a[0].r).concat(a[1].r),down=!a[0].ok&&!a[1].ok;
+  if(r.length)return{r:r,down:0};
+  return safe(v2(v)).then(function(b){if(b.r.length)return{r:b.r,down:0};
+   return safe(osm(v)).then(function(c){return{r:c.r,down:down&&!b.ok&&!c.ok}})});
+ });
+}
+function hideSug(){$('sug').style.display='none'}
+function showSug(arr,v,down){
+ var h='';
+ if(down)h='<div class="sg"><b>Impossible de joindre l’annuaire</b><small>Ouvre cette page dans Chrome/Safari (pas dans l’aperçu Claude) ou héberge-la en ligne.</small></div>';
+ else if(!arr.length)h='<div class="sg"><b>Aucun résultat pour « '+esc(v)+' »</b><small>Essaie avec moins de mots, ex. « Jean Moulin ».</small></div>';
+ else arr.slice(0,7).forEach(function(o,i){h+='<button class="sg" data-i="'+i+'"><b>'+esc(o.name)+'</b><small>'+esc(String(o.type).split(' ')[0])+' · '+esc(o.cp)+' '+esc(o.commune)+'</small></button>'});
+ var d=$('sug');d.innerHTML=h;d.style.display='block';
+ d.querySelectorAll('[data-i]').forEach(function(el){var o=arr[+el.dataset.i];el.onmousedown=function(e){e.preventDefault()};el.onclick=function(){hideSug();$('q').value=o.name;go(o)}});
+}
+function doSearch(v,fly){
+ v=v.replace(/["\\]/g,'').trim();var n=++sq;
+ if(v.length<3){hideSug();if(!v){mode='feed';$('chips').style.display='';render()}return}
+ find(v).then(function(res){
+  if(n!==sq)return;var arr=res.r;
+  showSug(arr,v,res.down);
+  if(!fly)return;
+  hideSug();mode='res';$('chips').style.display='none';$('panel').classList.remove('shut');
+  var h='<button class="item" id="back" style="--c:#fff"><b>← Retour aux blocus en direct</b></button>';
+  if(!arr.length)h+='<div class="empty">Aucun établissement trouvé pour « '+esc(v)+' ».</div>';
+  arr.forEach(function(o,i){h+='<button class="item" style="--c:'+colorOf(o.type)+'" data-n="'+i+'"><span class="k">'+esc(String(o.type).split(' ')[0])+'</span><b>'+esc(o.name)+'</b><small>'+esc(o.cp)+' '+esc(o.commune)+'</small></button>'});
+  $('list').innerHTML=h;
+  $('back').onclick=function(){$('q').value='';mode='feed';$('chips').style.display='';render()};
+  $('list').querySelectorAll('[data-n]').forEach(function(el){var o=arr[+el.dataset.n];el.onclick=function(){go(o)}});
+  if(arr.length)go(arr[0]);
+ });
+}
+function go(o){if(!sl.hasLayer(o.m))o.m.addTo(sl);map.flyTo([o.lat,o.lng],16);setTimeout(function(){o.m.openPopup()},800)}
+function reportSchool(id){var o=S[id];if(!o)return;map.closePopup();pending=L.latLng(o.lat,o.lng);pendingEid=id;$('f').reset();$('fn').value=o.name;$('ft').value='blocus';$('dlg').showModal()}
+map.on('popupopen',function(e){var n=e.popup.getElement(),b=n&&n.querySelector('[data-sid]');if(b)b.onclick=function(){reportSchool(b.getAttribute('data-sid'))}});
+$('q').addEventListener('input',function(){var v=this.value,t=this;clearTimeout(t._t);t._t=setTimeout(function(){doSearch(v,false)},300)});
+$('q').addEventListener('keydown',function(e){if(e.key==='Enter')doSearch(this.value,true)});
+$('q').addEventListener('blur',function(){setTimeout(hideSug,200)});
+map.on('moveend',function(){clearTimeout(tmr);tmr=setTimeout(loadSchools,500)});
+load();setInterval(load,REFRESH_MS);
 </script>
 </body>
 </html>
+ 
