@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23160a2e'/%3E%3Cpath d='M32 9a23 23 0 1 0 0 46a23 23 0 1 0 0-46M27 20h10v24H27z' fill='%23d9ff3f'/%3E%3Ccircle cx='49' cy='48' r='7' fill='%23ff3d6e'/%3E%3C/svg%3E">
 <title>AlkyAI – Blocus en Live</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -70,6 +71,44 @@ dialog input,dialog select,dialog textarea{width:100%;padding:10px 12px;border:2
 #toast.on{transform:translate(-50%,0)}
 @media(max-width:760px){#toast{bottom:calc(76px + env(safe-area-inset-bottom,0px))}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Ajustements mobiles : mêmes fonctionnalités, commandes plus accessibles */
+@media(max-width:760px){
+  html,body{min-height:100%;overscroll-behavior:none}
+  .top{left:8px;right:8px;gap:8px}
+  .logo{font-size:18px;padding:8px 9px 6px;letter-spacing:0}
+  .sbox{min-width:0}
+  #q{height:46px;padding:0 12px 0 38px;font-size:16px;min-width:0}
+  .sbox::before{left:12px;top:11px;font-size:18px}
+  .tag{right:8px;top:-10px;font-size:10px;padding:2px 6px}
+  #sug{top:54px;max-height:38vh}
+  .fabs{right:8px;top:calc(68px + env(safe-area-inset-top,0px));gap:7px}
+  .fab{width:44px;height:44px;border-radius:13px;font-size:19px}
+  .panel{left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom,0px));max-height:40vh}
+  .panel.shut{max-height:56px}
+  .ph{padding:10px 12px;gap:8px}
+  .ph b{font-size:28px}
+  .chips{padding:8px 10px 0;gap:5px}
+  .chip{padding:5px 9px;font-size:12px}
+  #list{padding:9px 10px 10px}
+  .item{padding:10px;margin-bottom:7px}
+  dialog{padding:18px;max-height:calc(100dvh - 24px);width:calc(100% - 24px)}
+  dialog input,dialog select,dialog textarea{font-size:16px}
+  .note{padding:0 10px 10px}
+}
+@media(max-width:380px){
+  .logo{font-size:16px;padding:7px 7px 5px}
+  .top{gap:6px}
+  .tag{font-size:9px}
+  .fab{width:40px;height:40px;font-size:17px}
+  .fabs{gap:6px}
+}
+@media(orientation:landscape) and (max-height:500px) and (max-width:900px){
+  .panel{left:8px;right:auto;top:calc(68px + env(safe-area-inset-top,0px));bottom:8px;width:min(320px,44vw);max-height:none}
+  .panel.shut{max-height:56px}
+  .fabs{top:calc(68px + env(safe-area-inset-top,0px))}
+}
+
 </style>
 </head>
 <body>
