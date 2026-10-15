@@ -59,7 +59,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);font:400 16p
 .leaflet-popup-content-wrapper{border-radius:14px;background:#fff;color:var(--bg)}
 .leaflet-popup-content{font:500 14px/1.4 'DM Sans',sans-serif}
 .pop button{margin-top:8px;background:var(--hot);color:#fff;border:0;border-radius:99px;padding:8px 14px;font:700 14px 'DM Sans',sans-serif;cursor:pointer}
-dialog{border:3px solid var(--lime);background:var(--bg2);color:#fff;border-radius:20px;padding:22px;max-width:410px;width:calc(100% - 28px)}
+dialog{max-height:90vh;overflow:auto;border:3px solid var(--lime);background:var(--bg2);color:#fff;border-radius:20px;padding:22px;max-width:410px;width:calc(100% - 28px)}
 dialog::backdrop{background:rgba(10,4,24,.75)}
 dialog h3{font:400 30px Anton,Impact,sans-serif;margin:0 0 6px;color:var(--lime)}
 dialog label{display:block;font-weight:700;margin-top:10px;font-size:14px}
@@ -83,13 +83,14 @@ dialog input,dialog select,dialog textarea{width:100%;padding:10px 12px;border:2
   <button class="fab glass" id="loc" aria-label="Me localiser" title="Me localiser">📍</button>
   <button class="fab glass on" id="sat" aria-pressed="true" aria-label="Satellite" title="Satellite / plan">🛰️</button>
   <button class="fab glass on" id="sch" aria-pressed="true" aria-label="Afficher les établissements" title="Établissements">🏫</button>
+  <button class="fab glass" id="acc" aria-label="Compte et abonnement Pro" title="Compte / Pro">⭐</button>
   <button class="fab hot" id="rep" aria-label="Signaler un blocus" title="Signaler">✊</button>
 </div>
 <section class="panel glass" id="panel">
   <button class="ph" id="ph" aria-label="Replier ou déplier"><b id="nc">0</b><span id="pt">blocus signalés en France<br><small id="st" style="font-weight:500;opacity:.7">Chargement…</small></span>▾</button>
   <div class="chips" id="chips"></div>
   <div id="list" aria-live="polite"></div>
-  <p class="note">Signalements vérifiés avant publication. Jamais de données personnelles : seulement des lieux collectifs.</p>
+  <p class="note">Signalements publiés par la communauté, non vérifiés. Jamais de données personnelles : seulement des lieux collectifs. <a href="cgv.html" style="color:#d9ff3f">CGV</a> · <a href="confidentialite.html" style="color:#d9ff3f">Confidentialité</a> · <a href="mentions-legales.html" style="color:#d9ff3f">Mentions</a></p>
 </section>
 <dialog id="dlg">
   <h3>Signaler un blocus</h3>
@@ -100,12 +101,16 @@ dialog input,dialog select,dialog textarea{width:100%;padding:10px 12px;border:2
     <p style="display:flex;gap:10px;margin:16px 0 0"><button class="go" value="ok">Envoyer</button><button class="no" value="cancel">Annuler</button></p>
   </form>
 </dialog>
+<dialog id="adlg"><h3>Compte ALKYAI</h3><div id="ab"></div><p><button class="no" id="ac">Fermer</button></p></dialog>
 <div id="toast" role="status"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 /* ===== CONFIG ===== */
 var SB_URL='https://gspingiinfhefdfqwyjf.supabase.co',SB_KEY='sb_publishable_d2GwO2bGEJ5koaTSxDUD_w_ywV8xVBf';   // Supabase (table reports). Vide = mode démo
 var DATA_URL='',POST_URL='',REFRESH_MS=15000;
+var PAY_PRO='',PAY_COLLECTIF='',PAY_SECOURS='';  // tes liens de paiement (PayPal.me, Lydia, Mollie, HelloAsso…)
+var TOKEN=null,USER=null,PRO=false,sb=null;
 var TYPES={blocus:['Blocus','#ff3d6e'],manif:['Manif','#d9ff3f'],aide:['Secours','#5cffb0'],rdv:['RDV','#ffffff']};
 /* Faits relayés par la presse (positions approximatives, dates = dernier signalement) */
 var SAMPLE=[
@@ -123,8 +128,8 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 function toast(s){var t=$('toast');t.textContent=s;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on')},3200)}
 function ago(iso){var m=Math.round((Date.now()-new Date(iso))/60000);if(isNaN(m))return'';if(m<60)return'il y a '+Math.max(m,1)+' min';if(m<1440)return'il y a '+Math.round(m/60)+' h';return'il y a '+Math.round(m/1440)+' j'}
 
-function sbh(h){h.apikey=SB_KEY;if(/^eyJ/.test(SB_KEY))h.Authorization='Bearer '+SB_KEY;return h}
-function loadLocal(){try{return(JSON.parse(localStorage.getItem('alkyai_reports'))||[]).map(function(i){i.local=true;return i})}catch(e){return[]}}
+function sbh(h){h.apikey=SB_KEY;if(TOKEN)h.Authorization='Bearer '+TOKEN;else if(/^eyJ/.test(SB_KEY))h.Authorization='Bearer '+SB_KEY;return h}
+function loadLocal(){try{return(JSON.parse(localStorage.getItem('alkyai_reports'))||[]).filter(function(i){return Date.now()-new Date(i.updated)<9e5}).map(function(i){i.local=true;return i})}catch(e){return[]}}
 function saveLocal(){try{localStorage.setItem('alkyai_reports',JSON.stringify(items.filter(function(i){return i.local})))}catch(e){}}
 items=loadLocal();
 /* ===== Carte (France entière par défaut) ===== */
@@ -165,12 +170,12 @@ function render(){
  $('list').innerHTML=h||'<div class="empty">Aucun signalement. Sois le premier : touche ✊ puis la carte.</div>';
  $('list').querySelectorAll('.item').forEach(function(el){var i=vis[+el.dataset.n];el.onclick=function(){map.flyTo([i.lat,i.lng],15);setTimeout(function(){i._m.openPopup()},700)}});
 }
-function setSt(d){$('st').textContent=d?'Infos de presse · signalements à venir':'En direct · maj '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
+function setSt(d){$('st').textContent=d?'Infos de presse · signalements à venir':(PRO?'En direct · Pro ✓ · maj ':'Retard 10 min · passe Pro pour le direct · maj ')+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
 function load(){
- if(SB_URL)DATA_URL=SB_URL+'/rest/v1/reports?select=*&order=updated.desc&limit=500&updated=gte.'+enc(new Date(Date.now()-48*3600e3).toISOString());
- var loc=items.filter(function(i){return i.local});
+ if(SB_URL)DATA_URL=SB_URL+'/rest/v1/reports?select=*&order=updated.desc&limit=500&updated=gte.'+enc(new Date(Date.now()-24*3600e3).toISOString());
+ var loc=items.filter(function(i){return i.local&&Date.now()-new Date(i.updated)<9e5});
  if(!DATA_URL){items=SAMPLE.concat(loc);setSt(true);render();return}
- fetch(DATA_URL,{cache:'no-store',headers:SB_KEY?sbh({}):{}}).then(function(r){return r.json()}).then(function(d){d.forEach(function(x){x.status=x.status||(x.type==='blocus'?'Blocus signalé':'Signalé')});items=d.concat(loc);setSt(false);render()}).catch(function(){items=SAMPLE.concat(loc);setSt(true);render()});
+ fetch(DATA_URL,{cache:'no-store',headers:SB_KEY?sbh({}):{}}).then(function(r){return r.json()}).then(function(d){d.forEach(function(x){x.status=x.status||(x.type==='blocus'?'Blocus signalé':'Signalé')});items=d.concat(loc.filter(function(i){return!d.some(function(x){return x.name===i.name&&x.lat===i.lat&&x.lng===i.lng})}));setSt(false);render()}).catch(function(){items=SAMPLE.concat(loc);setSt(true);render()});
 }
 $('rep').onclick=function(){repMode=!repMode;this.classList.toggle('on',repMode);map.getContainer().style.cursor=repMode?'crosshair':'';if(repMode)toast('Touche l’endroit exact sur la carte')};
 map.on('click',function(e){if(!repMode)return;pending=e.latlng;pendingEid=null;repMode=false;$('rep').classList.remove('on');map.getContainer().style.cursor='';$('f').reset();$('dlg').showModal()});
@@ -178,7 +183,7 @@ $('f').onsubmit=function(){
  if(!$('fn').value.trim()||!pending)return;
  var it={id:'u'+Date.now(),type:$('ft').value,name:$('fn').value.trim(),lat:pending.lat,lng:pending.lng,status:'À vérifier',note:$('fc').value.trim(),updated:new Date().toISOString(),source:'Signalement',local:true,eid:pendingEid};
  items.push(it);saveLocal();render();toast(SB_URL||POST_URL?'Publication en cours…':'Enregistré sur ton appareil seulement : pas encore partagé avec les autres');
- if(SB_URL||POST_URL)fetch(SB_URL?SB_URL+'/rest/v1/reports':POST_URL,{method:'POST',headers:SB_URL?sbh({'Content-Type':'application/json',Prefer:'return=minimal'}):{'Content-Type':'application/json'},body:JSON.stringify(SB_URL?{type:it.type,name:it.name,lat:it.lat,lng:it.lng,note:it.note,eid:it.eid||null}:it)}).then(function(r){if(r.ok){items=items.filter(function(x){return x!==it});saveLocal();load();toast('Signalement publié pour tout le monde')}else toast('Envoi refusé : vérifie la config Supabase')}).catch(function(){toast('Envoi impossible, réessaie')});
+ if(SB_URL||POST_URL)fetch(SB_URL?SB_URL+'/rest/v1/reports':POST_URL,{method:'POST',headers:SB_URL?sbh({'Content-Type':'application/json',Prefer:'return=minimal'}):{'Content-Type':'application/json'},body:JSON.stringify(SB_URL?{type:it.type,name:it.name,lat:it.lat,lng:it.lng,note:it.note,eid:it.eid||null}:it)}).then(function(r){if(r.ok){saveLocal();load();toast('Signalement publié pour tout le monde')}else toast('Envoi refusé : vérifie la config Supabase')}).catch(function(){toast('Envoi impossible, réessaie')});
 };
 
 /* ===== Établissements de toute la France (open data officiel, repli OpenStreetMap) ===== */
@@ -255,6 +260,50 @@ $('q').addEventListener('input',function(){var v=this.value,t=this;clearTimeout(
 $('q').addEventListener('keydown',function(e){if(e.key==='Enter')doSearch(this.value,true)});
 $('q').addEventListener('blur',function(){setTimeout(hideSug,200)});
 map.on('moveend',function(){clearTimeout(tmr);tmr=setTimeout(loadSchools,500)});
+/* ===== Compte, espace étudiant, abonnement Pro (lien de paiement) ===== */
+var PROF=null,PE=null;
+function km(a,b,c,d){var r=Math.PI/180,x=Math.pow(Math.sin((c-a)*r/2),2)+Math.cos(a*r)*Math.cos(c*r)*Math.pow(Math.sin((d-b)*r/2),2);return 12742*Math.asin(Math.sqrt(x))}
+function payCard(t,pr,d,l,k){return '<div class="item" style="--c:#d9ff3f;cursor:default"><b>'+t+' · '+pr+'</b><small>'+d+'</small><br>'+(l?'<a class="go" style="display:inline-block;margin:8px 8px 0 0;text-decoration:none" target="_blank" rel="noopener" href="'+esc(l)+'">Payer</a><button class="no" data-pay="'+k+'" style="margin-top:8px">J’ai payé</button>':'<small>Bientôt disponible</small>')+'</div>'}
+function rest(path,opt){opt=opt||{};opt.headers=sbh(opt.headers||{});return fetch(SB_URL+'/rest/v1/'+path,opt)}
+function openAcc(){
+ if(!sb){toast('Connexion indisponible : vérifie SB_URL');return}
+ var h;PE=null;
+ if(!USER)h='<p>Crée ton compte ou connecte-toi avec ton e-mail (lien magique, sans mot de passe).</p><p style="font-size:13px">À partir de 15 ans. En continuant, tu acceptes les <a href="cgv.html" style="color:#d9ff3f">CGV</a> et la <a href="confidentialite.html" style="color:#d9ff3f">politique de confidentialité</a>.</p><label>E-mail<input id="ae" type="email" placeholder="ton@email.fr"></label><p><button class="go" id="al">Recevoir mon lien</button></p>';
+ else{
+  var has=PROF&&PROF.lat!=null,near=has?items.filter(function(i){return i.type==='blocus'&&km(PROF.lat,PROF.lng,i.lat,i.lng)<2}).length:0;
+  h='<p>Connecté : <b>'+esc(USER.email)+'</b>'+(PRO?' · <b style="color:var(--lime)">Pro ✓</b>':'')+'</p><h4 style="margin:14px 0 0">Mon espace étudiant</h4>'+
+  '<label>Pseudo<input id="pp" maxlength="30" value="'+esc(PROF&&PROF.pseudo)+'"></label>'+
+  '<label>Mon établissement<input id="ps" autocomplete="off" placeholder="Tape ton lycée ou ta fac" value="'+esc(PROF&&PROF.etab_name)+'"></label><div id="pr"></div>'+
+  '<p><button class="go" id="pv">Enregistrer</button>'+(has?' <button class="no" id="pg">Voir sur la carte</button>':'')+'</p>'+
+  (has?'<p><b>'+near+'</b> blocus signalé(s) à moins de 2 km de ton établissement (24 h).</p>':'')+
+  '<div id="mr"></div>'+
+  (PRO?'<p>Tu vois les blocus en direct. Merci !</p>':'<h4 style="margin:14px 0 4px">Passer Pro</h4><p style="font-size:13px">Paie avec le lien en mettant ton e-mail en message, puis touche « J’ai payé » : ton compte est activé après vérification du paiement.</p>'+payCard('Cortège Pro','2,99 €/mois','Blocus en direct sans retard, alertes',PAY_PRO,'pro')+payCard('Collectif','9,99 €/mois','5 comptes Pro + outils pour les orgas',PAY_COLLECTIF,'collectif')+payCard('Pack Secours','+1 €','Points d’eau, infirmeries, juristes',PAY_SECOURS,'secours'))+
+  '<p><button class="no" id="ao">Se déconnecter</button></p>';
+ }
+ $('ab').innerHTML=h;$('adlg').showModal();
+ if($('al'))$('al').onclick=function(){var v=$('ae').value.trim();if(!v)return;sb.auth.signInWithOtp({email:v,options:{emailRedirectTo:location.href.split('#')[0]}}).then(function(r){toast(r.error?'Erreur : '+r.error.message:'Lien envoyé ! Vérifie tes mails');if(!r.error)$('adlg').close()})};
+ if(!USER)return;
+ $('ao').onclick=function(){sb.auth.signOut();$('adlg').close()};
+ if($('pg'))$('pg').onclick=function(){$('adlg').close();map.flyTo([PROF.lat,PROF.lng],15)};
+ var t0;$('ps').oninput=function(){var v=this.value;clearTimeout(t0);t0=setTimeout(function(){if(v.trim().length<3){$('pr').innerHTML='';return}
+  find(v).then(function(res){var h2='';res.r.slice(0,5).forEach(function(o,i){h2+='<button class="item" style="--c:#fff" data-i="'+i+'"><b>'+esc(o.name)+'</b><small>'+esc(o.cp)+' '+esc(o.commune)+'</small></button>'});$('pr').innerHTML=h2;
+   $('pr').querySelectorAll('[data-i]').forEach(function(el){var o=res.r[+el.dataset.i];el.onclick=function(){PE=o;$('ps').value=o.name;$('pr').innerHTML='<small>Sélectionné ✓</small>'}})})},300)};
+ $('pv').onclick=function(){
+  var o=PE||(PROF&&PROF.lat!=null?{id:PROF.etab_id,name:PROF.etab_name,lat:PROF.lat,lng:PROF.lng,commune:PROF.city}:null);
+  rest('profiles?on_conflict=user_id',{method:'POST',headers:{'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({user_id:USER.id,pseudo:$('pp').value.trim()||null,etab_name:o?o.name:null,etab_id:o?o.id:null,lat:o?o.lat:null,lng:o?o.lng:null,city:o?o.commune||'':null})}).then(function(r){toast(r.ok?'Profil enregistré ✓':'Erreur : profil non enregistré');if(r.ok)checkPro()});
+ };
+ document.querySelectorAll('[data-pay]').forEach(function(b){b.onclick=function(){rest('pay_requests',{method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({user_id:USER.id,email:USER.email,plan:b.dataset.pay})}).then(function(r){toast(r.ok?'Demande envoyée : activation après vérification du paiement':'Erreur : demande non envoyée')})}});
+ rest('reports?select=type,name,updated&user_id=eq.'+USER.id+'&order=updated.desc&limit=10').then(function(r){return r.json()}).then(function(d){if(!d.length)return;var m='<h4 style="margin:14px 0 4px">Mes signalements</h4>';d.forEach(function(x){m+='<small>'+esc(x.type)+' · '+esc(x.name)+' · '+ago(x.updated)+'</small><br>'});$('mr').innerHTML=m}).catch(function(){});
+}
+$('acc').onclick=openAcc;$('ac').onclick=function(){$('adlg').close()};
+function checkPro(){
+ if(!USER){PRO=false;PROF=null;$('acc').classList.remove('on');load();return}
+ Promise.all([
+  rest('subscriptions?select=status,until&user_id=eq.'+USER.id).then(function(r){return r.json()}).catch(function(){return[]}),
+  rest('profiles?select=*&user_id=eq.'+USER.id).then(function(r){return r.json()}).catch(function(){return[]})
+ ]).then(function(a){var d=a[0]&&a[0][0];PRO=!!(d&&d.status==='active'&&(!d.until||new Date(d.until)>new Date()));PROF=a[1]&&a[1][0]||null;$('acc').classList.toggle('on',PRO);load()});
+}
+if(SB_URL&&window.supabase){sb=supabase.createClient(SB_URL,SB_KEY);sb.auth.onAuthStateChange(function(ev,ses){TOKEN=ses?ses.access_token:null;USER=ses?ses.user:null;checkPro()})}
 load();setInterval(load,REFRESH_MS);
 </script>
 </body>
