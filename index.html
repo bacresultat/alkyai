@@ -104,7 +104,7 @@ dialog input,dialog select,dialog textarea{width:100%;padding:10px 12px;border:2
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 /* ===== CONFIG ===== */
-var SB_URL='',SB_KEY='';   // Supabase (table reports). Vide = mode démo
+var SB_URL='https://gspingiinfhefdfqwyjf.supabase.co',SB_KEY='sb_publishable_d2GwO2bGEJ5koaTSxDUD_w_ywV8xVBf';   // Supabase (table reports). Vide = mode démo
 var DATA_URL='',POST_URL='',REFRESH_MS=15000;
 var TYPES={blocus:['Blocus','#ff3d6e'],manif:['Manif','#d9ff3f'],aide:['Secours','#5cffb0'],rdv:['RDV','#ffffff']};
 /* Faits relayés par la presse (positions approximatives, dates = dernier signalement) */
@@ -122,7 +122,11 @@ function $(i){return document.getElementById(i)}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function toast(s){var t=$('toast');t.textContent=s;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on')},3200)}
 function ago(iso){var m=Math.round((Date.now()-new Date(iso))/60000);if(isNaN(m))return'';if(m<60)return'il y a '+Math.max(m,1)+' min';if(m<1440)return'il y a '+Math.round(m/60)+' h';return'il y a '+Math.round(m/1440)+' j'}
- 
+
+function sbh(h){h.apikey=SB_KEY;if(/^eyJ/.test(SB_KEY))h.Authorization='Bearer '+SB_KEY;return h}
+function loadLocal(){try{return(JSON.parse(localStorage.getItem('alkyai_reports'))||[]).map(function(i){i.local=true;return i})}catch(e){return[]}}
+function saveLocal(){try{localStorage.setItem('alkyai_reports',JSON.stringify(items.filter(function(i){return i.local})))}catch(e){}}
+items=loadLocal();
 /* ===== Carte (France entière par défaut) ===== */
 var map=L.map('map',{zoomControl:false}).setView([46.6,2.4],6);
 var sat=L.layerGroup([
@@ -135,7 +139,7 @@ $('sat').onclick=function(){var s=this.getAttribute('aria-pressed')!=='true';thi
 $('sch').onclick=function(){var s=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',s);this.classList.toggle('on',s);if(s){sl.addTo(map);loadSchools()}else map.removeLayer(sl)};
 $('ph').onclick=function(){$('panel').classList.toggle('shut')};
 if(innerWidth<=760)$('panel').classList.add('shut');
- 
+
 /* ===== Géolocalisation ===== */
 $('loc').onclick=function(){
  if(!navigator.geolocation){toast('Géolocalisation indisponible');return}
@@ -145,7 +149,7 @@ $('loc').onclick=function(){
   map.flyTo(userPos,14);toast('Carte centrée sur toi');
  },function(){toast('Autorise la localisation (HTTPS requis)')},{enableHighAccuracy:true,timeout:10000});
 };
- 
+
 /* ===== Signalements & blocus en direct ===== */
 Object.keys(TYPES).forEach(function(k){var b=document.createElement('button');b.className='chip on';b.textContent=TYPES[k][0];b.onclick=function(){on[k]=on[k]?0:1;b.classList.toggle('on',!!on[k]);render()};$('chips').appendChild(b)});
 function render(){
@@ -163,20 +167,20 @@ function render(){
 }
 function setSt(d){$('st').textContent=d?'Infos de presse · signalements à venir':'En direct · maj '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
 function load(){
- if(SB_URL)DATA_URL=SB_URL+'/rest/v1/reports?moderation=eq.approved&select=*';
+ if(SB_URL)DATA_URL=SB_URL+'/rest/v1/reports?select=*&order=updated.desc&limit=500&updated=gte.'+enc(new Date(Date.now()-48*3600e3).toISOString());
  var loc=items.filter(function(i){return i.local});
  if(!DATA_URL){items=SAMPLE.concat(loc);setSt(true);render();return}
- fetch(DATA_URL,{cache:'no-store',headers:SB_KEY?{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}:{}}).then(function(r){return r.json()}).then(function(d){d.forEach(function(x){x.status=x.status||(x.type==='blocus'?'Blocus signalé':'Signalé')});items=d.concat(loc);setSt(false);render()}).catch(function(){items=SAMPLE.concat(loc);setSt(true);render()});
+ fetch(DATA_URL,{cache:'no-store',headers:SB_KEY?sbh({}):{}}).then(function(r){return r.json()}).then(function(d){d.forEach(function(x){x.status=x.status||(x.type==='blocus'?'Blocus signalé':'Signalé')});items=d.concat(loc);setSt(false);render()}).catch(function(){items=SAMPLE.concat(loc);setSt(true);render()});
 }
 $('rep').onclick=function(){repMode=!repMode;this.classList.toggle('on',repMode);map.getContainer().style.cursor=repMode?'crosshair':'';if(repMode)toast('Touche l’endroit exact sur la carte')};
 map.on('click',function(e){if(!repMode)return;pending=e.latlng;pendingEid=null;repMode=false;$('rep').classList.remove('on');map.getContainer().style.cursor='';$('f').reset();$('dlg').showModal()});
 $('f').onsubmit=function(){
  if(!$('fn').value.trim()||!pending)return;
  var it={id:'u'+Date.now(),type:$('ft').value,name:$('fn').value.trim(),lat:pending.lat,lng:pending.lng,status:'À vérifier',note:$('fc').value.trim(),updated:new Date().toISOString(),source:'Signalement',local:true,eid:pendingEid};
- items.push(it);render();toast('Merci ! Ton signalement part en modération');
- if(SB_URL||POST_URL)fetch(SB_URL?SB_URL+'/rest/v1/reports':POST_URL,{method:'POST',headers:SB_URL?{'Content-Type':'application/json',apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,Prefer:'return=minimal'}:{'Content-Type':'application/json'},body:JSON.stringify(SB_URL?{type:it.type,name:it.name,lat:it.lat,lng:it.lng,note:it.note,eid:it.eid||null}:it)}).catch(function(){toast('Envoi impossible, réessaie')});
+ items.push(it);saveLocal();render();toast(SB_URL||POST_URL?'Publication en cours…':'Enregistré sur ton appareil seulement : pas encore partagé avec les autres');
+ if(SB_URL||POST_URL)fetch(SB_URL?SB_URL+'/rest/v1/reports':POST_URL,{method:'POST',headers:SB_URL?sbh({'Content-Type':'application/json',Prefer:'return=minimal'}):{'Content-Type':'application/json'},body:JSON.stringify(SB_URL?{type:it.type,name:it.name,lat:it.lat,lng:it.lng,note:it.note,eid:it.eid||null}:it)}).then(function(r){if(r.ok){items=items.filter(function(x){return x!==it});saveLocal();load();toast('Signalement publié pour tout le monde')}else toast('Envoi refusé : vérifie la config Supabase')}).catch(function(){toast('Envoi impossible, réessaie')});
 };
- 
+
 /* ===== Établissements de toute la France (open data officiel, repli OpenStreetMap) ===== */
 var V1='https://data.education.gouv.fr/api/records/1.0/search/?dataset=fr-en-annuaire-education';
 var V1E='https://data.enseignementsup-recherche.gouv.fr/api/records/1.0/search/?dataset=fr-esr-principaux-etablissements-enseignement-superieur';
@@ -255,4 +259,3 @@ load();setInterval(load,REFRESH_MS);
 </script>
 </body>
 </html>
- 
