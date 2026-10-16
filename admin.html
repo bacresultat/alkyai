@@ -1,15 +1,20 @@
 <!DOCTYPE html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ALKYAI – admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-body{margin:0;font:15px/1.4 system-ui,sans-serif;background:#160a2e;color:#fff;padding:16px}
-h1{font:400 30px Impact,sans-serif;color:#d9ff3f;margin:0 0 8px}h2{font:400 22px Impact,sans-serif;color:#7ae7ff;margin:26px 0 4px}
-input,button{font:inherit;padding:9px 14px;border-radius:10px;border:2px solid #fff;margin:4px 6px 4px 0}
-input{background:#241046;color:#fff}button{cursor:pointer;background:#ff3d6e;color:#fff;border:0;font-weight:700}
-button.g{background:transparent;border:2px solid #fff}button.ok{background:#5cffb0;color:#160a2e}
-table{width:100%;border-collapse:collapse}td,th{padding:7px;border-bottom:1px solid #ffffff33;text-align:left;vertical-align:top}
-.b{display:inline-block;padding:1px 8px;border-radius:4px;font-weight:700;color:#160a2e}a{color:#7ae7ff}
-.w{overflow-x:auto}
+:root{--ink:#14110f;--y:#ffc400;--hot:#ff4b1f;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;font:500 15px/1.45 'Plus Jakarta Sans',system-ui,sans-serif;background:#f4f1ea;color:var(--ink);padding:16px}
+h1{font:800 32px 'Bricolage Grotesque',sans-serif;margin:0 0 8px}
+h2{font:800 21px 'Bricolage Grotesque',sans-serif;margin:26px 0 8px;padding-left:10px;border-left:6px solid var(--y)}
+input,button{font:inherit;padding:10px 14px;border-radius:12px;border:2px solid #e3ded4;margin:4px 6px 4px 0;background:#fff;color:var(--ink)}
+button{cursor:pointer;background:var(--hot);color:#fff;border:0;font-weight:700}
+button.g{background:#fff;color:var(--ink);border:2px solid var(--ink)}button.ok{background:#18b872;color:#fff}
+#login{max-width:420px;margin:60px auto;background:#fff;padding:26px;border-radius:24px;box-shadow:0 16px 50px rgba(20,17,15,.2)}
+.w{overflow-x:auto;background:#fff;border-radius:16px;padding:6px 10px;box-shadow:0 2px 10px rgba(20,17,15,.08)}
+table{width:100%;border-collapse:collapse}td,th{padding:9px 8px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
+.b{display:inline-block;padding:2px 9px;border-radius:6px;font-weight:700;color:var(--ink)}a{color:var(--hot)}
 </style></head><body>
 <div id="login"><h1>Admin ALKYAI</h1>
 <input id="e" type="email" placeholder="e-mail admin"><input id="p" type="password" placeholder="mot de passe"><button id="go">Connexion</button><p id="msg"></p></div>
@@ -23,7 +28,7 @@ table{width:100%;border-collapse:collapse}td,th{padding:7px;border-bottom:1px so
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 var SB_URL='https://gspingiinfhefdfqwyjf.supabase.co',SB_KEY='sb_publishable_d2GwO2bGEJ5koaTSxDUD_w_ywV8xVBf';
-var sb=supabase.createClient(SB_URL,SB_KEY),C={blocus:'#ff3d6e',manif:'#d9ff3f',aide:'#5cffb0',rdv:'#fff'},D30=30*864e5;
+var sb=supabase.createClient(SB_URL,SB_KEY),C={blocus:'#ff3d6e',manif:'#d9ff3f',aide:'#5cffb0',rdv:'#fff',police:'#3b8cff'},D30=30*864e5;
 function $(i){return document.getElementById(i)}
 function td(tr,t){var c=document.createElement('td');if(t&&t.nodeType)c.appendChild(t);else c.textContent=t==null?'':t;tr.appendChild(c)}
 function btn(t,cls,f){var b=document.createElement('button');b.textContent=t;if(cls)b.className=cls;b.onclick=f;return b}

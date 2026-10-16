@@ -3,143 +3,116 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23160a2e'/%3E%3Cpath d='M32 9a23 23 0 1 0 0 46a23 23 0 1 0 0-46M27 20h10v24H27z' fill='%23d9ff3f'/%3E%3Ccircle cx='49' cy='48' r='7' fill='%23ff3d6e'/%3E%3C/svg%3E">
-<title>AlkyAI – Blocus en Live</title>
+<title>ALKYAI – la carte des blocus en direct</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#160a2e;--bg2:#241046;--lime:#d9ff3f;--hot:#ff3d6e;--ice:#7ae7ff;--mint:#5cffb0;--tx:#fff;color-scheme:dark}
+:root{--ink:#14110f;--y:#ffc400;--hot:#ff4b1f;--lime:#b45f00;--mut:#6d6760;color-scheme:light}
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);font:400 16px/1.4 'DM Sans',system-ui,sans-serif;overflow:hidden}
-#map{position:fixed;inset:0;background:var(--bg)}
-.glass{background:rgba(22,10,46,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:2px solid rgba(217,255,63,.55)}
-.top{position:fixed;z-index:1000;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top,0px));display:flex;gap:10px;align-items:center;pointer-events:none}
+html,body{height:100%;margin:0;overflow:hidden;background:#e9e5dc;color:var(--ink);font:500 15px/1.4 'Plus Jakarta Sans',system-ui,sans-serif}
+#map{position:fixed;inset:0}
+.top{position:fixed;z-index:1000;left:50%;transform:translateX(-50%);width:calc(100% - 24px);top:calc(12px + env(safe-area-inset-top,0px));max-width:560px;pointer-events:none}
 .top>*{pointer-events:auto}
-.logo{font:400 26px/1 Anton,Impact,sans-serif;letter-spacing:.02em;background:var(--lime);color:var(--bg);padding:10px 14px 8px;transform:rotate(-4deg);box-shadow:4px 4px 0 var(--hot);flex:none}
-.sbox{flex:1;max-width:640px;position:relative}
-#q{width:100%;height:56px;border-radius:99px;border:3px solid var(--lime);background:#fff;color:var(--bg);padding:0 22px 0 50px;font:700 18px 'DM Sans',sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.45),0 0 0 6px rgba(217,255,63,.18)}
-#q::placeholder{color:#6b5a93;font-weight:500}
-#q:focus-visible{outline:3px solid var(--hot);outline-offset:3px}
-.sbox::before{content:'🔎';position:absolute;left:18px;top:14px;font-size:20px;z-index:1}
-.tag{position:absolute;right:14px;top:-12px;background:var(--hot);color:#fff;font:400 13px Anton,Impact,sans-serif;letter-spacing:.04em;padding:2px 9px;transform:rotate(3deg)}
-#sug{position:absolute;left:0;right:0;top:62px;border-radius:18px;overflow:auto;max-height:50vh}
-.sg{display:block;width:100%;text-align:left;font:inherit;color:#fff;background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.15);padding:11px 18px;cursor:pointer}
-.sg:hover,.sg:focus-visible{background:rgba(217,255,63,.18)}
-.sg b{display:block}.sg small{opacity:.75}
-.fabs{position:fixed;z-index:1000;right:12px;top:calc(86px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:10px}
-.fab{width:52px;height:52px;border-radius:16px;font-size:22px;cursor:pointer;color:#fff;display:grid;place-items:center;transition:transform .12s}
-.fab:hover{transform:scale(1.08)}
-.fab.on{background:var(--lime);color:var(--bg);border-color:var(--lime)}
-.fab.hot{background:var(--hot);border-color:#fff}
-.fab:focus-visible,button:focus-visible,.item:focus-visible{outline:3px solid var(--hot);outline-offset:2px}
-.panel{position:fixed;z-index:999;left:12px;top:calc(86px + env(safe-area-inset-top,0px));bottom:12px;width:350px;border-radius:22px;display:flex;flex-direction:column;overflow:hidden}
-.ph{display:flex;align-items:center;gap:10px;padding:14px 16px;border:0;background:var(--bg2);color:#fff;cursor:pointer;width:100%;text-align:left;font:inherit}
-.ph b{font:400 34px/1 Anton,Impact,sans-serif;color:var(--hot)}
-.ph span{flex:1;font-weight:700;font-size:14px;line-height:1.15}
-.chips{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 0}
-.chip{border:2px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:99px;padding:4px 12px;font:700 13px 'DM Sans',sans-serif;cursor:pointer}
-.chip.on{background:var(--lime);color:var(--bg);border-color:var(--lime)}
-#list{overflow:auto;padding:12px 14px 14px;flex:1}
-.item{display:block;width:100%;text-align:left;font:inherit;color:#fff;background:rgba(255,255,255,.07);border:0;border-left:6px solid var(--c,#fff);border-radius:12px;padding:10px 12px;margin-bottom:9px;cursor:pointer}
-.item:hover{background:rgba(255,255,255,.14)}
-.item b{display:block;font-size:15px}.item small{opacity:.75}
-.k{display:inline-block;font:400 12px Anton,Impact,sans-serif;letter-spacing:.05em;background:var(--c,#fff);color:var(--bg);padding:1px 8px;margin-right:6px;border-radius:4px}
-.empty{padding:14px;border:2px dashed rgba(255,255,255,.4);border-radius:12px}
-.note{font-size:12px;opacity:.65;padding:0 14px 12px}
-@media(max-width:760px){
- .logo{font-size:20px;padding:8px 10px 6px}
- #q{height:50px;font-size:16px}
- .panel{left:8px;right:8px;top:auto;bottom:calc(8px + env(safe-area-inset-bottom,0px));width:auto;max-height:42vh}
- .panel.shut{max-height:64px}.panel.shut #list,.panel.shut .chips,.panel.shut .note{display:none}
- .fabs{top:calc(76px + env(safe-area-inset-top,0px))}
+.sbox{position:relative}
+.sbox .ic{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:18px}
+#q{width:100%;height:54px;border:0;border-radius:18px;background:#fff;padding:0 18px 0 48px;font:600 16px 'Plus Jakarta Sans',sans-serif;color:var(--ink);box-shadow:0 6px 24px rgba(20,17,15,.25)}
+#q::placeholder{color:#9a938a;font-weight:500}
+#q:focus-visible,.tabs button:focus-visible,.rb:focus-visible,.chip:focus-visible,.item:focus-visible,.grab:focus-visible{outline:3px solid var(--y);outline-offset:2px}
+#sug{position:absolute;left:0;right:0;top:62px;background:#fff;border-radius:18px;box-shadow:0 12px 36px rgba(20,17,15,.3);overflow:auto;max-height:50vh}
+.sg{display:block;width:100%;text-align:left;font:inherit;color:var(--ink);background:#fff;border:0;border-bottom:1px solid #eee;padding:12px 18px;cursor:pointer}
+.sg:hover,.sg:focus-visible{background:#fff6d6}.sg b{display:block}.sg small{color:var(--mut)}
+.chipbar{display:flex;gap:8px;overflow-x:auto;padding:10px 2px 4px;scrollbar-width:none;width:fit-content;max-width:100%;margin:0 auto}
+.chipbar::-webkit-scrollbar{display:none}
+.chip{flex:none;border:0;background:#fff;color:var(--ink);border-radius:99px;padding:8px 14px;font:700 13px 'Plus Jakarta Sans',sans-serif;cursor:pointer;box-shadow:0 2px 8px rgba(20,17,15,.22)}
+.chip.on{background:var(--ink);color:#fff}
+.side{position:fixed;z-index:1000;right:12px;top:calc(142px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:10px}
+.rb{width:48px;height:48px;border:0;border-radius:16px;background:#fff;font-size:21px;cursor:pointer;box-shadow:0 4px 14px rgba(20,17,15,.25)}
+.rb.on{background:var(--ink)}
+.sheet{position:fixed;z-index:999;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom,0px));max-height:46vh;background:#fff;border-radius:26px 26px 0 0;box-shadow:0 -8px 30px rgba(20,17,15,.25);display:flex;flex-direction:column;overflow:hidden}
+.grab{border:0;background:transparent;padding:10px;cursor:pointer;width:100%}
+.grab i{display:block;width:44px;height:5px;border-radius:9px;background:#d4cec4;margin:0 auto}
+.sh{display:flex;gap:12px;align-items:center;padding:0 18px 12px}
+.sh b{font:800 40px/1 'Bricolage Grotesque',sans-serif;color:var(--hot)}
+.sh span{font-weight:700;line-height:1.2}.sh small{display:block;font-weight:500;color:var(--mut)}
+.brand{margin-left:auto;font:800 16px 'Bricolage Grotesque',sans-serif;background:var(--y);padding:3px 10px;border-radius:8px;transform:rotate(-3deg)}
+#list{overflow:auto;padding:0 14px 10px;flex:1}
+.sheet.shut{max-height:none}.sheet.shut #list,.sheet.shut .note{display:none}
+.note{font-size:11px;color:var(--mut);padding:0 18px 10px;margin:0}
+.item{display:block;width:100%;text-align:left;font:inherit;color:var(--ink);background:#faf8f4;border:0;border-left:6px solid var(--c,#ccc);border-radius:14px;padding:11px 14px;margin-bottom:10px;cursor:pointer}
+.item:hover{background:#f1ede5}.item b{display:block;font-size:15px}.item small{color:var(--mut)}
+.k{display:inline-block;font:800 11px 'Bricolage Grotesque',sans-serif;letter-spacing:.04em;text-transform:uppercase;background:var(--c,#ddd);color:var(--ink);padding:2px 8px;margin-right:6px;border-radius:6px}
+.empty{padding:16px;border:2px dashed #cfc8bc;border-radius:14px;color:var(--mut)}
+.tabs{position:fixed;z-index:1001;left:0;right:0;bottom:0;height:calc(66px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:#fff;display:flex;justify-content:space-around;align-items:center;box-shadow:0 -4px 20px rgba(20,17,15,.15)}
+.tabs button{border:0;background:transparent;font:700 11px 'Plus Jakarta Sans',sans-serif;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:6px 10px;border-radius:14px}
+.tabs button i{font-style:normal;font-size:22px;line-height:1}
+.tabs button.on{background:var(--y)}
+.tabs .plus{background:var(--hot);color:#fff;width:60px;height:60px;border-radius:20px;justify-content:center;margin-top:-24px;box-shadow:0 8px 20px rgba(255,75,31,.55)}
+.tabs .plus i{font-size:34px}.tabs .plus.on{background:var(--ink)}
+.leaflet-bottom{bottom:76px}
+@media(min-width:761px){
+ .sheet{left:16px;right:auto;width:380px;bottom:16px;max-height:calc(100vh - 190px);border-radius:24px}
+ .tabs{left:50%;right:auto;transform:translateX(-50%);bottom:16px;width:auto;height:72px;border-radius:24px;padding:0 14px;gap:8px}
 }
-.mk{display:block;width:20px;height:20px;border-radius:50%;background:var(--c);border:3px solid #fff;position:relative;box-shadow:0 0 14px var(--c)}
+@media(min-width:761px) and (max-width:1240px){.tabs{left:auto;right:16px;transform:none}}
+.mk{display:grid;place-items:center;font-size:15px;width:30px;height:30px;border-radius:50%;background:var(--c);border:3px solid #fff;position:relative;box-shadow:0 4px 12px rgba(20,17,15,.45)}
 .mk::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:3px solid var(--c);animation:r 2s infinite}
-@keyframes r{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.8);opacity:0}}
-.me{width:16px;height:16px;border-radius:50%;background:#3b8cff;border:3px solid #fff}
-.leaflet-popup-content-wrapper{border-radius:14px;background:#fff;color:var(--bg)}
-.leaflet-popup-content{font:500 14px/1.4 'DM Sans',sans-serif}
-.pop button{margin-top:8px;background:var(--hot);color:#fff;border:0;border-radius:99px;padding:8px 14px;font:700 14px 'DM Sans',sans-serif;cursor:pointer}
-dialog{max-height:90vh;overflow:auto;border:3px solid var(--lime);background:var(--bg2);color:#fff;border-radius:20px;padding:22px;max-width:410px;width:calc(100% - 28px)}
-dialog::backdrop{background:rgba(10,4,24,.75)}
-dialog h3{font:400 30px Anton,Impact,sans-serif;margin:0 0 6px;color:var(--lime)}
-dialog label{display:block;font-weight:700;margin-top:10px;font-size:14px}
-dialog input,dialog select,dialog textarea{width:100%;padding:10px 12px;border:2px solid #fff;border-radius:10px;background:var(--bg);color:#fff;font:500 15px 'DM Sans',sans-serif;margin-top:4px}
-.go{background:var(--hot);color:#fff;border:0;border-radius:99px;padding:11px 20px;font:700 15px 'DM Sans',sans-serif;cursor:pointer}
-.no{background:transparent;color:#fff;border:2px solid #fff;border-radius:99px;padding:9px 18px;font:700 15px 'DM Sans',sans-serif;cursor:pointer}
-#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,160px);background:var(--lime);color:var(--bg);padding:11px 20px;font-weight:700;border-radius:99px;z-index:3000;transition:transform .25s;max-width:92vw;text-align:center}
+@keyframes r{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.6);opacity:0}}
+.me{width:16px;height:16px;border-radius:50%;background:#2f6bff;border:3px solid #fff;box-shadow:0 0 0 6px rgba(47,107,255,.25)}
+.leaflet-popup-content-wrapper{border-radius:16px}
+.leaflet-popup-content{font:500 14px/1.4 'Plus Jakarta Sans',sans-serif;color:var(--ink)}
+.pop button{margin-top:8px;background:var(--hot);color:#fff;border:0;border-radius:99px;padding:9px 16px;font:700 14px 'Plus Jakarta Sans',sans-serif;cursor:pointer}
+dialog{max-height:90vh;overflow:auto;border:0;background:#fff;color:var(--ink);border-radius:24px;padding:24px;max-width:430px;width:calc(100% - 28px);box-shadow:0 24px 60px rgba(20,17,15,.4)}
+dialog::backdrop{background:rgba(20,17,15,.55)}
+dialog h3{font:800 28px/1 'Bricolage Grotesque',sans-serif;margin:0 0 8px}
+dialog label{display:block;font-weight:700;margin-top:12px;font-size:13px}
+dialog input,dialog select,dialog textarea{width:100%;padding:12px 14px;border:2px solid #e3ded4;border-radius:12px;background:#fff;color:var(--ink);font:500 15px 'Plus Jakarta Sans',sans-serif;margin-top:4px}
+dialog a{color:var(--hot)}
+.go{background:var(--ink);color:#fff;border:0;border-radius:99px;padding:12px 22px;font:700 15px 'Plus Jakarta Sans',sans-serif;cursor:pointer}
+.no{background:transparent;color:var(--ink);border:2px solid var(--ink);border-radius:99px;padding:10px 20px;font:700 15px 'Plus Jakarta Sans',sans-serif;cursor:pointer}
+#toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translate(-50%,200px);background:var(--ink);color:#fff;padding:12px 20px;font-weight:700;border-radius:99px;z-index:3000;transition:transform .25s;max-width:92vw;text-align:center}
 #toast.on{transform:translate(-50%,0)}
-@media(max-width:760px){#toast{bottom:calc(76px + env(safe-area-inset-bottom,0px))}}
+@media(min-width:761px){#toast{bottom:100px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-
-/* Ajustements mobiles : mêmes fonctionnalités, commandes plus accessibles */
-@media(max-width:760px){
-  html,body{min-height:100%;overscroll-behavior:none}
-  .top{left:8px;right:8px;gap:8px}
-  .logo{font-size:18px;padding:8px 9px 6px;letter-spacing:0}
-  .sbox{min-width:0}
-  #q{height:46px;padding:0 12px 0 38px;font-size:16px;min-width:0}
-  .sbox::before{left:12px;top:11px;font-size:18px}
-  .tag{right:8px;top:-10px;font-size:10px;padding:2px 6px}
-  #sug{top:54px;max-height:38vh}
-  .fabs{right:8px;top:calc(68px + env(safe-area-inset-top,0px));gap:7px}
-  .fab{width:44px;height:44px;border-radius:13px;font-size:19px}
-  .panel{left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom,0px));max-height:40vh}
-  .panel.shut{max-height:56px}
-  .ph{padding:10px 12px;gap:8px}
-  .ph b{font-size:28px}
-  .chips{padding:8px 10px 0;gap:5px}
-  .chip{padding:5px 9px;font-size:12px}
-  #list{padding:9px 10px 10px}
-  .item{padding:10px;margin-bottom:7px}
-  dialog{padding:18px;max-height:calc(100dvh - 24px);width:calc(100% - 24px)}
-  dialog input,dialog select,dialog textarea{font-size:16px}
-  .note{padding:0 10px 10px}
-}
-@media(max-width:380px){
-  .logo{font-size:16px;padding:7px 7px 5px}
-  .top{gap:6px}
-  .tag{font-size:9px}
-  .fab{width:40px;height:40px;font-size:17px}
-  .fabs{gap:6px}
-}
-@media(orientation:landscape) and (max-height:500px) and (max-width:900px){
-  .panel{left:8px;right:auto;top:calc(68px + env(safe-area-inset-top,0px));bottom:8px;width:min(320px,44vw);max-height:none}
-  .panel.shut{max-height:56px}
-  .fabs{top:calc(68px + env(safe-area-inset-top,0px))}
-}
-
 </style>
 </head>
 <body>
 <div id="map" role="application" aria-label="Carte de France des blocus"></div>
 <div class="top">
-  <div class="logo">ALKYAI</div>
-  <div class="sbox"><span class="tag">TOUTE LA FRANCE</span><div id="sug" class="glass" style="display:none"></div>
-    <input id="q" type="search" autocomplete="off" placeholder="Tape ton lycée, ta fac, ton collège…" aria-label="Rechercher un établissement"></div>
+  <div class="sbox"><span class="ic">🔎</span><input id="q" type="search" autocomplete="off" placeholder="Cherche ton lycée, ta fac…" aria-label="Rechercher un établissement"><div id="sug" style="display:none"></div></div>
+  <div class="chipbar" id="chips"></div>
 </div>
-<div class="fabs">
-  <button class="fab glass" id="loc" aria-label="Me localiser" title="Me localiser">📍</button>
-  <button class="fab glass on" id="sat" aria-pressed="true" aria-label="Satellite" title="Satellite / plan">🛰️</button>
-  <button class="fab glass on" id="sch" aria-pressed="true" aria-label="Afficher les établissements" title="Établissements">🏫</button>
-  <button class="fab glass" id="acc" aria-label="Compte et abonnement Pro" title="Compte / Pro">⭐</button>
-  <button class="fab hot" id="rep" aria-label="Signaler un blocus" title="Signaler">✊</button>
+<div class="side">
+  <button class="rb" id="loc" aria-label="Me localiser" title="Me localiser">📍</button>
+  <button class="rb on" id="sat" aria-pressed="true" aria-label="Satellite" title="Satellite / plan">🛰️</button>
+  <button class="rb on" id="sch" aria-pressed="true" aria-label="Afficher les établissements" title="Établissements">🏫</button>
 </div>
-<section class="panel glass" id="panel">
-  <button class="ph" id="ph" aria-label="Replier ou déplier"><b id="nc">0</b><span id="pt">blocus signalés en France<br><small id="st" style="font-weight:500;opacity:.7">Chargement…</small></span>▾</button>
-  <div class="chips" id="chips"></div>
+<section class="sheet" id="panel">
+  <button class="grab" id="ph" aria-label="Ouvrir ou fermer la liste"><i></i></button>
+  <div class="sh"><b id="nc">0</b><span>blocus signalés<br>en France<small id="st">Chargement…</small></span><span class="brand">ALKYAI</span></div>
   <div id="list" aria-live="polite"></div>
-  <p class="note">Signalements publiés par la communauté, non vérifiés. Jamais de données personnelles : seulement des lieux collectifs. <a href="cgv.html" style="color:#d9ff3f">CGV</a> · <a href="confidentialite.html" style="color:#d9ff3f">Confidentialité</a> · <a href="mentions-legales.html" style="color:#d9ff3f">Mentions</a></p>
+  <p class="note">Signalements publiés par la communauté, non vérifiés. Jamais de données personnelles : seulement des lieux collectifs. <a href="cgv.html" style="color:#ff4b1f">CGV</a> · <a href="confidentialite.html" style="color:#ff4b1f">Confidentialité</a> · <a href="mentions-legales.html" style="color:#ff4b1f">Mentions</a></p>
 </section>
+<nav class="tabs" aria-label="Navigation">
+  <button id="tm"><i>📋</i>Liste</button>
+  <button id="bell" aria-label="Activer les alertes"><i>🔔</i>Alertes</button>
+  <button id="rep" class="plus" aria-label="Signaler"><i>+</i></button>
+  <button id="sos" aria-label="Urgences"><i>🆘</i>Urgence</button>
+  <button id="acc" aria-label="Compte et abonnement"><i>👤</i>Compte</button>
+</nav>
 <dialog id="dlg">
-  <h3>Signaler un blocus</h3>
+  <h3>Signaler</h3><p style="font-size:12px;opacity:.75;margin:0">Lieux et zones collectives uniquement : jamais de personnes identifiables. Les signalements Police s’affichent 2 h.</p>
   <form method="dialog" id="f">
-    <label>Type<select id="ft"><option value="blocus">Blocus</option><option value="manif">Manifestation</option><option value="aide">Secours / eau</option><option value="rdv">Rendez-vous</option></select></label>
+    <label>Type<select id="ft"><option value="blocus">Blocus</option><option value="manif">Manifestation</option><option value="aide">Secours / eau</option><option value="police">Police / zone de tension</option></select></label>
     <label>Lieu<input id="fn" required maxlength="80"></label>
     <label>Infos utiles (facultatif)<textarea id="fc" rows="3" maxlength="200"></textarea></label>
     <p style="display:flex;gap:10px;margin:16px 0 0"><button class="go" value="ok">Envoyer</button><button class="no" value="cancel">Annuler</button></p>
   </form>
 </dialog>
+<dialog id="sdlg"><h3>Urgence &amp; sécurité</h3>
+<p style="display:flex;gap:8px;flex-wrap:wrap"><a class="go" href="tel:112" style="text-decoration:none">112 Urgences</a><a class="go" href="tel:15" style="text-decoration:none">15 SAMU</a><a class="go" href="tel:17" style="text-decoration:none">17 Police</a><a class="go" href="tel:18" style="text-decoration:none">18 Pompiers</a></p>
+<p style="font-size:14px">Sourd ou malentendant : SMS au <b>114</b>. Défenseur des droits : <a href="tel:0969390000" style="color:var(--lime)">09 69 39 00 00</a>.</p>
+<ul style="font-size:14px;padding-left:18px"><li>Reste avec ta bande et prévenez un proche de l’endroit où vous êtes.</li><li>Prends de l’eau, un téléphone chargé et une pièce d’identité.</li><li>Éloigne-toi des zones de tension par les rues larges, pas par les ruelles.</li><li>Quelqu’un est blessé ? Appelle le 15 ou le 112.</li></ul>
+<p><button class="no" id="sc">Fermer</button></p></dialog>
 <dialog id="adlg"><h3>Compte ALKYAI</h3><div id="ab"></div><p><button class="no" id="ac">Fermer</button></p></dialog>
 <div id="toast" role="status"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -150,7 +123,8 @@ var SB_URL='https://gspingiinfhefdfqwyjf.supabase.co',SB_KEY='sb_publishable_d2G
 var DATA_URL='',POST_URL='',REFRESH_MS=15000;
 var PAY_PRO='',PAY_COLLECTIF='',PAY_SECOURS='';  // tes liens de paiement (PayPal.me, Lydia, Mollie, HelloAsso…)
 var TOKEN=null,USER=null,PRO=false,sb=null;
-var TYPES={blocus:['Blocus','#ff3d6e'],manif:['Manif','#d9ff3f'],aide:['Secours','#5cffb0'],rdv:['RDV','#ffffff']};
+var TYPES={blocus:['Blocus','#ff4b1f'],manif:['Manif','#ffc400'],police:['Police','#4d8dff'],aide:['Secours','#18b872'],rdv:['RDV','#9b7bff']};
+var EM={blocus:'✊',manif:'📣',aide:'⛑️',rdv:'📍',police:'🛡️'},lastVis=[],per='all',seen=null;
 /* Faits relayés par la presse (positions approximatives, dates = dernier signalement) */
 var SAMPLE=[
 {id:'s1',type:'manif',name:'Place de la République (Paris)',lat:48.8675,lng:2.3637,status:'Manif samedi 17/10 à 14h',note:'Appel de l’USL ; Unef, Union étudiante, Fage',updated:'2026-10-15T09:00:00Z',source:'Sortiraparis'},
@@ -161,7 +135,7 @@ var SAMPLE=[
 {id:'s6',type:'blocus',name:'Lycée Magendie (Bordeaux)',lat:44.8444,lng:-0.5820,status:'Entrée bloquée',note:'Blocage du 29/09',updated:'2026-09-29T10:00:00Z',source:'AFP / Maritima'},
 {id:'s7',type:'blocus',name:'Lycée César-Baggio (Lille)',lat:50.6244,lng:3.0505,status:'Tensions signalées',note:'Blocage du 29/09',updated:'2026-09-29T10:00:00Z',source:'AFP / Maritima'}
 ];
-var items=[],on={blocus:1,manif:1,aide:1,rdv:1},userPos=null,repMode=false,pending=null,pendingEid=null,me=null,mode='feed',sq=0,terr=0,tmr=0,S={},enc=encodeURIComponent;
+var items=[],on={blocus:1,manif:1,aide:1,rdv:1,police:1},userPos=null,repMode=false,pending=null,pendingEid=null,me=null,mode='feed',sq=0,terr=0,tmr=0,S={},enc=encodeURIComponent;
 function $(i){return document.getElementById(i)}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function toast(s){var t=$('toast');t.textContent=s;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on')},3200)}
@@ -181,7 +155,7 @@ var ml=L.layerGroup().addTo(map),sl=L.layerGroup().addTo(map);
 sat.eachLayer(function(l){l.on('tileerror',function(){if(++terr===6&&$('sat').getAttribute('aria-pressed')==='true'){$('sat').click();toast('Satellite bloqué ici : plan affiché. Ouvre la page dans ton navigateur.')}})});
 $('sat').onclick=function(){var s=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',s);this.classList.toggle('on',s);if(s){map.removeLayer(plan);sat.addTo(map)}else{map.removeLayer(sat);plan.addTo(map)}};
 $('sch').onclick=function(){var s=this.getAttribute('aria-pressed')!=='true';this.setAttribute('aria-pressed',s);this.classList.toggle('on',s);if(s){sl.addTo(map);loadSchools()}else map.removeLayer(sl)};
-$('ph').onclick=function(){$('panel').classList.toggle('shut')};
+$('ph').onclick=$('tm').onclick=function(){$('panel').classList.toggle('shut')};
 if(innerWidth<=760)$('panel').classList.add('shut');
 
 /* ===== Géolocalisation ===== */
@@ -195,16 +169,17 @@ $('loc').onclick=function(){
 };
 
 /* ===== Signalements & blocus en direct ===== */
-Object.keys(TYPES).forEach(function(k){var b=document.createElement('button');b.className='chip on';b.textContent=TYPES[k][0];b.onclick=function(){on[k]=on[k]?0:1;b.classList.toggle('on',!!on[k]);render()};$('chips').appendChild(b)});
+Object.keys(TYPES).forEach(function(k){if(k==='rdv')return;var b=document.createElement('button');b.className='chip on';b.textContent=TYPES[k][0];b.onclick=function(){on[k]=on[k]?0:1;b.classList.toggle('on',!!on[k]);render()};$('chips').appendChild(b)});
 function render(){
  ml.clearLayers();
- var vis=items.filter(function(i){return on[i.type]}).sort(function(a,b){return new Date(b.updated)-new Date(a.updated)});
+ var vis=items.filter(function(i){return on[i.type]&&(i.type!=='police'||Date.now()-new Date(i.updated)<72e5)&&(per==='all'||Date.now()-new Date(i.updated)<36e5)}).sort(function(a,b){return userPos?km(userPos[0],userPos[1],a.lat,a.lng)-km(userPos[0],userPos[1],b.lat,b.lng):new Date(b.updated)-new Date(a.updated)});
  $('nc').textContent=items.filter(function(i){return i.type==='blocus'}).length;
  var h='';
+ lastVis=vis;
  vis.forEach(function(i,n){var t=TYPES[i.type]||TYPES.rdv;
-  i._m=L.marker([i.lat,i.lng],{icon:L.divIcon({className:'',html:'<span class="mk" style="--c:'+t[1]+'"></span>',iconSize:[20,20]})}).addTo(ml);
-  i._m.bindPopup('<b>'+esc(i.name)+'</b><br>'+esc(i.status||'')+'<br><small>'+esc(i.note||'')+'</small><br><small>Source : '+esc(i.source||'—')+' · '+ago(i.updated)+'</small>');
-  h+='<button class="item" style="--c:'+t[1]+'" data-n="'+n+'"><span class="k">'+t[0]+'</span><b>'+esc(i.name)+'</b><small>'+esc(i.status||'')+' · '+ago(i.updated)+'</small></button>'});
+  i._m=L.marker([i.lat,i.lng],{icon:L.divIcon({className:'',html:'<span class="mk" style="--c:'+t[1]+'">'+(EM[i.type]||'')+'</span>',iconSize:[30,30]})}).addTo(ml);
+  i._m.bindPopup('<b>'+esc(i.name)+'</b><br>'+esc(i.status||'')+'<br><small>'+esc(i.note||'')+'</small><br><small>Source : '+esc(i.source||'—')+' · '+ago(i.updated)+'</small><br><a href="https://www.openstreetmap.org/directions?to='+i.lat+'%2C'+i.lng+'" target="_blank" rel="noopener">Itinéraire</a> · <a href="#" data-share="'+n+'">Partager</a>');
+  h+='<button class="item" style="--c:'+t[1]+'" data-n="'+n+'"><span class="k">'+t[0]+'</span><b>'+esc(i.name)+'</b><small>'+esc(i.status||'')+' · '+ago(i.updated)+(userPos?' · '+km(userPos[0],userPos[1],i.lat,i.lng).toFixed(1)+' km':'')+'</small></button>'});
  if(mode!=='feed')return;
  $('list').innerHTML=h||'<div class="empty">Aucun signalement. Sois le premier : touche ✊ puis la carte.</div>';
  $('list').querySelectorAll('.item').forEach(function(el){var i=vis[+el.dataset.n];el.onclick=function(){map.flyTo([i.lat,i.lng],15);setTimeout(function(){i._m.openPopup()},700)}});
@@ -214,7 +189,7 @@ function load(){
  if(SB_URL)DATA_URL=SB_URL+'/rest/v1/reports?select=*&order=updated.desc&limit=500&updated=gte.'+enc(new Date(Date.now()-24*3600e3).toISOString());
  var loc=items.filter(function(i){return i.local&&Date.now()-new Date(i.updated)<9e5});
  if(!DATA_URL){items=SAMPLE.concat(loc);setSt(true);render();return}
- fetch(DATA_URL,{cache:'no-store',headers:SB_KEY?sbh({}):{}}).then(function(r){return r.json()}).then(function(d){d.forEach(function(x){x.status=x.status||(x.type==='blocus'?'Blocus signalé':'Signalé')});items=d.concat(loc.filter(function(i){return!d.some(function(x){return x.name===i.name&&x.lat===i.lat&&x.lng===i.lng})}));setSt(false);render()}).catch(function(){items=SAMPLE.concat(loc);setSt(true);render()});
+ fetch(DATA_URL,{cache:'no-store',headers:SB_KEY?sbh({}):{}}).then(function(r){return r.json()}).then(function(d){d.forEach(function(x){x.status=x.status||(x.type==='blocus'?'Blocus signalé':'Signalé')});items=d.concat(loc.filter(function(i){return!d.some(function(x){return x.name===i.name&&x.lat===i.lat&&x.lng===i.lng})}));setSt(false);render();alertNew(d)}).catch(function(){items=SAMPLE.concat(loc);setSt(true);render()});
 }
 $('rep').onclick=function(){repMode=!repMode;this.classList.toggle('on',repMode);map.getContainer().style.cursor=repMode?'crosshair':'';if(repMode)toast('Touche l’endroit exact sur la carte')};
 map.on('click',function(e){if(!repMode)return;pending=e.latlng;pendingEid=null;repMode=false;$('rep').classList.remove('on');map.getContainer().style.cursor='';$('f').reset();$('dlg').showModal()});
@@ -306,8 +281,9 @@ function payCard(t,pr,d,l,k){return '<div class="item" style="--c:#d9ff3f;cursor
 function rest(path,opt){opt=opt||{};opt.headers=sbh(opt.headers||{});return fetch(SB_URL+'/rest/v1/'+path,opt)}
 function openAcc(){
  if(!sb){toast('Connexion indisponible : vérifie SB_URL');return}
+ if(!USER){location.href='inscription.html';return}
  var h;PE=null;
- if(!USER)h='<p>Crée ton compte ou connecte-toi avec ton e-mail (lien magique, sans mot de passe).</p><p style="font-size:13px">À partir de 15 ans. En continuant, tu acceptes les <a href="cgv.html" style="color:#d9ff3f">CGV</a> et la <a href="confidentialite.html" style="color:#d9ff3f">politique de confidentialité</a>.</p><label>E-mail<input id="ae" type="email" placeholder="ton@email.fr"></label><p><button class="go" id="al">Recevoir mon lien</button></p>';
+ if(!USER)h='<p>Crée ton compte ou connecte-toi avec ton e-mail (lien magique, sans mot de passe).</p><p style="font-size:13px">À partir de 15 ans. En continuant, tu acceptes les <a href="cgv.html" style="color:#ff4b1f">CGV</a> et la <a href="confidentialite.html" style="color:#ff4b1f">politique de confidentialité</a>.</p><label>E-mail<input id="ae" type="email" placeholder="ton@email.fr"></label><p><button class="go" id="al">Recevoir mon lien</button></p>';
  else{
   var has=PROF&&PROF.lat!=null,near=has?items.filter(function(i){return i.type==='blocus'&&km(PROF.lat,PROF.lng,i.lat,i.lng)<2}).length:0;
   h='<p>Connecté : <b>'+esc(USER.email)+'</b>'+(PRO?' · <b style="color:var(--lime)">Pro ✓</b>':'')+'</p><h4 style="margin:14px 0 0">Mon espace étudiant</h4>'+
@@ -343,6 +319,19 @@ function checkPro(){
  ]).then(function(a){var d=a[0]&&a[0][0];PRO=!!(d&&d.status==='active'&&(!d.until||new Date(d.until)>new Date()));PROF=a[1]&&a[1][0]||null;$('acc').classList.toggle('on',PRO);load()});
 }
 if(SB_URL&&window.supabase){sb=supabase.createClient(SB_URL,SB_KEY);sb.auth.onAuthStateChange(function(ev,ses){TOKEN=ses?ses.access_token:null;USER=ses?ses.user:null;checkPro()})}
+/* ===== Alertes, partage, urgences ===== */
+function alertNew(d){
+ var ids={};d.forEach(function(x){ids[x.id]=1});
+ if(seen){var c=PROF&&PROF.lat!=null?[PROF.lat,PROF.lng]:userPos;
+  d.forEach(function(x){if(seen[x.id]||!c||!TYPES[x.type]||x.type==='aide'||x.type==='rdv')return;var k=km(c[0],c[1],x.lat,x.lng);
+   if(k<5){var m=TYPES[x.type][0]+' à '+k.toFixed(1)+' km : '+x.name;toast('🔔 '+m);if(window.Notification&&Notification.permission==='granted')new Notification('ALKYAI',{body:m})}})}
+ seen=ids;
+}
+$('bell').onclick=function(){if(!window.Notification){toast('Notifications non supportées ici');return}Notification.requestPermission().then(function(p){toast(p==='granted'?'Alertes activées (page ouverte) 🔔':'Alertes refusées');$('bell').classList.toggle('on',p==='granted')})};
+$('sos').onclick=function(){$('sdlg').showModal()};$('sc').onclick=function(){$('sdlg').close()};
+map.on('popupopen',function(e){var n=e.popup.getElement(),b=n&&n.querySelector('[data-share]');if(!b)return;b.onclick=function(ev){ev.preventDefault();var i=lastVis[+b.getAttribute('data-share')];if(!i)return;var u=location.href.split('#')[0]+'#'+i.lat+','+i.lng,t=i.name+' – '+(i.status||'');
+ if(navigator.share)navigator.share({title:'ALKYAI',text:t,url:u}).catch(function(){});else if(navigator.clipboard){navigator.clipboard.writeText(t+' '+u);toast('Lien copié')}}});
+(function(){var m=location.hash.match(/^#(-?[\d.]+),(-?[\d.]+)$/);if(m)map.setView([+m[1],+m[2]],15)})();
 load();setInterval(load,REFRESH_MS);
 </script>
 </body>
