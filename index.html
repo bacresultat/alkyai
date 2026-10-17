@@ -245,7 +245,6 @@
       const [profile, setProfile] = useState(null);
       const [currentTab, setCurrentTab] = useState('home');
       const [showAuthModal, setShowAuthModal] = useState(false);
-      const [showAgeModal, setShowAgeModal] = useState(false);
       const [authMode, setAuthMode] = useState('login');
       const [pendingTab, setPendingTab] = useState(null);
       const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -276,8 +275,6 @@
       const [email, setEmail] = useState('');
       const [password, setPassword] = useState('');
       const [username, setUsername] = useState('');
-      const [birthdate, setBirthdate] = useState('');
-      const [requiredBirthdate, setRequiredBirthdate] = useState('');
       const [authError, setAuthError] = useState('');
 
       const [newUsername, setNewUsername] = useState('');
@@ -439,7 +436,6 @@
             const newProfile = {
               id: user.id,
               username: defaultUsername,
-              birthdate: null,
               alky_balance: 0,
               streak_days: 0,
               subscription_tier: 'gratuit',
@@ -457,13 +453,9 @@
             await supabase.from('profiles').upsert([newProfile]);
             setProfile(newProfile);
             setNewUsername(newProfile.username);
-            setShowAgeModal(true);
           } else {
             setProfile(data);
             setNewUsername(data.username);
-            if (!data.birthdate) {
-              setShowAgeModal(true);
-            }
           }
         } catch (err) {
           console.error("Erreur profil:", err);
@@ -527,21 +519,6 @@
             .eq('user_id', profile.id)
             .order('created_at', { ascending: false });
           if (userData) setUserSubmissions(userData);
-        }
-      };
-
-      const handleSaveBirthdate = async (e) => {
-        e.preventDefault();
-        if (!requiredBirthdate) return;
-
-        const updated = { ...profile, birthdate: requiredBirthdate };
-        const { error } = await supabase.from('profiles').upsert([updated]);
-
-        if (!error) {
-          setProfile(updated);
-          setShowAgeModal(false);
-        } else {
-          alert("Erreur lors de l'enregistrement de votre date de naissance.");
         }
       };
 
@@ -720,12 +697,6 @@
           return;
         }
 
-        const isMinor = new Date().getFullYear() - new Date(profile.birthdate).getFullYear() < 18;
-        if (plan.id !== 'gratuit' && isMinor) {
-          const confirmParent = confirm("Notice de protection des mineurs :\nPour souscrire un abonnement payant, un accord parental est requis. As-tu l'accord de tes parents ?");
-          if (!confirmParent) return;
-        }
-
         const updatedProfile = {
           ...profile,
           subscription_tier: plan.id,
@@ -844,7 +815,7 @@
           email, 
           password,
           options: {
-            data: { username, birthdate }
+            data: { username }
           }
         });
 
@@ -857,7 +828,6 @@
           const newProfile = {
             id: data.user.id,
             username,
-            birthdate,
             alky_balance: 0,
             streak_days: 0,
             subscription_tier: 'gratuit',
@@ -1630,23 +1600,6 @@
             </div>
           )}
 
-          {/* MODALE D'ÂGE OBLIGATOIRE */}
-          {showAgeModal && (
-            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full border border-slate-200 shadow-2xl space-y-6 text-center">
-                <div>
-                  <span className="text-3xl">🎂</span>
-                  <h2 className="text-xl md:text-2xl font-black font-pop text-slate-900 mt-2">Information requise</h2>
-                  <p className="text-slate-500 text-xs mt-1 font-medium leading-relaxed">Indique ta date de naissance.</p>
-                </div>
-                <form onSubmit={handleSaveBirthdate} className="space-y-4">
-                  <input type="date" required value={requiredBirthdate} onChange={e => setRequiredBirthdate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 font-bold" />
-                  <button type="submit" className="w-full py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop">VALIDER 🚀</button>
-                </form>
-              </div>
-            </div>
-          )}
-
           {/* MODALE D'AUTHENTIFICATION */}
           {showAuthModal && (
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
@@ -1688,7 +1641,6 @@
                 ) : (
                   <form onSubmit={handleRegister} className="space-y-4">
                     <input type="text" required placeholder="Pseudonyme" value={username} onChange={e => setUsername(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold" />
-                    <input type="date" required value={birthdate} onChange={e => setBirthdate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold" />
                     <input type="email" required placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold" />
                     <input type="password" required placeholder="Mot de passe" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold" />
                     <button type="submit" className="w-full py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md">CRÉER MON COMPTE</button>
