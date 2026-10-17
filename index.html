@@ -126,6 +126,14 @@
     const SUPABASE_ANON_KEY = "sb_publishable_Bha__1CDuR3ppdQUtSQTqQ_2_KJ2NgP";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // CONFIGURATION DES 4 FORMULES D'ABONNEMENT
+    const SUBSCRIPTION_PLANS = [
+      { id: 'gratuit', name: 'Gratuit', price: '0 €', limit: 1, color: 'border-slate-200 bg-slate-50' },
+      { id: 'premium_399', name: 'Premium Bronze', price: '3,99 €/mois', limit: 3, color: 'border-blue-200 bg-blue-50/50' },
+      { id: 'premium_799', name: 'Premium Argent', price: '7,99 €/mois', limit: 6, color: 'border-purple-200 bg-purple-50/50' },
+      { id: 'premium_999', name: 'Premium Or', price: '9,99 €/mois', limit: 10, color: 'border-amber-300 bg-amber-50/50 shadow-md' }
+    ];
+
     function MapView({ userLocation }) {
       useEffect(() => {
         const map = L.map('map').setView(
@@ -226,6 +234,7 @@
               alky_balance: 0,
               streak_days: 0,
               subscription_tier: 'gratuit',
+              daily_challenges_limit: 1,
               is_admin: false
             };
             await supabase.from('profiles').upsert([newProfile]);
@@ -246,6 +255,31 @@
 
         if (!error && data) {
           setLeaderboard(data);
+        }
+      };
+
+      const handleUpdateSubscription = async (plan) => {
+        if (!session || !profile) return;
+
+        const isMinor = new Date().getFullYear() - new Date(profile.birthdate).getFullYear() < 18;
+        if (plan.id !== 'gratuit' && isMinor) {
+          const confirmParent = confirm("Notice de protection des mineurs :\nPour souscrire un abonnement payant, un accord parental ou de votre tuteur légal est requis. Confirmez-vous avoir l'accord de vos parents ?");
+          if (!confirmParent) return;
+        }
+
+        const updatedProfile = {
+          ...profile,
+          subscription_tier: plan.id,
+          daily_challenges_limit: plan.limit
+        };
+
+        const { error } = await supabase.from('profiles').upsert([updatedProfile]);
+
+        if (!error) {
+          setProfile(updatedProfile);
+          alert(`Félicitations ! Votre abonnement est maintenant mis à jour vers l'offre "${plan.name}". Votre limite passe à ${plan.limit} défis par jour.`);
+        } else {
+          alert("Erreur lors de la mise à jour de l'abonnement. Veuillez réessayer.");
         }
       };
 
@@ -306,6 +340,7 @@
             alky_balance: 0,
             streak_days: 0,
             subscription_tier: 'gratuit',
+            daily_challenges_limit: 1,
             is_admin: false
           };
           await supabase.from('profiles').upsert([newProfile]);
@@ -345,8 +380,8 @@
         }
       };
 
-      // Détermine si l'utilisateur possède un pass VIP actif
       const isVipUser = profile?.subscription_tier && profile.subscription_tier !== 'gratuit';
+      const currentPlan = SUBSCRIPTION_PLANS.find(p => p.id === profile?.subscription_tier) || SUBSCRIPTION_PLANS[0];
 
       return (
         <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans pb-24 md:pb-0 md:pt-20 relative overflow-x-hidden">
@@ -417,7 +452,6 @@
           <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 relative z-10 space-y-12">
             {currentTab === 'home' && (
               <div className="space-y-12">
-                {/* Hero Banner */}
                 <div className="bg-gradient-to-br from-blue-50/60 via-purple-50/40 to-pink-50/30 border-2 border-slate-200 rounded-[2.5rem] p-8 md:p-14 flex flex-col md:flex-row items-center gap-10 relative overflow-hidden shadow-sm">
                   <div className="shrink-0 flex items-center justify-center">
                     <img 
@@ -466,7 +500,6 @@
                   </div>
                 </div>
 
-                {/* Section Explicative */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="card-street rounded-3xl p-8 bg-slate-50 flex flex-col justify-between space-y-4">
                     <div>
@@ -502,7 +535,6 @@
                   </div>
                 </div>
 
-                {/* SECTION GROUPE */}
                 <div className="relative rounded-[3.5rem] p-8 md:p-16 gradient-alky text-white shadow-2xl overflow-hidden animate-float">
                   <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
                     <div className="space-y-6 text-center lg:text-left">
@@ -513,7 +545,7 @@
                         Joue avec tes amis, créez votre groupe et dominez tout !
                       </h2>
                       <p className="text-white/90 text-sm md:text-base font-medium leading-relaxed">
-                        Le cœur d'AlkyAI, c'est l'affrontement entre potes. Rejoins un groupe ou crée ton propre clan pour partager vos exploits, multiplier vos gains d'Alky et régner sur le classement de la ville.
+                        Le cœur d'AlkyAI, c'est l'affrontement entre potes. Rejoins un groupe ou crée ton propre clan pour partager vos exploits et régner sur le classement de la ville.
                       </p>
                       <div>
                         <button 
@@ -537,16 +569,15 @@
                   </div>
                 </div>
 
-                {/* SECTION ABONNEMENTS */}
                 <div className="card-street rounded-[2.5rem] p-8 md:p-10 bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-xl relative overflow-hidden">
                   <div className="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black font-pop">VIP</div>
                   <div className="relative z-10 max-w-2xl space-y-3">
                     <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-cyan bg-cyan-950 px-3 py-1 rounded-full border border-cyan-800">
-                      ABONNEMENTS & PASS VIP
+                      FORMULES D'ABONNEMENT
                     </span>
-                    <h2 className="text-2xl md:text-3xl font-black font-pop">Débloque ton plein potentiel avec AlkyAI+</h2>
+                    <h2 className="text-2xl md:text-3xl font-black font-pop">Multiplie tes défis quotidiens !</h2>
                     <p className="text-slate-300 text-xs md:text-sm font-medium leading-relaxed">
-                      Profite de défis exclusifs illimités, double tes gains d'Alky à chaque validation et accède aux classements privés de ton école ou de ton groupe d'amis !
+                      Passe de 1 défi par jour à 3, 6 ou jusqu'à 10 défis quotidiens grâce aux formules Premium. Un classement 100% équitable préservé pour tous !
                     </p>
                     <div className="pt-2">
                       <button onClick={() => navigateProtectedTab('vip')} className="px-6 py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider">
@@ -560,17 +591,19 @@
 
             {currentTab === 'challenges' && (
               <div className="space-y-6">
-                <div>
-                  <h1 className="text-3xl font-black font-pop text-slate-900">⚡ CATALOGUE DES DÉFIS</h1>
-                  <p className="text-slate-500 text-xs mt-1 font-semibold">
-                    {session ? "Voici tes défis personnalisés basés sur ton profil." : "Connecte-toi pour voir et relever tes défis personnalisés entre amis !"}
-                  </p>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h1 className="text-3xl font-black font-pop text-slate-900">⚡ CATALOGUE DES DÉFIS</h1>
+                    <p className="text-slate-500 text-xs mt-1 font-semibold">
+                      {session ? `Ton quota : jusqu'à ${currentPlan.limit} défis / jour (Formule : ${currentPlan.name})` : "Connecte-toi pour voir et relever tes défis entre amis !"}
+                    </p>
+                  </div>
                 </div>
 
                 {!session ? (
                   <div className="card-street rounded-3xl p-12 text-center bg-slate-50 space-y-4">
                     <h2 className="text-xl font-black font-pop text-slate-900">🔒 Connexion requise</h2>
-                    <p className="text-slate-500 text-xs max-w-md mx-auto font-medium">Pour accéder à tes défis personnalisés, valider tes photos de preuve et gagner des Alky, connecte-toi à ton compte.</p>
+                    <p className="text-slate-500 text-xs max-w-md mx-auto font-medium">Pour accéder à tes défis, valider tes photos de preuve et gagner des Alky, connecte-toi à ton compte.</p>
                     <button 
                       onClick={() => { setPendingTab('challenges'); setShowAuthModal(true); }} 
                       className="px-8 py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
@@ -610,7 +643,10 @@
 
             {currentTab === 'leaderboard' && (
               <div className="space-y-6 max-w-2xl mx-auto">
-                <h1 className="text-3xl font-black font-pop text-slate-900">🏆 CLASSEMENT EN DIRECT</h1>
+                <div className="text-center space-y-1">
+                  <h1 className="text-3xl font-black font-pop text-slate-900">🏆 CLASSEMENT EN DIRECT</h1>
+                  <p className="text-xs text-slate-500 font-medium">Classement 100% équitable entre membres Gratuits et Premium.</p>
+                </div>
                 <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-3 shadow-sm">
                   {leaderboard.length === 0 ? (
                     <p className="text-center text-slate-400 text-xs font-semibold py-8">Aucun utilisateur dans le classement pour le moment.</p>
@@ -684,93 +720,70 @@
               </div>
             )}
 
-            {/* ONGLET ALKYAI VIP (RESERVE AUX PAYANTS) */}
+            {/* ONGLET ALKYAI VIP (4 FORMULES D'ABONNEMENT) */}
             {currentTab === 'vip' && session && (
-              <div className="space-y-8 max-w-4xl mx-auto py-4">
-                {isVipUser ? (
-                  /* ESPACE EXCLUSIF POUR LES ABONNÉS VIP */
-                  <div className="card-street rounded-[2.5rem] p-10 bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 text-white shadow-2xl space-y-6">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-6">
-                      <div>
-                        <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-cyan bg-cyan-950 px-3 py-1 rounded-full border border-cyan-800">
-                          👑 ESPACE MEMBRE VIP
-                        </span>
-                        <h1 className="text-3xl font-black font-pop mt-2">Bienvenue dans le Club VIP !</h1>
-                      </div>
-                      <span className="px-4 py-2 gradient-alky rounded-2xl font-black text-xs">ACTIF</span>
-                    </div>
+              <div className="space-y-8 max-w-5xl mx-auto py-4">
+                <div className="text-center space-y-3">
+                  <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-blue bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
+                    FORMULES D'ABONNEMENT ALKYAI
+                  </span>
+                  <h1 className="text-3xl md:text-4xl font-black font-pop text-slate-900">Choisis ton accès aux défis</h1>
+                  <p className="text-slate-500 text-xs md:text-sm font-medium max-w-xl mx-auto">
+                    Augmente ton nombre maximal de défis quotidiens. Les abonnements n'attribuent pas d'Alky supplémentaires directement afin de maintenir un classement équitable !
+                  </p>
+                </div>
 
-                    <p className="text-slate-300 text-sm font-medium leading-relaxed">
-                      En tant que membre VIP, tu profites du multiplicateur x2 sur tous tes Alky, d'un accès prioritaire aux nouveaux défis et du badge exclusif sur les classements !
-                    </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {SUBSCRIPTION_PLANS.map((plan) => {
+                    const isCurrent = profile?.subscription_tier === plan.id;
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                      <div className="bg-white/5 border border-white/10 p-6 rounded-2xl space-y-2">
-                        <h3 className="font-pop font-black text-alky-cyan text-lg">🚀 Défis VIP Exclusifs</h3>
-                        <p className="text-xs text-slate-400 font-medium">Débloque les missions spéciales haute récompense chaque semaine.</p>
-                      </div>
-                      <div className="bg-white/5 border border-white/10 p-6 rounded-2xl space-y-2">
-                        <h3 className="font-pop font-black text-alky-pink text-lg">💎 Multiplicateur x2</h3>
-                        <p className="text-xs text-slate-400 font-medium">Tes points de validation sont automatiquement doublés.</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  /* PAGE D'OFFRES POUR CEUX QUI N'ONT PAS PAYÉ */
-                  <div className="space-y-8">
-                    <div className="text-center space-y-3">
-                      <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-blue bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
-                        OFFRES & ABONNEMENTS ALKYAI VIP
-                      </span>
-                      <h1 className="text-3xl md:text-4xl font-black font-pop text-slate-900">Débloque l'accès AlkyAI VIP</h1>
-                      <p className="text-slate-500 text-xs md:text-sm font-medium max-w-lg mx-auto">
-                        Cet espace est réservé aux membres abonnés. Choisis ton forfait ci-dessous pour débloquer immédiatement ton accès VIP !
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="card-street rounded-3xl p-8 bg-slate-50 flex flex-col justify-between space-y-6">
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center">
-                            <span className="font-pop font-black text-sm uppercase text-slate-600">Pass Mensuel</span>
-                            <span className="text-2xl font-black font-pop text-alky-blue">4.99 € <span className="text-xs text-slate-400 font-normal">/ mois</span></span>
+                    return (
+                      <div key={plan.id} className={`card-street rounded-3xl p-6 flex flex-col justify-between space-y-6 ${plan.color} relative overflow-hidden`}>
+                        {isCurrent && (
+                          <div className="absolute top-3 right-3 px-3 py-1 bg-emerald-500 text-white font-black text-[9px] rounded-full uppercase tracking-wider">
+                            Actif
                           </div>
-                          <ul className="space-y-3 text-xs text-slate-600 font-medium">
-                            <li>✔️ Accès complet à l'espace AlkyAI VIP</li>
-                            <li>✔️ Double tous tes gains d'Alky</li>
-                            <li>✔️ Badge VIP exclusif sur le classement</li>
+                        )}
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="font-pop font-black text-slate-900 text-base">{plan.name}</h3>
+                            <p className="text-2xl font-black font-pop text-alky-blue mt-1">{plan.price}</p>
+                          </div>
+                          <div className="pt-2 border-t border-slate-200/60">
+                            <span className="text-xs font-extrabold text-slate-700">Quota quotidien :</span>
+                            <p className="text-sm font-black font-pop text-alky-pink mt-0.5">{plan.limit} défi{plan.limit > 1 ? 's' : ''} / jour</p>
+                          </div>
+                          <ul className="text-[11px] text-slate-500 font-medium space-y-1 pt-1">
+                            <li>✔️ Accès aux défis</li>
+                            <li>✔️ Vérification serveur</li>
+                            <li>✔️ Classement équitable</li>
                           </ul>
                         </div>
-                        <button 
-                          onClick={() => alert("Redirection vers la passerelle de paiement sécurisée...")} 
-                          className="w-full py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
-                        >
-                          SOUSCRIRE AU PASS MENSUEL
-                        </button>
-                      </div>
 
-                      <div className="card-street rounded-3xl p-8 bg-slate-900 text-white flex flex-col justify-between space-y-6 border-alky-blue shadow-xl">
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center">
-                            <span className="font-pop font-black text-sm uppercase text-alky-cyan">Pass Annuel (Best Value)</span>
-                            <span className="text-2xl font-black font-pop text-white">39.99 € <span className="text-xs text-slate-400 font-normal">/ an</span></span>
-                          </div>
-                          <ul className="space-y-3 text-xs text-slate-300 font-medium">
-                            <li>✔️ Tous les avantages du Pass Mensuel</li>
-                            <li>✔️ 2 mois offerts</li>
-                            <li>✔️ Accès anticipé aux nouvelles fonctionnalités</li>
-                          </ul>
-                        </div>
-                        <button 
-                          onClick={() => alert("Redirection vers la passerelle de paiement sécurisée...")} 
-                          className="w-full py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
-                        >
-                          PROFITER DU PASS ANNUEL 🚀
-                        </button>
+                        {isCurrent ? (
+                          <button 
+                            disabled
+                            className="w-full py-3 bg-slate-200 text-slate-500 font-black font-pop text-xs rounded-xl cursor-not-allowed"
+                          >
+                            OFFRE ACTUELLE
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={() => handleUpdateSubscription(plan)} 
+                            className="w-full py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider"
+                          >
+                            {plan.id === 'gratuit' ? 'REVENIR À GRATUIT' : 'CHOISIR CETTE OFFRE'}
+                          </button>
+                        )}
                       </div>
-                    </div>
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
+
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center text-slate-500 text-xs font-medium space-y-1">
+                  <p>🔒 <strong>Sécurité & Règles :</strong> Les limites quotidiennes sont strictement vérifiées côté serveur pour éviter tout contournement.</p>
+                  <p>👶 <strong>Protection des mineurs :</strong> L'accord d'un parent ou tuteur légal est requis avant toute souscription payante.</p>
+                </div>
               </div>
             )}
 
@@ -799,10 +812,22 @@
                       <p className="text-2xl font-black font-pop text-alky-blue mt-1">{profile?.alky_balance || 0} ALKY</p>
                     </div>
                     <div className="bg-white p-4 rounded-2xl border border-slate-200 text-center">
-                      <span className="text-xs text-slate-400 font-bold uppercase">Statut Membre</span>
-                      <p className="text-2xl font-black font-pop text-alky-pink mt-1 uppercase">{profile?.subscription_tier || 'GRATUIT'}</p>
+                      <span className="text-xs text-slate-400 font-bold uppercase">Formule Active</span>
+                      <p className="text-lg font-black font-pop text-alky-pink mt-1 uppercase">{currentPlan.name}</p>
+                      <span className="text-[10px] text-slate-400 font-bold">({currentPlan.limit} défis/jour)</span>
                     </div>
                   </div>
+
+                  {isVipUser && (
+                    <div className="pt-2 border-t border-slate-200">
+                      <button 
+                        onClick={() => handleUpdateSubscription(SUBSCRIPTION_PLANS[0])}
+                        className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 font-black font-pop text-xs rounded-xl transition-colors"
+                      >
+                        ANNULER MON ABONNEMENT (RETOUR À GRATUIT)
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
