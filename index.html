@@ -124,7 +124,7 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useRef } = React;
 
     // CONFIGURATION SUPABASE
     const SUPABASE_URL = "https://hsvxubtiblbdqtpvascr.supabase.co";
@@ -138,7 +138,6 @@
       { id: 'premium_999', name: 'Premium Or', price: '9,99 €/mois', limit: 10, createLimit: 999, color: 'border-amber-300 bg-amber-50/50 shadow-md' }
     ];
 
-    // BANQUE DE DÉFIS QUOTIDIENS SIMULÉS (1 ALKY CHACUN)
     const DAILY_CHALLENGES_POOL = [
       { id: 1, title: "20 Pompes sur un banc public", category: "SPORT", points: "+1 ALKY", latOffset: 0.002, lngOffset: 0.001, desc: "Trouve le parc ou la place la plus proche et enchaîne 20 pompes." },
       { id: 2, title: "Selfie devant la fontaine locale", category: "CULTURE", points: "+1 ALKY", latOffset: -0.001, lngOffset: 0.003, desc: "Repère l'eau qui coule dans ton quartier et prends ton équipe en photo." },
@@ -153,14 +152,31 @@
     ];
 
     function MapView({ userLocation, challengesToShow }) {
+      const mapRef = useRef(null);
+      const mapInstanceRef = useRef(null);
+
       useEffect(() => {
         const center = userLocation ? [userLocation.lat, userLocation.lng] : [48.8566, 2.3522];
-        const map = L.map('map').setView(center, 14);
+        
+        if (!mapInstanceRef.current) {
+          const map = L.map('map').setView(center, 14);
+          L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '&copy; OpenStreetMap contributors'
+          }).addTo(map);
+          mapInstanceRef.current = map;
+        } else {
+          mapInstanceRef.current.setView(center, 14);
+        }
 
-        L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
-          maxZoom: 18,
-          attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+        const map = mapInstanceRef.current;
+
+        // Nettoyer les anciens marqueurs si besoin
+        map.eachLayer((layer) => {
+          if (layer instanceof L.Marker) {
+            map.removeLayer(layer);
+          }
+        });
 
         if (userLocation) {
           L.marker([userLocation.lat, userLocation.lng])
@@ -181,10 +197,6 @@
               .bindPopup(`<b>Défi #${idx + 1}: ${ch.title}</b><br>${ch.points} — ${ch.category}`);
           });
         }
-
-        return () => {
-          map.remove();
-        };
       }, [userLocation, challengesToShow]);
 
       return <div id="map" className="w-full h-full"></div>;
@@ -206,6 +218,9 @@
       const [groupLeaderboard, setGroupLeaderboard] = useState([]);
       const [selectedPublicUser, setSelectedPublicUser] = useState(null);
       const [userLocation, setUserLocation] = useState(null);
+      const [isLocating, setIsLocating] = useState(false);
+      const [searchAddress, setSearchAddress] = useState('');
+      const [searchLoading, setSearchLoading] = useState(false);
 
       // GESTION DES DÉFIS QUOTIDIENS
       const [dailyChallenges, setDailyChallenges] = useState([]);
@@ -223,7 +238,6 @@
       const [newUsername, setNewUsername] = useState('');
       const [profileMessage, setProfileMessage] = useState({ text: '', type: '' });
 
-      // Gestion des groupes
       const [groupName, setGroupName] = useState('');
       const [groupSecret, setGroupSecret] = useState('');
       const [joinCode, setJoinCode] = useState('');
@@ -579,19 +593,46 @@
 
       const handleLocateMe = () => {
         if (navigator.geolocation) {
+          setIsLocating(true);
           navigator.geolocation.getCurrentPosition(
             (position) => {
               setUserLocation({
                 lat: position.coords.latitude,
                 lng: position.coords.longitude
               });
+              setIsLocating(false);
             },
             () => {
               alert("Impossible de récupérer votre position.");
-            }
+              setIsLocating(false);
+            },
+            { timeout: 10000 }
           );
         } else {
           alert("La géolocalisation n'est pas supportée par votre navigateur.");
+        }
+      };
+
+      const handleSearchAddress = async (e) => {
+        e.preventDefault();
+        if (!searchAddress.trim()) return;
+
+        setSearchLoading(true);
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchAddress)}`);
+          const data = await response.json();
+          if (data && data.length > 0) {
+            setUserLocation({
+              lat: parseFloat(data[0].lat),
+              lng: parseFloat(data[0].lon)
+            });
+          } else {
+            alert("Aucun lieu trouvé pour cette recherche.");
+          }
+        } catch (err) {
+          alert("Erreur lors de la recherche d'adresse.");
+        } finally {
+          setSearchLoading(false);
         }
       };
 
@@ -888,8 +929,15 @@
                       <h3 className="text-lg md:text-xl font-black font-pop text-slate-900">1. Missions géolocalisées</h3>
                       <p className="text-slate-500 text-xs mt-2 font-medium leading-relaxed">Tes défis quotidiens s'affichent sur la carte autour de chez toi. Active ta position GPS !</p>
                     </div>
-                    <button onClick={handleLocateMe} className="w-full py-3 bg-blue-50 hover:bg-blue-100 text-alky-blue font-black font-pop text-xs rounded-xl transition-all">
-                      {userLocation ? "📍 Position activée !" : "Activer ma position"}
+                    <button onClick={handleLocateMe} disabled={isLocating} className="w-full py-3 bg-blue-50 hover:bg-blue-100 text-alky-blue font-black font-pop text-xs rounded-xl transition-all flex items-center justify-center gap-2">
+                      {isLocating ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-alky-blue border-t-transparent rounded-full animate-spin"></span>
+                          Recherche GPS...
+                        </>
+                      ) : (
+                        userLocation ? "📍 Position activée !" : "Activer ma position"
+                      )}
                     </button>
                   </div>
 
@@ -1028,9 +1076,17 @@
                   {session && (
                     <button 
                       onClick={handleLocateMe}
+                      disabled={isLocating}
                       className="px-5 py-3 bg-blue-50 hover:bg-blue-100 text-alky-blue font-black font-pop text-xs rounded-2xl border border-blue-200 transition-all flex items-center justify-center gap-2"
                     >
-                      <span>📍 Actualiser ma position GPS</span>
+                      {isLocating ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-alky-blue border-t-transparent rounded-full animate-spin"></span>
+                          Recherche...
+                        </>
+                      ) : (
+                        "📍 Actualiser ma position GPS"
+                      )}
                     </button>
                   )}
                 </div>
@@ -1082,13 +1138,47 @@
                     <h1 className="text-2xl md:text-3xl font-black font-pop text-slate-900">🗺️ CARTE DES DÉFIS DU JOUR</h1>
                     <p className="text-slate-500 text-xs mt-1 font-semibold">Retrouve tes missions géolocalisées autour de ta position.</p>
                   </div>
+                  
+                  {/* BARRE DE RECHERCHE D'ADRESSE / VILLE */}
+                  <form onSubmit={handleSearchAddress} className="flex gap-2 w-full sm:w-auto">
+                    <input 
+                      type="text" 
+                      placeholder="Chercher une ville, une adresse..." 
+                      value={searchAddress} 
+                      onChange={e => setSearchAddress(e.target.value)}
+                      className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue font-bold flex-1 sm:w-64"
+                    />
+                    <button 
+                      type="submit" 
+                      disabled={searchLoading}
+                      className="px-5 py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop flex items-center justify-center shrink-0"
+                    >
+                      {searchLoading ? (
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                      ) : (
+                        "🔍 Rechercher"
+                      )}
+                    </button>
+                  </form>
+                </div>
+
+                <div className="flex justify-start">
                   <button 
                     onClick={handleLocateMe}
-                    className="w-full sm:w-auto px-6 py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider flex items-center justify-center gap-2"
+                    disabled={isLocating}
+                    className="px-6 py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider flex items-center justify-center gap-2"
                   >
-                    <span>📍 Me localiser</span>
+                    {isLocating ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        Recherche de votre position GPS...
+                      </>
+                    ) : (
+                      "📍 Me localiser (GPS)"
+                    )}
                   </button>
                 </div>
+
                 <div className="h-[420px] md:h-[500px] card-street rounded-3xl p-2 bg-slate-50 relative overflow-hidden shadow-sm">
                   <MapView userLocation={userLocation} challengesToShow={dailyChallenges} />
                 </div>
