@@ -185,7 +185,6 @@
           setSession(session);
           if (session) {
             fetchProfile(session.user.id);
-            // Redirection intelligente après connexion
             if (pendingAction === 'vip') {
               setCurrentTab('vip-plans');
               setPendingAction(null);
@@ -259,7 +258,16 @@
         setAuthError('');
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) setAuthError(error.message);
-        else setShowAuthModal(false);
+        else {
+          setShowAuthModal(false);
+          if (pendingAction === 'vip') {
+            setCurrentTab('vip-plans');
+            setPendingAction(null);
+          } else if (pendingAction === 'groups') {
+            setCurrentTab('groups');
+            setPendingAction(null);
+          }
+        }
       };
 
       const handleRegister = async (e) => {
@@ -290,15 +298,31 @@
           }]);
           fetchProfile(data.user.id);
           setShowAuthModal(false);
+          if (pendingAction === 'vip') {
+            setCurrentTab('vip-plans');
+            setPendingAction(null);
+          } else if (pendingAction === 'groups') {
+            setCurrentTab('groups');
+            setPendingAction(null);
+          }
         }
       };
 
       const handleGoogleAuth = async () => {
         setAuthError('');
+        
+        // Définition de l'URL de redirection ciblée selon l'action en attente
+        let redirectUrl = window.location.origin + window.location.pathname;
+        if (pendingAction === 'vip') {
+          redirectUrl += '#vip-plans';
+        } else if (pendingAction === 'groups') {
+          redirectUrl += '#groups';
+        }
+
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: window.location.origin
+            redirectTo: redirectUrl
           }
         });
         if (error) setAuthError(error.message);
@@ -311,7 +335,6 @@
         setCurrentTab('home');
       };
 
-      // Gestion des clics ciblés (VIP ou Groupes)
       const handleRequireAuth = (actionType) => {
         if (session) {
           if (actionType === 'vip') setCurrentTab('vip-plans');
@@ -474,7 +497,7 @@
                   </div>
                 </div>
 
-                {/* SECTION GROUPE ANIMÉE & IMMERSIVE (Demande connexion -> mène à la page groupes) */}
+                {/* SECTION GROUPE ANIMÉE & IMMERSIVE */}
                 <div className="relative rounded-[3.5rem] p-8 md:p-16 gradient-alky text-white shadow-2xl overflow-hidden animate-float">
                   <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
                     <div className="space-y-6 text-center lg:text-left">
@@ -509,7 +532,7 @@
                   </div>
                 </div>
 
-                {/* SECTION ABONNEMENTS & PASS VIP (Demande connexion -> mène à la page forfaits VIP) */}
+                {/* SECTION ABONNEMENTS & PASS VIP */}
                 <div className="card-street rounded-[2.5rem] p-8 md:p-10 bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-xl relative overflow-hidden">
                   <div className="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black font-pop">VIP</div>
                   <div className="relative z-10 max-w-2xl space-y-3">
