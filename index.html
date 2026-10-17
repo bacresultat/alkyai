@@ -159,7 +159,7 @@
       const [currentTab, setCurrentTab] = useState('home');
       const [showAuthModal, setShowAuthModal] = useState(false);
       const [authMode, setAuthMode] = useState('login');
-      const [pendingAction, setPendingAction] = useState(null);
+      const [pendingAction, setPendingAction] = useState(null); // 'vip' ou 'groups'
 
       const [leaderboard, setLeaderboard] = useState([]);
       const [userLocation, setUserLocation] = useState(null);
@@ -265,9 +265,11 @@
         e.preventDefault();
         setAuthError('');
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) setAuthError(error.message);
-        else {
+        if (error) {
+          setAuthError(error.message);
+        } else {
           setShowAuthModal(false);
+          // Redirection immédiate après connexion email
           if (pendingAction === 'vip') {
             setCurrentTab('vip-plans');
             setPendingAction(null);
@@ -306,6 +308,7 @@
           }]);
           fetchProfile(data.user.id);
           setShowAuthModal(false);
+          // Redirection immédiate après inscription email
           if (pendingAction === 'vip') {
             setCurrentTab('vip-plans');
             setPendingAction(null);
@@ -345,9 +348,11 @@
 
       const handleRequireAuth = (actionType) => {
         if (session) {
+          // Déjà connecté : on va direct sur la page demandée
           if (actionType === 'vip') setCurrentTab('vip-plans');
           if (actionType === 'groups') setCurrentTab('groups');
         } else {
+          // Pas connecté : on mémorise l'action et on ouvre la modale
           setPendingAction(actionType);
           setShowAuthModal(true);
         }
@@ -373,7 +378,7 @@
               <NavButton active={currentTab === 'challenges'} onClick={() => { setCurrentTab('challenges'); window.location.hash=''; }} label="DÉFIS" />
               <NavButton active={currentTab === 'map'} onClick={() => { setCurrentTab('map'); window.location.hash=''; }} label="CARTE" />
               <NavButton active={currentTab === 'leaderboard'} onClick={() => { setCurrentTab('leaderboard'); window.location.hash=''; }} label="CLASSEMENT" />
-              <NavButton active={currentTab === 'groups'} onClick={() => { setCurrentTab('groups'); window.location.hash='groups'; }} label="GROUPES" />
+              <NavButton active={currentTab === 'groups'} onClick={() => { handleRequireAuth('groups'); }} label="GROUPES" />
             </nav>
 
             <div>
@@ -392,7 +397,7 @@
                 </div>
               ) : (
                 <button 
-                  onClick={() => setShowAuthModal(true)} 
+                  onClick={() => { setPendingAction(null); setShowAuthModal(true); }} 
                   className="px-6 py-3 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
                 >
                   MON COMPTE / CONNEXION
@@ -407,7 +412,7 @@
             <MobileNavButton active={currentTab === 'challenges'} onClick={() => { setCurrentTab('challenges'); window.location.hash=''; }} label="Défis" />
             <MobileNavButton active={currentTab === 'map'} onClick={() => { setCurrentTab('map'); window.location.hash=''; }} label="Carte" />
             <MobileNavButton active={currentTab === 'leaderboard'} onClick={() => { setCurrentTab('leaderboard'); window.location.hash=''; }} label="Classement" />
-            <MobileNavButton active={currentTab === 'groups'} onClick={() => { setCurrentTab('groups'); window.location.hash='groups'; }} label="Groupes" />
+            <MobileNavButton active={currentTab === 'groups'} onClick={() => { handleRequireAuth('groups'); }} label="Groupes" />
             <button 
               onClick={() => session ? setCurrentTab('profile') : setShowAuthModal(true)} 
               className="flex flex-col items-center justify-center font-black text-[11px] text-alky-blue uppercase font-pop"
@@ -446,7 +451,7 @@
                     <div className="pt-2 flex flex-wrap gap-4 justify-center md:justify-start">
                       {!session ? (
                         <button 
-                          onClick={() => setShowAuthModal(true)} 
+                          onClick={() => { setPendingAction(null); setShowAuthModal(true); }} 
                           className="px-8 py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-lg btn-pop tracking-wider"
                         >
                           CRÉER UN COMPTE GRATUIT
@@ -469,7 +474,7 @@
                   </div>
                 </div>
 
-                {/* Section Explicative claire et intuitive (Les 3 étapes en premier) */}
+                {/* Section Explicative claire et intuitive */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="card-street rounded-3xl p-8 bg-slate-50 flex flex-col justify-between space-y-4">
                     <div>
@@ -569,7 +574,7 @@
                   </span>
                   <h1 className="text-3xl md:text-4xl font-black font-pop text-slate-900">Choisis ton abonnement AlkyAI+</h1>
                   <p className="text-slate-500 text-xs md:text-sm font-medium">
-                    {session ? `Connecté en tant que ${profile?.username || session.user.email}` : "Passe au niveau supérieur et débloque tous les avantages exclusifs."}
+                    Connecté en tant que <strong className="text-alky-blue">{profile?.username || session?.user?.email}</strong>
                   </p>
                 </div>
 
@@ -587,13 +592,10 @@
                       </ul>
                     </div>
                     <button 
-                      onClick={() => {
-                        if(!session) { setShowAuthModal(true); } 
-                        else { alert("Redirection vers la passerelle de paiement sécurisée pour le Pass Mensuel..."); }
-                      }} 
+                      onClick={() => alert("Redirection vers la passerelle de paiement sécurisée pour le Pass Mensuel...")} 
                       className="w-full py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
                     >
-                      {session ? "SOUSCRIRE AU PASS MENSUEL" : "SE CONNECTER POUR SOUSCRIRE"}
+                      SOUSCRIRE AU PASS MENSUEL
                     </button>
                   </div>
 
@@ -610,13 +612,10 @@
                       </ul>
                     </div>
                     <button 
-                      onClick={() => {
-                        if(!session) { setShowAuthModal(true); } 
-                        else { alert("Redirection vers la passerelle de paiement sécurisée pour le Pass Annuel..."); }
-                      }} 
+                      onClick={() => alert("Redirection vers la passerelle de paiement sécurisée pour le Pass Annuel...")} 
                       className="w-full py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
                     >
-                      {session ? "PROFITER DU PASS ANNUEL 🚀" : "SE CONNECTER POUR SOUSCRIRE"}
+                      PROFITER DU PASS ANNUEL 🚀
                     </button>
                   </div>
                 </div>
@@ -637,7 +636,7 @@
                     <h2 className="text-xl font-black font-pop text-slate-900">🔒 Connexion requise</h2>
                     <p className="text-slate-500 text-xs max-w-md mx-auto font-medium">Pour accéder à tes défis personnalisés, valider tes photos de preuve et gagner des Alky, connecte-toi à ton compte.</p>
                     <button 
-                      onClick={() => setShowAuthModal(true)} 
+                      onClick={() => { setPendingAction(null); setShowAuthModal(true); }} 
                       className="px-8 py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
                     >
                       SE CONNECTER / S'INSCRIRE
@@ -697,66 +696,55 @@
             )}
 
             {currentTab === 'groups' && (
-              <div className="space-y-8 max-w-3xl mx-auto">
+              <div className="space-y-8 max-w-3xl mx-auto py-6">
                 <div className="text-center space-y-2">
                   <h1 className="text-3xl font-black font-pop text-slate-900">👥 GESTION DES GROUPES</h1>
-                  <p className="text-slate-500 text-xs font-medium">Crée ton équipe ou rejoins un groupe existant avec un code secret.</p>
+                  <p className="text-slate-500 text-xs font-medium">
+                    Connecté en tant que <strong className="text-alky-blue">{profile?.username || session?.user?.email}</strong>. Crée ton équipe ou rejoins un groupe existant.
+                  </p>
                 </div>
 
-                {!session ? (
-                  <div className="card-street rounded-3xl p-10 text-center bg-slate-50 space-y-4">
-                    <h3 className="text-xl font-black font-pop text-slate-900">🔒 Connexion requise</h3>
-                    <p className="text-slate-500 text-xs font-medium">Connecte-toi à ton compte pour créer ou rejoindre un groupe d'amis.</p>
-                    <button 
-                      onClick={() => { setPendingAction('groups'); setShowAuthModal(true); }} 
-                      className="px-8 py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop"
-                    >
-                      SE CONNECTER POUR CONTINUER
-                    </button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
-                      <h3 className="text-lg font-black font-pop text-slate-900">🛡️ Créer mon groupe</h3>
-                      <div className="space-y-3">
-                        <input 
-                          type="text" 
-                          placeholder="Nom du groupe" 
-                          value={groupName} 
-                          onChange={e => setGroupName(e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue"
-                        />
-                        <input 
-                          type="text" 
-                          placeholder="Code secret (ex: POTES2026)" 
-                          value={groupSecret} 
-                          onChange={e => setGroupSecret(e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue"
-                        />
-                        <button onClick={() => alert("Groupe créé avec succès !")} className="w-full py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop">
-                          CRÉER LE GROUPE 🚀
-                        </button>
-                      </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
+                    <h3 className="text-lg font-black font-pop text-slate-900">🛡️ Créer mon groupe</h3>
+                    <div className="space-y-3">
+                      <input 
+                        type="text" 
+                        placeholder="Nom du groupe" 
+                        value={groupName} 
+                        onChange={e => setGroupName(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue"
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Code secret (ex: POTES2026)" 
+                        value={groupSecret} 
+                        onChange={e => setGroupSecret(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue"
+                      />
+                      <button onClick={() => alert("Groupe créé avec succès !")} className="w-full py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop">
+                        CRÉER LE GROUPE 🚀
+                      </button>
                     </div>
+                  </div>
 
-                    <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
-                      <h3 className="text-lg font-black font-pop text-slate-900">🔗 Rejoindre un groupe</h3>
-                      <div className="space-y-3">
-                        <input 
-                          type="text" 
-                          placeholder="Entrer le code d'invitation" 
-                          value={joinCode} 
-                          onChange={e => setJoinCode(e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue"
-                        />
-                        <div className="h-10"></div>
-                        <button onClick={() => alert("Recherche et adhésion au groupe...")} className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop">
-                          REJOINDRE L'ÉQUIPE ✨
-                        </button>
-                      </div>
+                  <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
+                    <h3 className="text-lg font-black font-pop text-slate-900">🔗 Rejoindre un groupe</h3>
+                    <div className="space-y-3">
+                      <input 
+                        type="text" 
+                        placeholder="Entrer le code d'invitation" 
+                        value={joinCode} 
+                        onChange={e => setJoinCode(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue"
+                      />
+                      <div className="h-10"></div>
+                      <button onClick={() => alert("Recherche et adhésion au groupe...")} className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop">
+                        REJOINDRE L'ÉQUIPE ✨
+                      </button>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             )}
 
