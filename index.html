@@ -345,6 +345,9 @@
         }
       };
 
+      // Détermine si l'utilisateur possède un pass VIP actif
+      const isVipUser = profile?.subscription_tier && profile.subscription_tier !== 'gratuit';
+
       return (
         <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans pb-24 md:pb-0 md:pt-20 relative overflow-x-hidden">
           
@@ -366,7 +369,7 @@
               <NavButton active={currentTab === 'map'} onClick={() => setCurrentTab('map')} label="CARTE" />
               <NavButton active={currentTab === 'leaderboard'} onClick={() => setCurrentTab('leaderboard')} label="CLASSEMENT" />
               <NavButton active={currentTab === 'groups'} onClick={() => navigateProtectedTab('groups')} label="GROUPES" />
-              <NavButton active={currentTab === 'profile'} onClick={() => navigateProtectedTab('profile')} label="⚡ ALKYAI VIP" />
+              <NavButton active={currentTab === 'vip'} onClick={() => navigateProtectedTab('vip')} label="ALKYAI VIP" />
             </nav>
 
             <div>
@@ -401,7 +404,13 @@
             <MobileNavButton active={currentTab === 'map'} onClick={() => setCurrentTab('map')} label="Carte" />
             <MobileNavButton active={currentTab === 'leaderboard'} onClick={() => setCurrentTab('leaderboard')} label="Classement" />
             <MobileNavButton active={currentTab === 'groups'} onClick={() => navigateProtectedTab('groups')} label="Groupes" />
-            <MobileNavButton active={currentTab === 'profile'} onClick={() => navigateProtectedTab('profile')} label="VIP" />
+            <MobileNavButton active={currentTab === 'vip'} onClick={() => navigateProtectedTab('vip')} label="VIP" />
+            <button 
+              onClick={() => session ? setCurrentTab('profile') : setShowAuthModal(true)} 
+              className="flex flex-col items-center justify-center font-black text-[11px] text-alky-blue uppercase font-pop"
+            >
+              <span>{session ? 'Profil' : 'Compte'}</span>
+            </button>
           </nav>
 
           {/* CONTENU PRINCIPAL */}
@@ -533,15 +542,15 @@
                   <div className="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black font-pop">VIP</div>
                   <div className="relative z-10 max-w-2xl space-y-3">
                     <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-cyan bg-cyan-950 px-3 py-1 rounded-full border border-cyan-800">
-                      ⚡ ABONNEMENTS & PASS VIP
+                      ABONNEMENTS & PASS VIP
                     </span>
                     <h2 className="text-2xl md:text-3xl font-black font-pop">Débloque ton plein potentiel avec AlkyAI+</h2>
                     <p className="text-slate-300 text-xs md:text-sm font-medium leading-relaxed">
                       Profite de défis exclusifs illimités, double tes gains d'Alky à chaque validation et accède aux classements privés de ton école ou de ton groupe d'amis !
                     </p>
                     <div className="pt-2">
-                      <button onClick={() => navigateProtectedTab('profile')} className="px-6 py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider">
-                        DÉCOUVRIR LES OFFRES ⚡
+                      <button onClick={() => navigateProtectedTab('vip')} className="px-6 py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider">
+                        DÉCOUVRIR LES OFFRES
                       </button>
                     </div>
                   </div>
@@ -675,9 +684,99 @@
               </div>
             )}
 
+            {/* ONGLET ALKYAI VIP (RESERVE AUX PAYANTS) */}
+            {currentTab === 'vip' && session && (
+              <div className="space-y-8 max-w-4xl mx-auto py-4">
+                {isVipUser ? (
+                  /* ESPACE EXCLUSIF POUR LES ABONNÉS VIP */
+                  <div className="card-street rounded-[2.5rem] p-10 bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 text-white shadow-2xl space-y-6">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-6">
+                      <div>
+                        <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-cyan bg-cyan-950 px-3 py-1 rounded-full border border-cyan-800">
+                          👑 ESPACE MEMBRE VIP
+                        </span>
+                        <h1 className="text-3xl font-black font-pop mt-2">Bienvenue dans le Club VIP !</h1>
+                      </div>
+                      <span className="px-4 py-2 gradient-alky rounded-2xl font-black text-xs">ACTIF</span>
+                    </div>
+
+                    <p className="text-slate-300 text-sm font-medium leading-relaxed">
+                      En tant que membre VIP, tu profites du multiplicateur x2 sur tous tes Alky, d'un accès prioritaire aux nouveaux défis et du badge exclusif sur les classements !
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                      <div className="bg-white/5 border border-white/10 p-6 rounded-2xl space-y-2">
+                        <h3 className="font-pop font-black text-alky-cyan text-lg">🚀 Défis VIP Exclusifs</h3>
+                        <p className="text-xs text-slate-400 font-medium">Débloque les missions spéciales haute récompense chaque semaine.</p>
+                      </div>
+                      <div className="bg-white/5 border border-white/10 p-6 rounded-2xl space-y-2">
+                        <h3 className="font-pop font-black text-alky-pink text-lg">💎 Multiplicateur x2</h3>
+                        <p className="text-xs text-slate-400 font-medium">Tes points de validation sont automatiquement doublés.</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* PAGE D'OFFRES POUR CEUX QUI N'ONT PAS PAYÉ */
+                  <div className="space-y-8">
+                    <div className="text-center space-y-3">
+                      <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-blue bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
+                        OFFRES & ABONNEMENTS ALKYAI VIP
+                      </span>
+                      <h1 className="text-3xl md:text-4xl font-black font-pop text-slate-900">Débloque l'accès AlkyAI VIP</h1>
+                      <p className="text-slate-500 text-xs md:text-sm font-medium max-w-lg mx-auto">
+                        Cet espace est réservé aux membres abonnés. Choisis ton forfait ci-dessous pour débloquer immédiatement ton accès VIP !
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="card-street rounded-3xl p-8 bg-slate-50 flex flex-col justify-between space-y-6">
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span className="font-pop font-black text-sm uppercase text-slate-600">Pass Mensuel</span>
+                            <span className="text-2xl font-black font-pop text-alky-blue">4.99 € <span className="text-xs text-slate-400 font-normal">/ mois</span></span>
+                          </div>
+                          <ul className="space-y-3 text-xs text-slate-600 font-medium">
+                            <li>✔️ Accès complet à l'espace AlkyAI VIP</li>
+                            <li>✔️ Double tous tes gains d'Alky</li>
+                            <li>✔️ Badge VIP exclusif sur le classement</li>
+                          </ul>
+                        </div>
+                        <button 
+                          onClick={() => alert("Redirection vers la passerelle de paiement sécurisée...")} 
+                          className="w-full py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
+                        >
+                          SOUSCRIRE AU PASS MENSUEL
+                        </button>
+                      </div>
+
+                      <div className="card-street rounded-3xl p-8 bg-slate-900 text-white flex flex-col justify-between space-y-6 border-alky-blue shadow-xl">
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span className="font-pop font-black text-sm uppercase text-alky-cyan">Pass Annuel (Best Value)</span>
+                            <span className="text-2xl font-black font-pop text-white">39.99 € <span className="text-xs text-slate-400 font-normal">/ an</span></span>
+                          </div>
+                          <ul className="space-y-3 text-xs text-slate-300 font-medium">
+                            <li>✔️ Tous les avantages du Pass Mensuel</li>
+                            <li>✔️ 2 mois offerts</li>
+                            <li>✔️ Accès anticipé aux nouvelles fonctionnalités</li>
+                          </ul>
+                        </div>
+                        <button 
+                          onClick={() => alert("Redirection vers la passerelle de paiement sécurisée...")} 
+                          className="w-full py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
+                        >
+                          PROFITER DU PASS ANNUEL 🚀
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ONGLET PROFIL INDEPENDANT */}
             {currentTab === 'profile' && session && (
-              <div className="space-y-10 max-w-4xl mx-auto py-4">
-                {/* BLOC INFOS PROFIL */}
+              <div className="space-y-8 max-w-2xl mx-auto py-4">
                 <div className="card-street rounded-3xl p-8 bg-slate-50 space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -705,59 +804,6 @@
                     </div>
                   </div>
                 </div>
-
-                {/* BLOC FORFAITS VIP */}
-                <div className="space-y-6">
-                  <div className="text-center space-y-2">
-                    <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-blue bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
-                      ⚡ OFFRES & ABONNEMENTS ALKYAI+
-                    </span>
-                    <h2 className="text-2xl md:text-3xl font-black font-pop text-slate-900">Passe au niveau supérieur</h2>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="card-street rounded-3xl p-8 bg-slate-50 flex flex-col justify-between space-y-6">
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <span className="font-pop font-black text-sm uppercase text-slate-600">Pass Mensuel</span>
-                          <span className="text-2xl font-black font-pop text-alky-blue">4.99 € <span className="text-xs text-slate-400 font-normal">/ mois</span></span>
-                        </div>
-                        <ul className="space-y-3 text-xs text-slate-600 font-medium">
-                          <li>✔️ Défis exclusifs illimités</li>
-                          <li>✔️ Double tes gains d'Alky</li>
-                          <li>✔️ Badge VIP sur le classement</li>
-                        </ul>
-                      </div>
-                      <button 
-                        onClick={() => alert("Redirection vers la passerelle de paiement sécurisée...")} 
-                        className="w-full py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
-                      >
-                        SOUSCRIRE AU PASS MENSUEL
-                      </button>
-                    </div>
-
-                    <div className="card-street rounded-3xl p-8 bg-slate-900 text-white flex flex-col justify-between space-y-6 border-alky-blue shadow-xl">
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <span className="font-pop font-black text-sm uppercase text-alky-cyan">Pass Annuel (Best Value)</span>
-                          <span className="text-2xl font-black font-pop text-white">39.99 € <span className="text-xs text-slate-400 font-normal">/ an</span></span>
-                        </div>
-                        <ul className="space-y-3 text-xs text-slate-300 font-medium">
-                          <li>✔️ Tous les avantages du Pass Mensuel</li>
-                          <li>✔️ 2 mois offerts</li>
-                          <li>✔️ Accès anticipé aux nouvelles fonctionnalités</li>
-                        </ul>
-                      </div>
-                      <button 
-                        onClick={() => alert("Redirection vers la passerelle de paiement sécurisée...")} 
-                        className="w-full py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
-                      >
-                        PROFITER DU PASS ANNUEL 🚀
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
               </div>
             )}
           </main>
