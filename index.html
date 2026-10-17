@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>ALKYAI - Real Life Challenges</title>
+  <title>AlkyAI - Défie tes amis</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -94,6 +94,14 @@
       z-index: 10;
     }
 
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .animate-float {
+      animation: floatSlow 4s ease-in-out infinite;
+    }
+
     ::-webkit-scrollbar {
       width: 8px;
     }
@@ -121,11 +129,10 @@
     function MapView({ userLocation }) {
       useEffect(() => {
         const map = L.map('map').setView(
-          userLocation ? [userLocation.lat, userLocation.lng] : [48.8566, 2.3522], // Paris par défaut
+          userLocation ? [userLocation.lat, userLocation.lng] : [48.8566, 2.3522], 
           13
         );
 
-        // Utilisation du serveur de tuiles libre sans clé d'API requis (Stamen/Jawg/OpenStreetMap standard sécurisé)
         L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
           maxZoom: 18,
           attribution: '&copy; OpenStreetMap contributors'
@@ -152,17 +159,21 @@
       const [currentTab, setCurrentTab] = useState('home');
       const [showAuthModal, setShowAuthModal] = useState(false);
       const [authMode, setAuthMode] = useState('login');
+      const [pendingAction, setPendingAction] = useState(null); // 'vip' ou 'groups'
 
-      // État pour le classement en direct
       const [leaderboard, setLeaderboard] = useState([]);
       const [userLocation, setUserLocation] = useState(null);
 
-      // Formulaire
       const [email, setEmail] = useState('');
       const [password, setPassword] = useState('');
       const [username, setUsername] = useState('');
       const [birthdate, setBirthdate] = useState('2006-01-01');
       const [authError, setAuthError] = useState('');
+
+      // États pour la création / recherche de groupes
+      const [groupName, setGroupName] = useState('');
+      const [groupSecret, setGroupSecret] = useState('');
+      const [joinCode, setJoinCode] = useState('');
 
       useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -172,12 +183,23 @@
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
           setSession(session);
-          if (session) fetchProfile(session.user.id);
-          else setProfile(null);
+          if (session) {
+            fetchProfile(session.user.id);
+            // Redirection intelligente après connexion
+            if (pendingAction === 'vip') {
+              setCurrentTab('vip-plans');
+              setPendingAction(null);
+            } else if (pendingAction === 'groups') {
+              setCurrentTab('groups');
+              setPendingAction(null);
+            }
+          } else {
+            setProfile(null);
+          }
         });
 
         return () => subscription.unsubscribe();
-      }, []);
+      }, [pendingAction]);
 
       useEffect(() => {
         fetchLeaderboard();
@@ -289,15 +311,26 @@
         setCurrentTab('home');
       };
 
+      // Gestion des clics ciblés (VIP ou Groupes)
+      const handleRequireAuth = (actionType) => {
+        if (session) {
+          if (actionType === 'vip') setCurrentTab('vip-plans');
+          if (actionType === 'groups') setCurrentTab('groups');
+        } else {
+          setPendingAction(actionType);
+          setShowAuthModal(true);
+        }
+      };
+
       return (
-        <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans pb-24 md:pb-0 md:pt-20 relative overflow-hidden">
+        <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans pb-24 md:pb-0 md:pt-20 relative overflow-x-hidden">
           
           {/* HEADER DESKTOP */}
           <header className="hidden md:flex fixed top-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-xl border-b border-slate-200 z-50 px-8 items-center justify-between shadow-sm">
             <div className="cursor-pointer flex items-center" onClick={() => setCurrentTab('home')}>
               <img 
                 src="logo.png" 
-                alt="ALKYAI Logo" 
+                alt="AlkyAI Logo" 
                 className="h-10 w-auto object-contain hover:scale-105 transition-transform" 
                 style={{ mixBlendMode: 'multiply' }}
                 onError={(e) => { e.target.style.display='none'; }} 
@@ -353,92 +386,192 @@
           </nav>
 
           {/* CONTENU PRINCIPAL */}
-          <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 relative z-10">
+          <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 relative z-10 space-y-12">
             {currentTab === 'home' && (
-              <div className="space-y-8">
-                {/* Hero Banner Dynamique */}
-                <div className="bg-gradient-to-br from-slate-50 to-blue-50/50 border-2 border-slate-200 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden shadow-sm">
+              <div className="space-y-12">
+                {/* Hero Banner Ultra Intuitif & Dynamique */}
+                <div className="bg-gradient-to-br from-blue-50/60 via-purple-50/40 to-pink-50/30 border-2 border-slate-200 rounded-[2.5rem] p-8 md:p-14 flex flex-col md:flex-row items-center gap-10 relative overflow-hidden shadow-sm">
                   <div className="shrink-0 flex items-center justify-center">
                     <img 
                       src="logo.png" 
-                      alt="ALKYAI Logo" 
-                      className="w-48 h-auto object-contain animate-pulse" 
+                      alt="AlkyAI Logo" 
+                      className="w-52 h-auto object-contain animate-bounce duration-1000" 
                       style={{ mixBlendMode: 'multiply' }}
                       onError={(e) => { e.target.style.display='none'; }} 
                     />
                   </div>
                   
-                  <div className="flex-1 text-center md:text-left">
-                    <span className="inline-block text-xs font-black font-pop uppercase tracking-widest text-white gradient-alky px-4 py-1.5 rounded-full shadow-sm mb-3">
-                      👑 LE JEU DU MONDE RÉEL
+                  <div className="flex-1 text-center md:text-left space-y-4">
+                    <span className="inline-block text-xs font-black font-pop uppercase tracking-widest text-white gradient-alky px-4 py-1.5 rounded-full shadow-sm">
+                      🔥 Défie tes amis
                     </span>
                     <h1 className="text-3xl md:text-5xl font-black font-pop text-slate-900 tracking-wide leading-tight">
-                      Bouge, relève des défis, gagne des <span className="gradient-text-alky">Alky</span> !
+                      Relève des défis épiques, gagne des <span className="gradient-text-alky">Alky</span> !
                     </h1>
-                    <p className="text-slate-600 text-sm md:text-base mt-3 font-medium leading-relaxed max-w-xl">
-                      Transforme ton environnement urbain en terrain de jeu. Explore la carte, trouve des missions et grimpe dans le classement mondial en direct.
+                    <p className="text-slate-600 text-sm md:text-base font-medium leading-relaxed max-w-xl">
+                      <strong>AlkyAI</strong> transforme ta ville et ton quotidien en un immense terrain de jeu. Affronte tes amis, valide tes preuves en photo et prends la tête du classement en direct !
                     </p>
                     
-                    <div className="mt-6 flex flex-wrap gap-4 justify-center md:justify-start">
+                    <div className="pt-2 flex flex-wrap gap-4 justify-center md:justify-start">
                       {!session ? (
                         <button 
                           onClick={() => setShowAuthModal(true)} 
-                          className="px-8 py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
+                          className="px-8 py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-lg btn-pop tracking-wider"
                         >
-                          COMMENCER MAINTENANT
+                          CRÉER UN COMPTE GRATUIT
                         </button>
                       ) : (
                         <button 
                           onClick={() => setCurrentTab('challenges')} 
-                          className="px-8 py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
+                          className="px-8 py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-lg btn-pop tracking-wider"
                         >
                           VOIR MES DÉFIS PERSONNELS
                         </button>
                       )}
                       <button 
                         onClick={() => setCurrentTab('map')} 
-                        className="px-6 py-3.5 bg-white border-2 border-slate-200 hover:border-alky-blue text-slate-800 font-black font-pop text-xs rounded-2xl transition-all shadow-sm"
+                        className="px-6 py-4 bg-white border-2 border-slate-200 hover:border-alky-blue text-slate-800 font-black font-pop text-xs rounded-2xl transition-all shadow-sm"
                       >
-                        EXPLORER LA CARTE 🗺️
+                        VOIR LA CARTE 🗺️
                       </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Widget Carte rapide / Statistiques Accueil */}
+                {/* Section Explicative claire et intuitive (Les 3 étapes en premier) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="card-street rounded-3xl p-6 bg-slate-50 flex flex-col justify-between">
+                  <div className="card-street rounded-3xl p-8 bg-slate-50 flex flex-col justify-between space-y-4">
                     <div>
-                      <span className="text-xs font-black text-alky-blue uppercase font-pop">📡 GÉOLOCALISATION</span>
-                      <h3 className="text-xl font-black font-pop text-slate-900 mt-2">Trouve les défis autour de toi</h3>
-                      <p className="text-slate-500 text-xs mt-1 font-medium">Active ta position pour afficher les missions interactives à proximité.</p>
+                      <div className="w-12 h-12 bg-blue-100 text-alky-blue rounded-2xl flex items-center justify-center font-black text-xl mb-4">📍</div>
+                      <h3 className="text-xl font-black font-pop text-slate-900">1. Trouve des missions</h3>
+                      <p className="text-slate-500 text-xs mt-2 font-medium leading-relaxed">Ouvre la carte interactive, repère les défis autour de toi grâce à ta géolocalisation et sors t'amuser.</p>
                     </div>
-                    <button onClick={handleLocateMe} className="mt-6 w-full py-3 bg-blue-50 hover:bg-blue-100 text-alky-blue font-black font-pop text-xs rounded-xl transition-all">
-                      {userLocation ? "📍 Position activée !" : "Se géolocaliser"}
+                    <button onClick={handleLocateMe} className="w-full py-3 bg-blue-50 hover:bg-blue-100 text-alky-blue font-black font-pop text-xs rounded-xl transition-all">
+                      {userLocation ? "📍 Position activée !" : "Activer ma position"}
                     </button>
                   </div>
 
-                  <div className="card-street rounded-3xl p-6 bg-slate-50 flex flex-col justify-between">
+                  <div className="card-street rounded-3xl p-8 bg-slate-50 flex flex-col justify-between space-y-4">
                     <div>
-                      <span className="text-xs font-black text-alky-pink uppercase font-pop">🏆 TOP JOUEUR</span>
-                      <h3 className="text-xl font-black font-pop text-slate-900 mt-2">Le Classement Live</h3>
-                      <p className="text-slate-500 text-xs mt-1 font-medium">
-                        {leaderboard.length > 0 ? `Le leader actuel est ${leaderboard[0]?.username || 'un explorateur'} !` : "Sois le premier à marquer des points."}
+                      <div className="w-12 h-12 bg-pink-100 text-alky-pink rounded-2xl flex items-center justify-center font-black text-xl mb-4">📸</div>
+                      <h3 className="text-xl font-black font-pop text-slate-900">2. Prends une photo</h3>
+                      <p className="text-slate-500 text-xs mt-2 font-medium leading-relaxed">Réalise l'action demandée avec tes amis, prends une photo de preuve et valide ton exploit.</p>
+                    </div>
+                    <button onClick={() => setCurrentTab('challenges')} className="w-full py-3 bg-pink-50 hover:bg-pink-100 text-alky-pink font-black font-pop text-xs rounded-xl transition-all">
+                      Voir les défis disponibles
+                    </button>
+                  </div>
+
+                  <div className="card-street rounded-3xl p-8 bg-slate-50 flex flex-col justify-between space-y-4">
+                    <div>
+                      <div className="w-12 h-12 bg-purple-100 text-alky-purple rounded-2xl flex items-center justify-center font-black text-xl mb-4">🏆</div>
+                      <h3 className="text-xl font-black font-pop text-slate-900">3. Grimpe au classement</h3>
+                      <p className="text-slate-500 text-xs mt-2 font-medium leading-relaxed">Chaque défi validé te rapporte des Alky. Vois ton solde grimper et surclasse tes potes en direct !</p>
+                    </div>
+                    <button onClick={() => setCurrentTab('leaderboard')} className="w-full py-3 bg-purple-50 hover:bg-purple-100 text-alky-purple font-black font-pop text-xs rounded-xl transition-all">
+                      Voir le classement en direct
+                    </button>
+                  </div>
+                </div>
+
+                {/* SECTION GROUPE ANIMÉE & IMMERSIVE (Demande connexion -> mène à la page groupes) */}
+                <div className="relative rounded-[3.5rem] p-8 md:p-16 gradient-alky text-white shadow-2xl overflow-hidden animate-float">
+                  <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                    <div className="space-y-6 text-center lg:text-left">
+                      <span className="inline-block text-xs font-black font-pop uppercase tracking-widest text-slate-900 bg-white px-4 py-1.5 rounded-full shadow-md">
+                        🔥 MODE GROUPE & AMIS
+                      </span>
+                      <h2 className="text-3xl md:text-5xl font-black font-pop leading-tight">
+                        Joue avec tes amis, créez votre groupe et dominez tout !
+                      </h2>
+                      <p className="text-white/90 text-sm md:text-base font-medium leading-relaxed">
+                        Le cœur d'AlkyAI, c'est l'affrontement entre potes. Rejoins un groupe ou crée ton propre clan pour partager vos exploits, multiplier vos gains d'Alky et régner sur le classement de la ville.
                       </p>
+                      <div>
+                        <button 
+                          onClick={() => handleRequireAuth('groups')} 
+                          className="px-10 py-4 bg-slate-900 text-white font-black font-pop text-xs rounded-2xl shadow-xl hover:bg-slate-800 transition-all transform hover:scale-105 tracking-wider"
+                        >
+                          REJOINDRE OU CRÉER UN GROUPE 🚀
+                        </button>
+                      </div>
                     </div>
-                    <button onClick={() => setCurrentTab('leaderboard')} className="mt-6 w-full py-3 bg-pink-50 hover:bg-pink-100 text-alky-pink font-black font-pop text-xs rounded-xl transition-all">
-                      Voir le classement complet
+
+                    <div className="flex items-center justify-center">
+                      <div className="w-full h-64 md:h-80 bg-white/10 backdrop-blur-md rounded-3xl border-2 border-white/30 flex flex-col items-center justify-center p-6 text-center shadow-inner group">
+                        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl mb-3 shadow">
+                          🖼️
+                        </div>
+                        <p className="text-white font-black font-pop text-sm">Zone prête pour ton illustration</p>
+                        <p className="text-white/70 text-xs mt-1 font-medium">Glisse ton image ici ou personnalise ce bloc plus tard</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECTION ABONNEMENTS & PASS VIP (Demande connexion -> mène à la page forfaits VIP) */}
+                <div className="card-street rounded-[2.5rem] p-8 md:p-10 bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-xl relative overflow-hidden">
+                  <div className="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black font-pop">VIP</div>
+                  <div className="relative z-10 max-w-2xl space-y-3">
+                    <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-cyan bg-cyan-950 px-3 py-1 rounded-full border border-cyan-800">
+                      ⚡ ABONNEMENTS & PASS VIP
+                    </span>
+                    <h2 className="text-2xl md:text-3xl font-black font-pop">Débloque ton plein potentiel avec AlkyAI+</h2>
+                    <p className="text-slate-300 text-xs md:text-sm font-medium leading-relaxed">
+                      Profite de défis exclusifs illimités, double tes gains d'Alky à chaque validation et accède aux classements privés de ton école ou de ton groupe d'amis !
+                    </p>
+                    <div className="pt-2">
+                      <button onClick={() => handleRequireAuth('vip')} className="px-6 py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider">
+                        DÉCOUVRIR LES OFFRES ⚡
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentTab === 'vip-plans' && (
+              <div className="space-y-8 max-w-4xl mx-auto">
+                <div className="text-center space-y-3">
+                  <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-blue bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
+                    ⚡ BOUTIQUE DES FORFAITS VIP
+                  </span>
+                  <h1 className="text-3xl md:text-4xl font-black font-pop text-slate-900">Choisis ton abonnement AlkyAI+</h1>
+                  <p className="text-slate-500 text-xs md:text-sm font-medium">Passe au niveau supérieur et débloque tous les avantages exclusifs.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                  <div className="card-street rounded-3xl p-8 bg-slate-50 flex flex-col justify-between space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-pop font-black text-sm uppercase text-slate-600">Pass Mensuel</span>
+                        <span className="text-2xl font-black font-pop text-alky-blue">4.99 € <span className="text-xs text-slate-400 font-normal">/ mois</span></span>
+                      </div>
+                      <ul className="space-y-3 text-xs text-slate-600 font-medium">
+                        <li>✔️ Défis exclusifs illimités</li>
+                        <li>✔️ Double tes gains d'Alky</li>
+                        <li>✔️ Badge VIP sur le classement</li>
+                      </ul>
+                    </div>
+                    <button onClick={() => alert("Redirection vers le paiement sécurisé...")} className="w-full py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider">
+                      CHOISIR CE FORFAIT
                     </button>
                   </div>
 
-                  <div className="card-street rounded-3xl p-6 bg-slate-50 flex flex-col justify-between">
-                    <div>
-                      <span className="text-xs font-black text-alky-purple uppercase font-pop">⚡ COMMUNAUTÉ</span>
-                      <h3 className="text-xl font-black font-pop text-slate-900 mt-2">Rejoins des groupes</h3>
-                      <p className="text-slate-500 text-xs mt-1 font-medium">Affronte d'autres équipes et cumulez plus d'Alky ensemble.</p>
+                  <div className="card-street rounded-3xl p-8 bg-slate-900 text-white flex flex-col justify-between space-y-6 border-alky-blue">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-pop font-black text-sm uppercase text-alky-cyan">Pass Annuel (Best Value)</span>
+                        <span className="text-2xl font-black font-pop text-white">39.99 € <span className="text-xs text-slate-400 font-normal">/ an</span></span>
+                      </div>
+                      <ul className="space-y-3 text-xs text-slate-300 font-medium">
+                        <li>✔️ Tous les avantages du Pass Mensuel</li>
+                        <li>✔️ 2 mois offerts</li>
+                        <li>✔️ Accès anticipé aux nouvelles fonctionnalités</li>
+                      </ul>
                     </div>
-                    <button onClick={() => setCurrentTab('groups')} className="mt-6 w-full py-3 bg-purple-50 hover:bg-purple-100 text-alky-purple font-black font-pop text-xs rounded-xl transition-all">
-                      Découvrir les groupes
+                    <button onClick={() => alert("Redirection vers le paiement sécurisé...")} className="w-full py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider">
+                      PROFITER DU PASS ANNUEL 🚀
                     </button>
                   </div>
                 </div>
@@ -450,7 +583,7 @@
                 <div>
                   <h1 className="text-3xl font-black font-pop text-slate-900">⚡ CATALOGUE DES DÉFIS</h1>
                   <p className="text-slate-500 text-xs mt-1 font-semibold">
-                    {session ? "Voici tes défis personnalisés basés sur ton profil." : "Connecte-toi pour voir et relever tes défis personnalisés !"}
+                    {session ? "Voici tes défis personnalisés basés sur ton profil." : "Connecte-toi pour voir et relever tes défis personnalisés entre amis !"}
                   </p>
                 </div>
 
@@ -489,7 +622,7 @@
                     <span>📍 Me localiser</span>
                   </button>
                 </div>
-                <div className="h-[500px] card-street rounded-3xl p-2 bg-slate-50 relative overflow-hidden">
+                <div className="h-[500px] card-street rounded-3xl p-2 bg-slate-50 relative overflow-hidden shadow-sm">
                   <MapView userLocation={userLocation} />
                 </div>
               </div>
@@ -498,7 +631,7 @@
             {currentTab === 'leaderboard' && (
               <div className="space-y-6 max-w-2xl mx-auto">
                 <h1 className="text-3xl font-black font-pop text-slate-900">🏆 CLASSEMENT EN DIRECT</h1>
-                <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-3">
+                <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-3 shadow-sm">
                   {leaderboard.length === 0 ? (
                     <p className="text-center text-slate-400 text-xs font-semibold py-8">Aucun utilisateur dans le classement pour le moment.</p>
                   ) : (
@@ -519,11 +652,68 @@
             )}
 
             {currentTab === 'groups' && (
-              <div className="space-y-6">
-                <h1 className="text-3xl font-black font-pop text-slate-900">👥 GROUPES & ÉQUIPES</h1>
-                <div className="card-street rounded-3xl p-10 text-center text-slate-500 text-xs font-semibold bg-slate-50">
-                  Rejoins tes amis pour concourir ensemble.
+              <div className="space-y-8 max-w-3xl mx-auto">
+                <div className="text-center space-y-2">
+                  <h1 className="text-3xl font-black font-pop text-slate-900">👥 GESTION DES GROUPES</h1>
+                  <p className="text-slate-500 text-xs font-medium">Crée ton équipe ou rejoins un groupe existant avec un code secret.</p>
                 </div>
+
+                {!session ? (
+                  <div className="card-street rounded-3xl p-10 text-center bg-slate-50 space-y-4">
+                    <h3 className="text-xl font-black font-pop text-slate-900">🔒 Connexion requise</h3>
+                    <p className="text-slate-500 text-xs font-medium">Connecte-toi à ton compte pour créer ou rejoindre un groupe d'amis.</p>
+                    <button 
+                      onClick={() => { setPendingAction('groups'); setShowAuthModal(true); }} 
+                      className="px-8 py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop"
+                    >
+                      SE CONNECTER POUR CONTINUER
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Créer un groupe */}
+                    <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
+                      <h3 className="text-lg font-black font-pop text-slate-900">🛡️ Créer mon groupe</h3>
+                      <div className="space-y-3">
+                        <input 
+                          type="text" 
+                          placeholder="Nom du groupe" 
+                          value={groupName} 
+                          onChange={e => setGroupName(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue"
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="Code secret (ex: POTES2026)" 
+                          value={groupSecret} 
+                          onChange={e => setGroupSecret(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue"
+                        />
+                        <button onClick={() => alert("Groupe créé avec succès !")} className="w-full py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop">
+                          CRÉER LE GROUPE 🚀
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Rejoindre un groupe */}
+                    <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
+                      <h3 className="text-lg font-black font-pop text-slate-900">🔗 Rejoindre un groupe</h3>
+                      <div className="space-y-3">
+                        <input 
+                          type="text" 
+                          placeholder="Entrer le code d'invitation" 
+                          value={joinCode} 
+                          onChange={e => setJoinCode(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue"
+                        />
+                        <div className="h-10"></div>
+                        <button onClick={() => alert("Recherche et adhésion au groupe...")} className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop">
+                          REJOINDRE L'ÉQUIPE ✨
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -535,7 +725,7 @@
                       {profile?.username?.substring(0, 2).toUpperCase() || 'U'}
                     </div>
                     <div>
-                      <h1 className="text-2xl font-black font-pop text-slate-900">{profile?.username || 'Utilisateur Google'}</h1>
+                      <h1 className="text-2xl font-black font-pop text-slate-900">{profile?.username || 'Utilisateur'}</h1>
                       <p className="text-xs text-alky-blue font-extrabold mt-0.5">Solde : {profile?.alky_balance || 0} ALKY</p>
                     </div>
                   </div>
@@ -549,6 +739,28 @@
               </div>
             )}
           </main>
+
+          {/* FOOTER PROFESSIONNEL */}
+          <footer className="mt-20 border-t border-slate-200 bg-slate-50 py-12 px-6">
+            <div className="max-w-7xl mx-auto flex flex-col items-center justify-center text-center space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center justify-center gap-2">
+                  <span className="font-pop font-black text-xl text-slate-900">AlkyAI</span>
+                </div>
+                <p className="text-xs text-slate-600 font-medium max-w-md">
+                  AlkyAI - Défie tes amis. Relève des défis et gagne des récompenses.
+                </p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-6 text-xs font-bold text-slate-600">
+                <a href="#" className="hover:text-alky-blue transition-colors">Conditions d'utilisation</a>
+                <a href="#" className="hover:text-alky-blue transition-colors">Politique de confidentialité</a>
+                <a href="#" className="hover:text-alky-blue transition-colors">Support & Aide</a>
+              </div>
+              <div className="text-xs text-slate-400 font-bold pt-4 border-t border-slate-200 w-full max-w-md">
+                AlkyAI@2026 — Tous droits réservés.
+              </div>
+            </div>
+          </footer>
 
           {/* MODALE D'AUTHENTIFICATION */}
           {showAuthModal && (
@@ -564,7 +776,7 @@
                 <div className="text-center mb-6">
                   <img 
                     src="logo.png" 
-                    alt="ALKYAI Logo" 
+                    alt="AlkyAI Logo" 
                     className="h-12 w-auto mx-auto mb-2 object-contain" 
                     style={{ mixBlendMode: 'multiply' }}
                     onError={(e) => { e.target.style.display='none'; }} 
