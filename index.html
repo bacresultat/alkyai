@@ -132,13 +132,13 @@
       { id: 1, title: "20 Pompes sur un banc public", category: "SPORT", points: "+1 ALKY", latOffset: 0.002, lngOffset: 0.001, desc: "Trouve le parc ou la place la plus proche et enchaîne 20 pompes." },
       { id: 2, title: "Selfie devant la fontaine locale", category: "CULTURE", points: "+1 ALKY", latOffset: -0.001, lngOffset: 0.003, desc: "Repère l'eau qui coule dans ton quartier et prends ton équipe en photo." },
       { id: 3, title: "Ramasser 3 déchets urbains", category: "ÉCOLOGIE", points: "+1 ALKY", latOffset: 0.0015, lngOffset: -0.002, desc: "Nettoie un petit coin de ta rue et jette les déchets à la poubelle." },
-      { id: 4, title: "Sprint de 100m chronométré", category: "SPORT", points: "+1 ALKY", latOffset: -0.0025, lngOffset: -0.001, desc: "Choisis une ligne droite sécurisée et tape ton record entre amis." },
-      { id: 5, title: "Photo du plus vieux bâtiment du coin", category: "CULTURE", points: "+1 ALKY", latOffset: 0.003, lngOffset: 0.002, desc: "Trouve l'architecture la plus ancienne de ton secteur géographique." },
-      { id: 6, title: "Saluer un inconnu avec le signe Alky", category: "SOCIAL", points: "+1 ALKY", latOffset: -0.0015, lngOffset: -0.003, desc: "Fais preuve d'audace et répands la bonne humeur autour de toi." },
-      { id: 7, title: "Monter 5 étages par les escaliers", category: "SPORT", points: "+1 ALKY", latOffset: 0.001, lngOffset: 0.0025, desc: "Zéro ascenseur aujourd'hui, que des jambes !" },
-      { id: 8, title: "Prendre une photo de rue insolite", category: "CULTURE", points: "+1 ALKY", latOffset: -0.002, lngOffset: 0.0015, desc: "Trouve un détail rigolo ou étrange dans ton quartier." },
-      { id: 9, title: "Partager sa gourde d'eau", category: "VIE", points: "+1 ALKY", latOffset: 0.0025, lngOffset: -0.0015, desc: "L'hydratation c'est la base, surtout en pleine session de défis." },
-      { id: 10, title: "Faire une pyramide humaine", category: "SPORT", points: "+1 ALKY", latOffset: -0.003, lngOffset: -0.002, desc: "Attention à la stabilité ! Prends une photo mémorable de ton groupe." }
+      { id: 4, title: "Expérience scientifique de rue", category: "SCIENCE", points: "+1 ALKY", latOffset: 0.0022, lngOffset: -0.0012, desc: "Observe un phénomène physique ou chimique urbain et explique-le." },
+      { id: 5, title: "Sprint de 100m chronométré", category: "SPORT", points: "+1 ALKY", latOffset: -0.0025, lngOffset: -0.001, desc: "Choisis une ligne droite sécurisée et tape ton record entre amis." },
+      { id: 6, title: "Photo du plus vieux bâtiment du coin", category: "CULTURE", points: "+1 ALKY", latOffset: 0.003, lngOffset: 0.002, desc: "Trouve l'architecture la plus ancienne de ton secteur géographique." },
+      { id: 7, title: "Saluer un inconnu avec le signe Alky", category: "SOCIAL", points: "+1 ALKY", latOffset: -0.0015, lngOffset: -0.003, desc: "Fais preuve d'audace et répands la bonne humeur autour de toi." },
+      { id: 8, title: "Calculer la vitesse d'un passant", category: "SCIENCE", points: "+1 ALKY", latOffset: -0.0018, lngOffset: 0.0022, desc: "Estime le temps qu'il met pour parcourir 10 mètres." },
+      { id: 9, title: "Monter 5 étages par les escaliers", category: "SPORT", points: "+1 ALKY", latOffset: 0.001, lngOffset: 0.0025, desc: "Zéro ascenseur aujourd'hui, que des jambes !" },
+      { id: 10, title: "Prendre une photo de rue insolite", category: "CULTURE", points: "+1 ALKY", latOffset: -0.002, lngOffset: 0.0015, desc: "Trouve un détail rigolo ou étrange dans ton quartier." }
     ];
 
     function MapView({ userLocation, challengesToShow }) {
@@ -205,6 +205,7 @@
       const [groupLeaderboard, setGroupLeaderboard] = useState([]);
       const [selectedPublicUser, setSelectedPublicUser] = useState(null);
       const [userLocation, setUserLocation] = useState(null);
+      const [selectedCategory, setSelectedCategory] = useState('SPORT');
       
       const [searchQuery, setSearchQuery] = useState('');
       const [suggestions, setSuggestions] = useState([]);
@@ -286,19 +287,21 @@
       }, [profile]);
 
       useEffect(() => {
-        const limit = profile?.daily_challenges_limit || 1;
+        const limit = profile?.is_admin ? 999 : (profile?.daily_challenges_limit || 1);
+        const categoryPool = DAILY_CHALLENGES_POOL.filter(ch => ch.category === selectedCategory);
+        
         const todayStr = new Date().toDateString();
         let seed = 0;
         for (let i = 0; i < todayStr.length; i++) {
           seed += todayStr.charCodeAt(i);
         }
 
-        const shuffled = [...DAILY_CHALLENGES_POOL].sort((a, b) => {
+        const shuffled = [...categoryPool].sort((a, b) => {
           return ((seed * a.id) % 10) - ((seed * b.id) % 10);
         });
 
         setDailyChallenges(shuffled.slice(0, limit));
-      }, [profile]);
+      }, [profile, selectedCategory]);
 
       useEffect(() => {
         if (adminSubmissions.length > 0) {
@@ -420,7 +423,7 @@
       const fetchAllLeaderboards = async () => {
         const { data: soloData } = await supabase
           .from('profiles')
-          .select('id, username, alky_balance, created_at, completed_challenges_count, group_name, group_code, is_group_admin')
+          .select('id, username, alky_balance, created_at, completed_challenges_count, group_name, group_code, is_group_admin, is_admin')
           .order('alky_balance', { ascending: false });
 
         if (soloData) {
@@ -566,7 +569,7 @@
         }
 
         const currentPlanObj = SUBSCRIPTION_PLANS.find(p => p.id === profile.subscription_tier) || SUBSCRIPTION_PLANS[0];
-        const maxCreations = currentPlanObj.createLimit;
+        const maxCreations = profile.is_admin ? 999 : currentPlanObj.createLimit;
 
         let creationsCount = profile.group_creations_count || 0;
         const lastReset = profile.last_group_creation_reset ? new Date(profile.last_group_creation_reset) : new Date();
@@ -575,7 +578,7 @@
 
         if (diffDays >= 30) creationsCount = 0;
 
-        if (creationsCount >= maxCreations) {
+        if (creationsCount >= maxCreations && !profile.is_admin) {
           setGroupMessage({ text: `Limite atteinte pour ta formule (${currentPlanObj.name}) : ${maxCreations} max / mois.`, type: 'error' });
           return;
         }
@@ -662,7 +665,7 @@
 
       const handleUpdateSubscription = async (plan) => {
         if (!session || !profile) {
-          setPendingTab('home');
+          setPendingTab('vip');
           setShowAuthModal(true);
           return;
         }
@@ -848,11 +851,6 @@
 
       const currentPlan = SUBSCRIPTION_PLANS.find(p => p.id === profile?.subscription_tier) || SUBSCRIPTION_PLANS[0];
 
-      const currentGroupIndex = groupLeaderboard.findIndex(g => g.name === profile?.group_name);
-      const currentGroupData = currentGroupIndex !== -1 ? groupLeaderboard[currentGroupIndex] : null;
-      const groupRank = currentGroupIndex !== -1 ? currentGroupIndex + 1 : '-';
-      const topContributor = currentGroupData && currentGroupData.members.length > 0 ? currentGroupData.members[0] : null;
-
       return (
         <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans pb-12 md:pb-0 md:pt-20 relative overflow-x-hidden">
           
@@ -873,8 +871,9 @@
               <NavButton active={currentTab === 'map-challenges'} onClick={() => navigateProtectedTab('map-challenges')} label="CARTE & DÉFIS" />
               <NavButton active={currentTab === 'leaderboard'} onClick={() => setCurrentTab('leaderboard')} label="CLASSEMENT" />
               <NavButton active={currentTab === 'groups'} onClick={() => navigateProtectedTab('groups')} label="GROUPES" />
+              <NavButton active={currentTab === 'vip'} onClick={() => setCurrentTab('vip')} label="ALKYVIP 💎" />
               {profile?.is_admin && (
-                <NavButton active={currentTab === 'admin'} onClick={() => setCurrentTab('admin')} label="ADMIN" />
+                <NavButton active={currentTab === 'admin'} onClick={() => setCurrentTab('admin')} label="ADMIN 🛡️" />
               )}
             </nav>
 
@@ -940,8 +939,9 @@
               <MobileBurgerButton active={currentTab === 'map-challenges'} onClick={() => { navigateProtectedTab('map-challenges'); setIsMobileMenuOpen(false); }} label="CARTE & DÉFIS" />
               <MobileBurgerButton active={currentTab === 'leaderboard'} onClick={() => { setCurrentTab('leaderboard'); setIsMobileMenuOpen(false); }} label="CLASSEMENT" />
               <MobileBurgerButton active={currentTab === 'groups'} onClick={() => { navigateProtectedTab('groups'); setIsMobileMenuOpen(false); }} label="GROUPES" />
+              <MobileBurgerButton active={currentTab === 'vip'} onClick={() => { setCurrentTab('vip'); setIsMobileMenuOpen(false); }} label="ALKYVIP 💎" />
               {profile?.is_admin && (
-                <MobileBurgerButton active={currentTab === 'admin'} onClick={() => { setCurrentTab('admin'); setIsMobileMenuOpen(false); }} label="ADMIN" />
+                <MobileBurgerButton active={currentTab === 'admin'} onClick={() => { setCurrentTab('admin'); setIsMobileMenuOpen(false); }} label="ADMIN 🛡️" />
               )}
               <div className="pt-2 border-t border-slate-200">
                 <button 
@@ -978,7 +978,7 @@
                       <span className="gradient-text-alky">Alky !</span> 
                     </h1>
                     <p className="text-slate-600 text-xs md:text-base font-medium leading-relaxed max-w-xl">
-                      <strong>AlkyAI</strong> transforme ta ville et ton quotidien en un immense terrain de jeu. Tes défis changent chaque jour selon ta géolocalisation.
+                      <strong>AlkyAI</strong> transforme ta ville et ton quotidien en un immense terrain de jeu. Choisis ta catégorie et relève tes défis quotidiens.
                     </p>
                     
                     <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
@@ -1007,7 +1007,7 @@
                     <div>
                       <div className="w-12 h-12 bg-blue-100 text-alky-blue rounded-2xl flex items-center justify-center font-black text-xl mb-4 shadow-sm">📍</div>
                       <h3 className="text-lg md:text-xl font-black font-pop text-slate-900">1. Missions géolocalisées</h3>
-                      <p className="text-slate-500 text-xs mt-2 font-medium leading-relaxed">Entre ton lieu pour afficher tes défis sur la carte.</p>
+                      <p className="text-slate-500 text-xs mt-2 font-medium leading-relaxed">Entre ton lieu et choisis ton type de défi.</p>
                     </div>
                     <button onClick={() => navigateProtectedTab('map-challenges')} className="w-full py-3 bg-blue-50 hover:bg-blue-100 text-alky-blue font-black font-pop text-xs rounded-xl transition-all">
                       Rechercher une position
@@ -1073,53 +1073,6 @@
                     </div>
                   </div>
                 </div>
-
-                {/* FORMULES D'ABONNEMENT ALKYAI */}
-                <div className="space-y-6 pt-4">
-                  <div className="text-center space-y-3 px-2">
-                    <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-blue bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
-                      FORMULES D'ABONNEMENT ALKYAI
-                    </span>
-                    <h2 className="text-2xl md:text-4xl font-black font-pop text-slate-900">Choisis ton accès aux défis</h2>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                    {SUBSCRIPTION_PLANS.map((plan) => {
-                      const isCurrent = profile?.subscription_tier === plan.id;
-                      return (
-                        <div key={plan.id} className={`card-street rounded-3xl p-6 flex flex-col justify-between space-y-6 ${plan.color} relative overflow-hidden`}>
-                          {isCurrent && (
-                            <div className="absolute top-3 right-3 px-3 py-1 bg-emerald-500 text-white font-black text-[9px] rounded-full uppercase tracking-wider">
-                              Actif
-                            </div>
-                          )}
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="font-pop font-black text-slate-900 text-base">{plan.name}</h3>
-                              <p className="text-2xl font-black font-pop text-alky-blue mt-1">{plan.price}</p>
-                            </div>
-                            <div className="pt-2 border-t border-slate-200/60 space-y-2">
-                              <div>
-                                <span className="text-xs font-extrabold text-slate-700">Défis quotidiens :</span>
-                                <p className="text-sm font-black font-pop text-alky-pink">{plan.limit} défi{plan.limit > 1 ? 's' : ''} / jour</p>
-                              </div>
-                            </div>
-                          </div>
-
-                          {isCurrent ? (
-                            <button disabled className="w-full py-3 bg-slate-200 text-slate-500 font-black font-pop text-xs rounded-xl cursor-not-allowed">
-                              OFFRE ACTUELLE
-                            </button>
-                          ) : (
-                            <button onClick={() => handleUpdateSubscription(plan)} className="w-full py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider">
-                              CHOISIR CETTE OFFRE
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
               </div>
             )}
 
@@ -1131,39 +1084,55 @@
                     <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-blue bg-blue-100 px-3 py-1 rounded-full">
                       CARTE & DÉFIS DU JOUR 🗺️⚡
                     </span>
-                    <h1 className="text-2xl md:text-3xl font-black font-pop text-slate-900 mt-2">Rechercher une position</h1>
-                    <p className="text-slate-600 text-xs font-semibold mt-0.5">Tape ta ville ou ton adresse pour afficher tes défis directement sur la carte.</p>
+                    <h1 className="text-2xl md:text-3xl font-black font-pop text-slate-900 mt-2">Choisis ta catégorie & ton lieu</h1>
+                    <p className="text-slate-600 text-xs font-semibold mt-0.5">Sélectionne d'abord ton type de défi, puis tape ta ville pour afficher les défis sur la carte.</p>
                   </div>
                   
-                  <div className="relative w-full sm:w-96">
-                    <div className="flex items-center bg-white border-2 border-slate-200 focus-within:border-alky-blue rounded-2xl px-4 py-3 shadow-sm transition-all">
-                      <span className="text-slate-400 mr-2 text-sm">🔍</span>
-                      <input 
-                        type="text" 
-                        placeholder="Rechercher un lieu (ex: Paris, Lyon...)" 
-                        value={searchQuery} 
-                        onChange={e => setSearchQuery(e.target.value)}
-                        className="bg-transparent text-xs text-slate-800 focus:outline-none font-bold w-full"
-                      />
-                      {searchQuery && (
-                        <button onClick={() => { setSearchQuery(''); setSuggestions([]); setShowSuggestions(false); }} className="text-slate-400 hover:text-slate-600 text-xs font-bold ml-1">✕</button>
+                  <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                    {/* SÉLECTEUR DE TYPE DE DÉFI (OBLIGATOIREMENT EN PREMIER) */}
+                    <select 
+                      value={selectedCategory} 
+                      onChange={e => setSelectedCategory(e.target.value)}
+                      className="bg-white border-2 border-slate-200 focus:border-alky-blue rounded-2xl px-4 py-3 text-xs text-slate-800 font-black font-pop shadow-sm cursor-pointer"
+                    >
+                      <option value="SPORT">⚡ Sport</option>
+                      <option value="CULTURE">🎨 Culture</option>
+                      <option value="ÉCOLOGIE">🌱 Écologie</option>
+                      <option value="SCIENCE">🔬 Science</option>
+                      <option value="SOCIAL">💬 Social</option>
+                    </select>
+
+                    {/* BARRE DE RECHERCHE DE LIEU */}
+                    <div className="relative w-full sm:w-80">
+                      <div className="flex items-center bg-white border-2 border-slate-200 focus-within:border-alky-blue rounded-2xl px-4 py-3 shadow-sm transition-all">
+                        <span className="text-slate-400 mr-2 text-sm">🔍</span>
+                        <input 
+                          type="text" 
+                          placeholder="Rechercher un lieu..." 
+                          value={searchQuery} 
+                          onChange={e => setSearchQuery(e.target.value)}
+                          className="bg-transparent text-xs text-slate-800 focus:outline-none font-bold w-full"
+                        />
+                        {searchQuery && (
+                          <button onClick={() => { setSearchQuery(''); setSuggestions([]); setShowSuggestions(false); }} className="text-slate-400 hover:text-slate-600 text-xs font-bold ml-1">✕</button>
+                        )}
+                      </div>
+
+                      {showSuggestions && suggestions.length > 0 && (
+                        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 overflow-hidden max-h-60 overflow-y-auto">
+                          {suggestions.map((item, index) => (
+                            <div 
+                              key={index}
+                              onClick={() => handleSelectSuggestion(item)}
+                              className="px-4 py-3 hover:bg-slate-50 cursor-pointer text-xs font-semibold text-slate-700 border-b border-slate-100 last:border-none transition-colors flex items-center gap-2"
+                            >
+                              <span className="text-alky-blue">📍</span>
+                              <span className="truncate">{item.display_name}</span>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
-
-                    {showSuggestions && suggestions.length > 0 && (
-                      <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-slate-200 shadow-2xl z-50 overflow-hidden max-h-60 overflow-y-auto">
-                        {suggestions.map((item, index) => (
-                          <div 
-                            key={index}
-                            onClick={() => handleSelectSuggestion(item)}
-                            className="px-4 py-3 hover:bg-slate-50 cursor-pointer text-xs font-semibold text-slate-700 border-b border-slate-100 last:border-none transition-colors flex items-center gap-2"
-                          >
-                            <span className="text-alky-blue">📍</span>
-                            <span className="truncate">{item.display_name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -1193,9 +1162,9 @@
                       <h2 className="text-base font-black font-pop text-slate-900">⚡ Défis disponibles</h2>
                       <p className="text-slate-500 text-[11px] font-medium">
                         {userLocation ? (
-                          <span className="text-emerald-600 font-bold">{dailyChallenges.length} défi(s) générés pour cette zone.</span>
+                          <span className="text-emerald-600 font-bold">{dailyChallenges.length} défi(s) pour la catégorie {selectedCategory}.</span>
                         ) : (
-                          <span className="text-amber-600 font-bold">Sélectionne une position dans la barre de recherche.</span>
+                          <span className="text-amber-600 font-bold">Sélectionne une position pour voir les défis.</span>
                         )}
                       </p>
                     </div>
@@ -1204,6 +1173,11 @@
                       <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-2">
                         <span className="text-3xl">📍</span>
                         <p className="text-xs font-semibold">Aucune position sélectionnée. Recherche un lieu pour voir tes défis apparaître ici.</p>
+                      </div>
+                    ) : dailyChallenges.length === 0 ? (
+                      <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-2">
+                        <span className="text-3xl">🔍</span>
+                        <p className="text-xs font-semibold">Aucun défi dans cette catégorie pour ton forfait actuel.</p>
                       </div>
                     ) : (
                       <div className="space-y-3">
@@ -1227,6 +1201,56 @@
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* ONGLET ALKYVIP 💎 (ABONNEMENTS) */}
+            {currentTab === 'vip' && (
+              <div className="space-y-6 max-w-5xl mx-auto py-4">
+                <div className="text-center space-y-3 px-2">
+                  <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-blue bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
+                    FORMULES D'ABONNEMENT ALKYVIP 💎
+                  </span>
+                  <h2 className="text-2xl md:text-4xl font-black font-pop text-slate-900">Choisis ton accès illimité aux défis</h2>
+                  <p className="text-slate-500 text-xs md:text-sm font-medium">Augmente ton nombre de défis quotidiens et tes créations de groupes.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                  {SUBSCRIPTION_PLANS.map((plan) => {
+                    const isCurrent = profile?.subscription_tier === plan.id;
+                    return (
+                      <div key={plan.id} className={`card-street rounded-3xl p-6 flex flex-col justify-between space-y-6 ${plan.color} relative overflow-hidden`}>
+                        {isCurrent && (
+                          <div className="absolute top-3 right-3 px-3 py-1 bg-emerald-500 text-white font-black text-[9px] rounded-full uppercase tracking-wider">
+                            Actif
+                          </div>
+                        )}
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="font-pop font-black text-slate-900 text-base">{plan.name}</h3>
+                            <p className="text-2xl font-black font-pop text-alky-blue mt-1">{plan.price}</p>
+                          </div>
+                          <div className="pt-2 border-t border-slate-200/60 space-y-2">
+                            <div>
+                              <span className="text-xs font-extrabold text-slate-700">Défis quotidiens :</span>
+                              <p className="text-sm font-black font-pop text-alky-pink">{plan.limit} défi{plan.limit > 1 ? 's' : ''} / jour</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {isCurrent ? (
+                          <button disabled className="w-full py-3 bg-slate-200 text-slate-500 font-black font-pop text-xs rounded-xl cursor-not-allowed">
+                            OFFRE ACTUELLE
+                          </button>
+                        ) : (
+                          <button onClick={() => handleUpdateSubscription(plan)} className="w-full py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider">
+                            CHOISIR CETTE OFFRE
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -1262,6 +1286,7 @@
                             <div className="min-w-0">
                               <span className="font-black text-slate-800 text-xs md:text-sm flex items-center gap-1.5 truncate">
                                 <span className="truncate">{user.username}</span>
+                                {user.is_admin && <span className="text-[9px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold shrink-0">Admin App 🛡️</span>}
                                 {user.is_group_admin && <span className="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold shrink-0">Admin Groupe 👑</span>}
                               </span>
                             </div>
