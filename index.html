@@ -169,7 +169,11 @@
       const [authMode, setAuthMode] = useState('login');
       const [pendingTab, setPendingTab] = useState(null);
 
-      const [leaderboard, setLeaderboard] = useState([]);
+      // CLASSEMENT & GROUPES
+      const [leaderboardTab, setLeaderboardTab] = useState('solo'); // 'solo' ou 'groups'
+      const [soloLeaderboard, setSoloLeaderboard] = useState([]);
+      const [groupLeaderboard, setGroupLeaderboard] = useState([]);
+      const [selectedPublicUser, setSelectedPublicUser] = useState(null); // Profil d'un autre joueur
       const [userLocation, setUserLocation] = useState(null);
 
       const [email, setEmail] = useState('');
@@ -211,12 +215,13 @@
       }, [pendingTab]);
 
       useEffect(() => {
-        fetchLeaderboard();
+        fetchAllLeaderboards();
 
+        // Abonnement en direct (Realtime) sur les mises à jour des profils
         const channel = supabase
           .channel('public:profiles')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
-            fetchLeaderboard();
+            fetchAllLeaderboards();
           })
           .subscribe();
 
@@ -240,6 +245,8 @@
               subscription_tier: 'gratuit',
               daily_challenges_limit: 1,
               last_username_change: null,
+              completed_challenges_count: 0,
+              created_at: new Date().toISOString(),
               is_admin: false
             };
             await supabase.from('profiles').upsert([newProfile]);
@@ -258,14 +265,32 @@
         }
       };
 
-      const fetchLeaderboard = async () => {
-        const { data, error } = await supabase
+      // Récupération des classements Solo et Groupes
+      const fetchAllLeaderboards = async () => {
+        // 1. Classement Solo (par Alky décroissant)
+        const { data: soloData } = await supabase
           .from('profiles')
-          .select('username, alky_balance')
+          .select('id, username, alky_balance, created_at, completed_challenges_count, group_name')
           .order('alky_balance', { ascending: false });
 
-        if (!error && data) {
-          setLeaderboard(data);
+        if (soloData) {
+          setSoloLeaderboard(soloData);
+
+          // 2. Calcul du Classement des Groupes en cumulant les Alky des membres
+          const groupMap = {};
+          soloData.forEach(user => {
+            const gName = user.group_name || 'Sans Groupe';
+            if (gName !== 'Sans Groupe') {
+              if (!groupMap[gName]) {
+                groupMap[gName] = { name: gName, totalAlky: 0, memberCount: 0 };
+              }
+              groupMap[gName].totalAlky += (user.alky_balance || 0);
+              groupMap[gName].memberCount += 1;
+            }
+          });
+
+          const groupsArray = Object.values(groupMap).sort((a, b) => b.totalAlky - a.totalAlky);
+          setGroupLeaderboard(groupsArray);
         }
       };
 
@@ -298,7 +323,6 @@
           return;
         }
 
-        // Vérification des 14 jours (Supabase ou LocalStorage de secours)
         const localLastChange = localStorage.getItem(`alky_last_change_${profile.id}`);
         const lastChangeDateStr = profile.last_username_change || localLastChange;
 
@@ -317,7 +341,6 @@
           }
         }
 
-        // Vérification unicité du pseudonyme
         const { data: existingUser } = await supabase
           .from('profiles')
           .select('id')
@@ -339,10 +362,8 @@
           last_username_change: nowIso
         };
 
-        // Essai de sauvegarde Supabase
         let { error: updateError } = await supabase.from('profiles').upsert([updatedData]);
 
-        // Fallback si la colonne last_username_change n'existe pas encore dans Supabase
         if (updateError && updateError.message && updateError.message.includes('last_username_change')) {
           const fallbackData = { ...profile, username: newUsername };
           delete fallbackData.last_username_change;
@@ -455,6 +476,8 @@
             subscription_tier: 'gratuit',
             daily_challenges_limit: 1,
             last_username_change: new Date().toISOString(),
+            completed_challenges_count: 0,
+            created_at: new Date().toISOString(),
             is_admin: false
           };
           await supabase.from('profiles').upsert([newProfile]);
@@ -493,6 +516,18 @@
           setPendingTab(targetTab);
           setShowAuthModal(true);
         }
+      };
+
+      // Formater la date d'inscription ("Joue depuis...")
+      const formatDaysPlayed = (dateString) => {
+        if (!dateString) return "Membre récent";
+        const created = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - created);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays === 0) return "Aujourd'hui";
+        if (diffDays === 1) return "Depuis 1 jour";
+        return `Depuis ${diffDays} jours`;
       };
 
       const isVipUser = profile?.subscription_tier && profile.subscription_tier !== 'gratuit';
@@ -736,27 +771,89 @@
               </div>
             )}
 
+            {/* ONGLET CLASSEMENT AVEC DEUX MODES (SOLO ET GROUPES) */}
             {currentTab === 'leaderboard' && (
-              <div className="space-y-6 max-w-2xl mx-auto">
-                <div className="text-center space-y-1">
+              <div className="space-y-6 max-w-3xl mx-auto">
+                <div className="text-center space-y-2">
                   <h1 className="text-3xl font-black font-pop text-slate-900">🏆 CLASSEMENT EN DIRECT</h1>
-                  <p className="text-xs text-slate-500 font-medium">Classement 100% équitable entre membres Gratuits et Premium.</p>
+                  <p className="text-xs text-slate-500 font-medium">Classement actualisé selon le nombre total d'Alky accumulés.</p>
+                  
+                  {/* COMPTEUR EN LIVE */}
+                  <div className="inline-flex items-center gap-4 bg-slate-100 px-4 py-2 rounded-2xl border border-slate-200 mt-2">
+                    <span className="flex items-center gap-1.5 text-xs font-black text-emerald-600 font-pop">
+                      <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping"></span>
+                      {soloLeaderboard.length} Joueur{soloLeaderboard.length > 1 ? 's' : ''} en live
+                    </span>
+                    <span className="text-slate-300">|</span>
+                    <span className="text-xs font-black text-alky-purple font-pop">
+                      👥 {groupLeaderboard.length} Groupe{groupLeaderboard.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
                 </div>
+
+                {/* SÉLECTEUR SOLO / GROUPES */}
+                <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 max-w-md mx-auto">
+                  <button 
+                    onClick={() => setLeaderboardTab('solo')} 
+                    className={`flex-1 py-3 text-xs font-black font-pop rounded-xl transition-all ${leaderboardTab === 'solo' ? 'bg-white text-alky-blue shadow-md' : 'text-slate-500'}`}
+                  >
+                    👤 SOLO ({soloLeaderboard.length})
+                  </button>
+                  <button 
+                    onClick={() => setLeaderboardTab('groups')} 
+                    className={`flex-1 py-3 text-xs font-black font-pop rounded-xl transition-all ${leaderboardTab === 'groups' ? 'bg-white text-alky-pink shadow-md' : 'text-slate-500'}`}
+                  >
+                    👥 PAR GROUPE ({groupLeaderboard.length})
+                  </button>
+                </div>
+
+                {/* CONTENU DU CLASSEMENT */}
                 <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-3 shadow-sm">
-                  {leaderboard.length === 0 ? (
-                    <p className="text-center text-slate-400 text-xs font-semibold py-8">Aucun utilisateur dans le classement pour le moment.</p>
-                  ) : (
-                    leaderboard.map((user, index) => (
-                      <div key={index} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                        <div className="flex items-center gap-3">
-                          <span className="font-pop font-black text-alky-blue text-base w-6">#{index + 1}</span>
-                          <span className="font-black text-slate-800 text-sm">{user.username || 'Explorateur'}</span>
+                  {leaderboardTab === 'solo' ? (
+                    soloLeaderboard.length === 0 ? (
+                      <p className="text-center text-slate-400 text-xs font-semibold py-8">Aucun joueur au classement.</p>
+                    ) : (
+                      soloLeaderboard.map((user, index) => (
+                        <div 
+                          key={user.id || index} 
+                          onClick={() => setSelectedPublicUser(user)}
+                          className="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-alky-blue cursor-pointer transition-all"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="font-pop font-black text-alky-blue text-base w-7">#{index + 1}</span>
+                            <div className="w-10 h-10 gradient-alky rounded-xl flex items-center justify-center font-black text-white text-xs shadow-sm">
+                              {user.username?.substring(0, 2).toUpperCase() || 'U'}
+                            </div>
+                            <div>
+                              <span className="font-black text-slate-800 text-sm block">{user.username}</span>
+                              <span className="text-[10px] text-slate-400 font-bold">Clique pour voir le profil</span>
+                            </div>
+                          </div>
+                          <span className="font-pop font-black text-alky-pink text-sm bg-pink-50 px-3.5 py-1.5 rounded-xl border border-pink-100">
+                            {user.alky_balance || 0} ALKY
+                          </span>
                         </div>
-                        <span className="font-pop font-black text-alky-pink text-sm bg-pink-50 px-3 py-1 rounded-xl border border-pink-100">
-                          {user.alky_balance || 0} ALKY
-                        </span>
-                      </div>
-                    ))
+                      ))
+                    )
+                  ) : (
+                    groupLeaderboard.length === 0 ? (
+                      <p className="text-center text-slate-400 text-xs font-semibold py-8">Aucun groupe créé pour le moment.</p>
+                    ) : (
+                      groupLeaderboard.map((grp, index) => (
+                        <div key={index} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <span className="font-pop font-black text-alky-purple text-base w-7">#{index + 1}</span>
+                            <div>
+                              <span className="font-black text-slate-800 text-sm block">🛡️ {grp.name}</span>
+                              <span className="text-[10px] text-slate-400 font-bold">{grp.memberCount} membre{grp.memberCount > 1 ? 's' : ''}</span>
+                            </div>
+                          </div>
+                          <span className="font-pop font-black text-alky-purple text-sm bg-purple-50 px-3.5 py-1.5 rounded-xl border border-purple-100">
+                            {grp.totalAlky} ALKY CUMULÉS
+                          </span>
+                        </div>
+                      ))
+                    )
                   )}
                 </div>
               </div>
@@ -1009,6 +1106,54 @@
               </div>
             </div>
           </footer>
+
+          {/* MODALE PROFIL PUBLIC D'UN AUTRE JOUEUR (SÉCURISÉE) */}
+          {selectedPublicUser && (
+            <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-3xl p-8 max-w-md w-full relative border border-slate-200 shadow-2xl space-y-6 text-center">
+                <button 
+                  onClick={() => setSelectedPublicUser(null)} 
+                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-800 font-black text-lg"
+                >
+                  ✕
+                </button>
+
+                <div className="w-20 h-20 gradient-alky rounded-3xl mx-auto flex items-center justify-center font-black text-white text-3xl shadow-md">
+                  {selectedPublicUser.username?.substring(0, 2).toUpperCase() || 'U'}
+                </div>
+
+                <div>
+                  <h2 className="text-2xl font-black font-pop text-slate-900">{selectedPublicUser.username}</h2>
+                  <p className="text-xs font-extrabold text-alky-blue mt-1">
+                    👥 Groupe : {selectedPublicUser.group_name || 'Sans groupe'}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Ancienneté</span>
+                    <p className="text-xs font-bold text-slate-800 mt-1">{formatDaysPlayed(selectedPublicUser.created_at)}</p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Défis Réalisés</span>
+                    <p className="text-xs font-bold text-slate-800 mt-1">{selectedPublicUser.completed_challenges_count || 0} défi(s)</p>
+                  </div>
+                </div>
+
+                <div className="bg-pink-50 p-4 rounded-2xl border border-pink-100 flex justify-between items-center">
+                  <span className="text-xs font-black text-slate-700">Solde Alky Public :</span>
+                  <span className="font-pop font-black text-alky-pink text-base">{selectedPublicUser.alky_balance || 0} ALKY</span>
+                </div>
+
+                <button 
+                  onClick={() => setSelectedPublicUser(null)}
+                  className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-black font-pop text-xs rounded-xl shadow-md transition-all"
+                >
+                  FERMER
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* MODALE D'ÉDITION DE L'ÂGE OBLIGATOIRE (CONNEXION GOOGLE) */}
           {showAgeModal && (
