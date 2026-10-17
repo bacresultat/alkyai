@@ -90,7 +90,7 @@
     .leaflet-container {
       width: 100%;
       height: 100%;
-      border-radius: 2rem;
+      border-radius: 1.5rem;
       z-index: 10;
     }
 
@@ -118,6 +118,34 @@
     const SUPABASE_ANON_KEY = "sb_publishable_Bha__1CDuR3ppdQUtSQTqQ_2_KJ2NgP";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    function MapView({ userLocation }) {
+      useEffect(() => {
+        const map = L.map('map').setView(
+          userLocation ? [userLocation.lat, userLocation.lng] : [48.8566, 2.3522], // Paris par défaut
+          13
+        );
+
+        // Utilisation du serveur de tuiles libre sans clé d'API requis (Stamen/Jawg/OpenStreetMap standard sécurisé)
+        L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
+          maxZoom: 18,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        if (userLocation) {
+          L.marker([userLocation.lat, userLocation.lng])
+            .addTo(map)
+            .bindPopup("<b>Tu es ici !</b>")
+            .openPopup();
+        }
+
+        return () => {
+          map.remove();
+        };
+      }, [userLocation]);
+
+      return <div id="map" className="w-full h-full"></div>;
+    }
+
     function App() {
       const [session, setSession] = useState(null);
       const [profile, setProfile] = useState(null);
@@ -127,6 +155,7 @@
 
       // État pour le classement en direct
       const [leaderboard, setLeaderboard] = useState([]);
+      const [userLocation, setUserLocation] = useState(null);
 
       // Formulaire
       const [email, setEmail] = useState('');
@@ -150,11 +179,9 @@
         return () => subscription.unsubscribe();
       }, []);
 
-      // Charger et écouter le classement en direct
       useEffect(() => {
         fetchLeaderboard();
 
-        // Écouter les changements en temps réel sur la table profiles
         const channel = supabase
           .channel('public:profiles')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
@@ -184,6 +211,24 @@
 
         if (!error && data) {
           setLeaderboard(data);
+        }
+      };
+
+      const handleLocateMe = () => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              setUserLocation({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              });
+            },
+            () => {
+              alert("Impossible de récupérer votre position.");
+            }
+          );
+        } else {
+          alert("La géolocalisation n'est pas supportée par votre navigateur.");
         }
       };
 
@@ -241,6 +286,7 @@
         await supabase.auth.signOut();
         setSession(null);
         setProfile(null);
+        setCurrentTab('home');
       };
 
       return (
@@ -262,7 +308,7 @@
               <NavButton active={currentTab === 'home'} onClick={() => setCurrentTab('home')} label="ACCUEIL" />
               <NavButton active={currentTab === 'challenges'} onClick={() => setCurrentTab('challenges')} label="DÉFIS" />
               <NavButton active={currentTab === 'map'} onClick={() => setCurrentTab('map')} label="CARTE" />
-              <NavButton active={currentTab === 'leaderboard'} onClick={() => setCurrentTab('leaderboard')} label="SCORES" />
+              <NavButton active={currentTab === 'leaderboard'} onClick={() => setCurrentTab('leaderboard')} label="CLASSEMENT" />
               <NavButton active={currentTab === 'groups'} onClick={() => setCurrentTab('groups')} label="GROUPES" />
             </nav>
 
@@ -279,7 +325,6 @@
                   >
                     {profile?.username || 'MON PROFIL'}
                   </button>
-                  <button onClick={handleLogout} className="text-xs text-slate-400 hover:text-red-500 font-bold transition-colors">Déconnexion</button>
                 </div>
               ) : (
                 <button 
@@ -297,7 +342,7 @@
             <MobileNavButton active={currentTab === 'home'} onClick={() => setCurrentTab('home')} label="Accueil" />
             <MobileNavButton active={currentTab === 'challenges'} onClick={() => setCurrentTab('challenges')} label="Défis" />
             <MobileNavButton active={currentTab === 'map'} onClick={() => setCurrentTab('map')} label="Carte" />
-            <MobileNavButton active={currentTab === 'leaderboard'} onClick={() => setCurrentTab('leaderboard')} label="Scores" />
+            <MobileNavButton active={currentTab === 'leaderboard'} onClick={() => setCurrentTab('leaderboard')} label="Classement" />
             <MobileNavButton active={currentTab === 'groups'} onClick={() => setCurrentTab('groups')} label="Groupes" />
             <button 
               onClick={() => session ? setCurrentTab('profile') : setShowAuthModal(true)} 
@@ -310,13 +355,14 @@
           {/* CONTENU PRINCIPAL */}
           <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 relative z-10">
             {currentTab === 'home' && (
-              <div className="space-y-12">
-                <div className="bg-slate-50 border-2 border-slate-200 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden shadow-sm">
+              <div className="space-y-8">
+                {/* Hero Banner Dynamique */}
+                <div className="bg-gradient-to-br from-slate-50 to-blue-50/50 border-2 border-slate-200 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden shadow-sm">
                   <div className="shrink-0 flex items-center justify-center">
                     <img 
                       src="logo.png" 
                       alt="ALKYAI Logo" 
-                      className="w-48 h-auto object-contain" 
+                      className="w-48 h-auto object-contain animate-pulse" 
                       style={{ mixBlendMode: 'multiply' }}
                       onError={(e) => { e.target.style.display='none'; }} 
                     />
@@ -324,31 +370,76 @@
                   
                   <div className="flex-1 text-center md:text-left">
                     <span className="inline-block text-xs font-black font-pop uppercase tracking-widest text-white gradient-alky px-4 py-1.5 rounded-full shadow-sm mb-3">
-                      👑 TRANSFORM' TON QUOTIDIEN EN JEU
+                      👑 LE JEU DU MONDE RÉEL
                     </span>
                     <h1 className="text-3xl md:text-5xl font-black font-pop text-slate-900 tracking-wide leading-tight">
-                      Réalise des défis réels, gagne des <span className="gradient-text-alky">Alky</span> !
+                      Bouge, relève des défis, gagne des <span className="gradient-text-alky">Alky</span> !
                     </h1>
                     <p className="text-slate-600 text-sm md:text-base mt-3 font-medium leading-relaxed max-w-xl">
-                      ALKYAI est l'application ultime pour sortir, relever des missions sportives, créatives ou écoresponsables dans le monde réel, et accumuler la monnaie virtuelle <strong>Alky</strong> !
+                      Transforme ton environnement urbain en terrain de jeu. Explore la carte, trouve des missions et grimpe dans le classement mondial en direct.
                     </p>
                     
-                    {!session && (
-                      <div className="mt-6 flex flex-wrap gap-4 justify-center md:justify-start">
+                    <div className="mt-6 flex flex-wrap gap-4 justify-center md:justify-start">
+                      {!session ? (
                         <button 
                           onClick={() => setShowAuthModal(true)} 
                           className="px-8 py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
                         >
                           COMMENCER MAINTENANT
                         </button>
+                      ) : (
                         <button 
                           onClick={() => setCurrentTab('challenges')} 
-                          className="px-6 py-3.5 bg-white border-2 border-slate-200 hover:border-alky-blue text-slate-800 font-black font-pop text-xs rounded-2xl transition-all"
+                          className="px-8 py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
                         >
-                          VOIR LES DÉFIS
+                          VOIR MES DÉFIS PERSONNELS
                         </button>
-                      </div>
-                    )}
+                      )}
+                      <button 
+                        onClick={() => setCurrentTab('map')} 
+                        className="px-6 py-3.5 bg-white border-2 border-slate-200 hover:border-alky-blue text-slate-800 font-black font-pop text-xs rounded-2xl transition-all shadow-sm"
+                      >
+                        EXPLORER LA CARTE 🗺️
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Widget Carte rapide / Statistiques Accueil */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="card-street rounded-3xl p-6 bg-slate-50 flex flex-col justify-between">
+                    <div>
+                      <span className="text-xs font-black text-alky-blue uppercase font-pop">📡 GÉOLOCALISATION</span>
+                      <h3 className="text-xl font-black font-pop text-slate-900 mt-2">Trouve les défis autour de toi</h3>
+                      <p className="text-slate-500 text-xs mt-1 font-medium">Active ta position pour afficher les missions interactives à proximité.</p>
+                    </div>
+                    <button onClick={handleLocateMe} className="mt-6 w-full py-3 bg-blue-50 hover:bg-blue-100 text-alky-blue font-black font-pop text-xs rounded-xl transition-all">
+                      {userLocation ? "📍 Position activée !" : "Se géolocaliser"}
+                    </button>
+                  </div>
+
+                  <div className="card-street rounded-3xl p-6 bg-slate-50 flex flex-col justify-between">
+                    <div>
+                      <span className="text-xs font-black text-alky-pink uppercase font-pop">🏆 TOP JOUEUR</span>
+                      <h3 className="text-xl font-black font-pop text-slate-900 mt-2">Le Classement Live</h3>
+                      <p className="text-slate-500 text-xs mt-1 font-medium">
+                        {leaderboard.length > 0 ? `Le leader actuel est ${leaderboard[0]?.username || 'un explorateur'} !` : "Sois le premier à marquer des points."}
+                      </p>
+                    </div>
+                    <button onClick={() => setCurrentTab('leaderboard')} className="mt-6 w-full py-3 bg-pink-50 hover:bg-pink-100 text-alky-pink font-black font-pop text-xs rounded-xl transition-all">
+                      Voir le classement complet
+                    </button>
+                  </div>
+
+                  <div className="card-street rounded-3xl p-6 bg-slate-50 flex flex-col justify-between">
+                    <div>
+                      <span className="text-xs font-black text-alky-purple uppercase font-pop">⚡ COMMUNAUTÉ</span>
+                      <h3 className="text-xl font-black font-pop text-slate-900 mt-2">Rejoins des groupes</h3>
+                      <p className="text-slate-500 text-xs mt-1 font-medium">Affronte d'autres équipes et cumulez plus d'Alky ensemble.</p>
+                    </div>
+                    <button onClick={() => setCurrentTab('groups')} className="mt-6 w-full py-3 bg-purple-50 hover:bg-purple-100 text-alky-purple font-black font-pop text-xs rounded-xl transition-all">
+                      Découvrir les groupes
+                    </button>
                   </div>
                 </div>
               </div>
@@ -358,21 +449,48 @@
               <div className="space-y-6">
                 <div>
                   <h1 className="text-3xl font-black font-pop text-slate-900">⚡ CATALOGUE DES DÉFIS</h1>
-                  <p className="text-slate-500 text-xs mt-1 font-semibold">Réalise ton défi et envoie ta photo.</p>
+                  <p className="text-slate-500 text-xs mt-1 font-semibold">
+                    {session ? "Voici tes défis personnalisés basés sur ton profil." : "Connecte-toi pour voir et relever tes défis personnalisés !"}
+                  </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <ChallengeCard title="20 Pompes Extérieures" category="SPORT" points="+40 ALKY" color="bg-blue-100 text-blue-700" />
-                  <ChallengeCard title="Photo d'un Monument" category="CULTURE" points="+30 ALKY" color="bg-purple-100 text-purple-700" />
-                  <ChallengeCard title="Ramasser un déchet" category="ÉCOLOGIE" points="+50 ALKY" color="bg-emerald-100 text-emerald-700" />
-                </div>
+
+                {!session ? (
+                  <div className="card-street rounded-3xl p-12 text-center bg-slate-50 space-y-4">
+                    <h2 className="text-xl font-black font-pop text-slate-900">🔒 Connexion requise</h2>
+                    <p className="text-slate-500 text-xs max-w-md mx-auto font-medium">Pour accéder à tes défis personnalisés, valider tes photos de preuve et gagner des Alky, connecte-toi à ton compte.</p>
+                    <button 
+                      onClick={() => setShowAuthModal(true)} 
+                      className="px-8 py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider"
+                    >
+                      SE CONNECTER / S'INSCRIRE
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <ChallengeCard title="20 Pompes Extérieures" category="SPORT" points="+40 ALKY" color="bg-blue-100 text-blue-700" />
+                    <ChallengeCard title="Photo d'un Monument" category="CULTURE" points="+30 ALKY" color="bg-purple-100 text-purple-700" />
+                    <ChallengeCard title="Ramasser un déchet" category="ÉCOLOGIE" points="+50 ALKY" color="bg-emerald-100 text-emerald-700" />
+                  </div>
+                )}
               </div>
             )}
 
             {currentTab === 'map' && (
               <div className="space-y-6">
-                <h1 className="text-3xl font-black font-pop text-slate-900">🗺️ CARTE DES DÉFIS</h1>
-                <div className="h-[500px] card-street rounded-3xl flex items-center justify-center bg-slate-50">
-                  <p className="text-slate-400 text-xs font-bold uppercase font-pop">Carte des défis géolocalisés</p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-3xl font-black font-pop text-slate-900">🗺️ CARTE DES DÉFIS</h1>
+                    <p className="text-slate-500 text-xs mt-1 font-semibold">Trouve les missions géolocalisées autour de toi.</p>
+                  </div>
+                  <button 
+                    onClick={handleLocateMe}
+                    className="px-6 py-3 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-md btn-pop tracking-wider flex items-center justify-center gap-2"
+                  >
+                    <span>📍 Me localiser</span>
+                  </button>
+                </div>
+                <div className="h-[500px] card-street rounded-3xl p-2 bg-slate-50 relative overflow-hidden">
+                  <MapView userLocation={userLocation} />
                 </div>
               </div>
             )}
@@ -411,9 +529,9 @@
 
             {currentTab === 'profile' && session && (
               <div className="space-y-6 max-w-2xl mx-auto">
-                <div className="card-street rounded-3xl p-8 bg-slate-50">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-14 h-14 gradient-alky rounded-2xl flex items-center justify-center text-xl font-black font-pop text-white shadow-md">
+                <div className="card-street rounded-3xl p-8 bg-slate-50 space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 gradient-alky rounded-2xl flex items-center justify-center text-2xl font-black font-pop text-white shadow-md">
                       {profile?.username?.substring(0, 2).toUpperCase() || 'U'}
                     </div>
                     <div>
@@ -421,9 +539,12 @@
                       <p className="text-xs text-alky-blue font-extrabold mt-0.5">Solde : {profile?.alky_balance || 0} ALKY</p>
                     </div>
                   </div>
-                  <button onClick={handleLogout} className="px-5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-extrabold rounded-xl transition-colors">
-                    Déconnexion
-                  </button>
+                  <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
+                    <span className="text-xs text-slate-500 font-semibold">Gère ta session en toute sécurité</span>
+                    <button onClick={handleLogout} className="px-5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-extrabold rounded-xl transition-colors">
+                      Déconnexion
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
