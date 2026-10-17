@@ -190,6 +190,56 @@
       return <div id="map" className="w-full h-full shadow-inner"></div>;
     }
 
+    function SubscriptionSection({ profile, handleUpdateSubscription }) {
+      return (
+        <div className="space-y-6 py-4">
+          <div className="text-center space-y-3 px-2">
+            <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-blue bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
+              FORMULES D'ABONNEMENT ALKYVIP
+            </span>
+            <h2 className="text-2xl md:text-4xl font-black font-pop text-slate-900">Choisis ton accès illimité aux défis</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {SUBSCRIPTION_PLANS.map((plan) => {
+              const isCurrent = profile?.subscription_tier === plan.id;
+              return (
+                <div key={plan.id} className={`card-street rounded-3xl p-6 flex flex-col justify-between space-y-6 ${plan.color} relative overflow-hidden`}>
+                  {isCurrent && (
+                    <div className="absolute top-3 right-3 px-3 py-1 bg-emerald-500 text-white font-black text-[9px] rounded-full uppercase tracking-wider">
+                      Actif
+                    </div>
+                  )}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-pop font-black text-slate-900 text-base">{plan.name}</h3>
+                      <p className="text-2xl font-black font-pop text-alky-blue mt-1">{plan.price}</p>
+                    </div>
+                    <div className="pt-2 border-t border-slate-200/60 space-y-2">
+                      <div>
+                        <span className="text-xs font-extrabold text-slate-700">Défis quotidiens :</span>
+                        <p className="text-sm font-black font-pop text-alky-pink">{plan.limit} défi{plan.limit > 1 ? 's' : ''} / jour</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {isCurrent ? (
+                    <button disabled className="w-full py-3 bg-slate-200 text-slate-500 font-black font-pop text-xs rounded-xl cursor-not-allowed">
+                      OFFRE ACTUELLE
+                    </button>
+                  ) : (
+                    <button onClick={() => handleUpdateSubscription(plan)} className="w-full py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider">
+                      CHOISIR CETTE OFFRE
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
     function App() {
       const [session, setSession] = useState(null);
       const [profile, setProfile] = useState(null);
@@ -871,9 +921,9 @@
               <NavButton active={currentTab === 'map-challenges'} onClick={() => navigateProtectedTab('map-challenges')} label="CARTE & DÉFIS" />
               <NavButton active={currentTab === 'leaderboard'} onClick={() => setCurrentTab('leaderboard')} label="CLASSEMENT" />
               <NavButton active={currentTab === 'groups'} onClick={() => navigateProtectedTab('groups')} label="GROUPES" />
-              <NavButton active={currentTab === 'vip'} onClick={() => setCurrentTab('vip')} label="ALKYVIP 💎" />
+              <NavButton active={currentTab === 'vip'} onClick={() => setCurrentTab('vip')} label="ALKYVIP" />
               {profile?.is_admin && (
-                <NavButton active={currentTab === 'admin'} onClick={() => setCurrentTab('admin')} label="ADMIN 🛡️" />
+                <NavButton active={currentTab === 'admin'} onClick={() => setCurrentTab('admin')} label="ADMIN" />
               )}
             </nav>
 
@@ -939,9 +989,9 @@
               <MobileBurgerButton active={currentTab === 'map-challenges'} onClick={() => { navigateProtectedTab('map-challenges'); setIsMobileMenuOpen(false); }} label="CARTE & DÉFIS" />
               <MobileBurgerButton active={currentTab === 'leaderboard'} onClick={() => { setCurrentTab('leaderboard'); setIsMobileMenuOpen(false); }} label="CLASSEMENT" />
               <MobileBurgerButton active={currentTab === 'groups'} onClick={() => { navigateProtectedTab('groups'); setIsMobileMenuOpen(false); }} label="GROUPES" />
-              <MobileBurgerButton active={currentTab === 'vip'} onClick={() => { setCurrentTab('vip'); setIsMobileMenuOpen(false); }} label="ALKYVIP 💎" />
+              <MobileBurgerButton active={currentTab === 'vip'} onClick={() => { setCurrentTab('vip'); setIsMobileMenuOpen(false); }} label="ALKYVIP" />
               {profile?.is_admin && (
-                <MobileBurgerButton active={currentTab === 'admin'} onClick={() => { setCurrentTab('admin'); setIsMobileMenuOpen(false); }} label="ADMIN 🛡️" />
+                <MobileBurgerButton active={currentTab === 'admin'} onClick={() => { setCurrentTab('admin'); setIsMobileMenuOpen(false); }} label="ADMIN" />
               )}
               <div className="pt-2 border-t border-slate-200">
                 <button 
@@ -1056,7 +1106,7 @@
                         onClick={() => navigateProtectedTab('groups')} 
                         className="px-8 py-4 gradient-alky text-white font-black font-pop text-xs rounded-2xl shadow-lg btn-pop tracking-wider"
                       >
-                        GÉRER MON GROUPE 🛡️
+                        GÉRER MON GROUPE
                       </button>
                     </div>
                   </div>
@@ -1072,6 +1122,11 @@
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* SECTION ABONNEMENT EN BAS DE LA PAGE ACCUEIL */}
+                <div className="pt-8 border-t border-slate-200">
+                  <SubscriptionSection profile={profile} handleUpdateSubscription={handleUpdateSubscription} />
                 </div>
               </div>
             )}
@@ -1089,7 +1144,7 @@
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-                    {/* SÉLECTEUR DE TYPE DE DÉFI (OBLIGATOIREMENT EN PREMIER) */}
+                    {/* SÉLECTEUR DE TYPE DE DÉFI */}
                     <select 
                       value={selectedCategory} 
                       onChange={e => setSelectedCategory(e.target.value)}
@@ -1205,53 +1260,10 @@
               </div>
             )}
 
-            {/* ONGLET ALKYVIP 💎 (ABONNEMENTS) */}
+            {/* ONGLET ALKYVIP */}
             {currentTab === 'vip' && (
-              <div className="space-y-6 max-w-5xl mx-auto py-4">
-                <div className="text-center space-y-3 px-2">
-                  <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-blue bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
-                    FORMULES D'ABONNEMENT ALKYVIP 💎
-                  </span>
-                  <h2 className="text-2xl md:text-4xl font-black font-pop text-slate-900">Choisis ton accès illimité aux défis</h2>
-                  <p className="text-slate-500 text-xs md:text-sm font-medium">Augmente ton nombre de défis quotidiens et tes créations de groupes.</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                  {SUBSCRIPTION_PLANS.map((plan) => {
-                    const isCurrent = profile?.subscription_tier === plan.id;
-                    return (
-                      <div key={plan.id} className={`card-street rounded-3xl p-6 flex flex-col justify-between space-y-6 ${plan.color} relative overflow-hidden`}>
-                        {isCurrent && (
-                          <div className="absolute top-3 right-3 px-3 py-1 bg-emerald-500 text-white font-black text-[9px] rounded-full uppercase tracking-wider">
-                            Actif
-                          </div>
-                        )}
-                        <div className="space-y-4">
-                          <div>
-                            <h3 className="font-pop font-black text-slate-900 text-base">{plan.name}</h3>
-                            <p className="text-2xl font-black font-pop text-alky-blue mt-1">{plan.price}</p>
-                          </div>
-                          <div className="pt-2 border-t border-slate-200/60 space-y-2">
-                            <div>
-                              <span className="text-xs font-extrabold text-slate-700">Défis quotidiens :</span>
-                              <p className="text-sm font-black font-pop text-alky-pink">{plan.limit} défi{plan.limit > 1 ? 's' : ''} / jour</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {isCurrent ? (
-                          <button disabled className="w-full py-3 bg-slate-200 text-slate-500 font-black font-pop text-xs rounded-xl cursor-not-allowed">
-                            OFFRE ACTUELLE
-                          </button>
-                        ) : (
-                          <button onClick={() => handleUpdateSubscription(plan)} className="w-full py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider">
-                            CHOISIR CETTE OFFRE
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="max-w-5xl mx-auto py-4">
+                <SubscriptionSection profile={profile} handleUpdateSubscription={handleUpdateSubscription} />
               </div>
             )}
 
@@ -1286,8 +1298,8 @@
                             <div className="min-w-0">
                               <span className="font-black text-slate-800 text-xs md:text-sm flex items-center gap-1.5 truncate">
                                 <span className="truncate">{user.username}</span>
-                                {user.is_admin && <span className="text-[9px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold shrink-0">Admin App 🛡️</span>}
-                                {user.is_group_admin && <span className="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold shrink-0">Admin Groupe 👑</span>}
+                                {user.is_admin && <span className="text-[9px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold shrink-0">Admin App</span>}
+                                {user.is_group_admin && <span className="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold shrink-0">Admin Groupe</span>}
                               </span>
                             </div>
                           </div>
@@ -1373,7 +1385,7 @@
                   <h1 className="text-2xl md:text-3xl font-black font-pop text-slate-900">👥 GESTION DES GROUPES</h1>
                   <p className="text-slate-500 text-xs font-medium px-2">
                     {profile?.group_name ? (
-                      <span>Tu fais partie de l'équipe : <strong className="text-alky-blue font-bold">{profile.group_name}</strong> {profile.is_group_admin ? <span className="text-amber-600 font-black">(👑 Admin de Groupe)</span> : <span className="text-slate-400">(Membre)</span>}</span>
+                      <span>Tu fais partie de l'équipe : <strong className="text-alky-blue font-bold">{profile.group_name}</strong> {profile.is_group_admin ? <span className="text-amber-600 font-black">(Admin de Groupe)</span> : <span className="text-slate-400">(Membre)</span>}</span>
                     ) : (
                       <span>Tu n'as pas de groupe. Rejoins une équipe ou crée la tienne.</span>
                     )}
@@ -1431,18 +1443,18 @@
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
-                      <h3 className="text-base md:text-lg font-black font-pop text-slate-900">🛡️ Créer mon groupe</h3>
+                      <h3 className="text-base md:text-lg font-black font-pop text-slate-900">Créer mon groupe</h3>
                       <form onSubmit={handleCreateGroup} className="space-y-3">
                         <input type="text" placeholder="Nom du groupe" value={groupName} onChange={e => setGroupName(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue font-bold" required />
                         <input type="text" placeholder="Code secret (ex: POTES2026)" value={groupSecret} onChange={e => setGroupSecret(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue font-bold" required />
                         <button type="submit" className="w-full py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop">
-                          CRÉER ET DEVENIR ADMIN 👑
+                          CRÉER ET DEVENIR ADMIN
                         </button>
                       </form>
                     </div>
 
                     <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
-                      <h3 className="text-base md:text-lg font-black font-pop text-slate-900">🔗 Rejoindre un groupe</h3>
+                      <h3 className="text-base md:text-lg font-black font-pop text-slate-900">Rejoindre un groupe</h3>
                       <form onSubmit={handleJoinGroup} className="space-y-3">
                         <input type="text" placeholder="Entrer le code secret du groupe" value={joinCode} onChange={e => setJoinCode(e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue font-bold" required />
                         <div className="h-2 md:h-10"></div>
@@ -1471,7 +1483,7 @@
                   <div className="card-street rounded-3xl p-6 bg-slate-50 text-center space-y-1">
                     <span className="text-[10px] text-slate-400 font-bold uppercase block">Formule / Rôle</span>
                     <p className="text-sm font-black font-pop text-alky-purple uppercase">
-                      {profile?.is_admin ? 'Admin App 🛡️' : (currentPlan?.name || 'Gratuit')}
+                      {profile?.is_admin ? 'Admin App' : (currentPlan?.name || 'Gratuit')}
                     </p>
                   </div>
                 </div>
@@ -1548,9 +1560,20 @@
                     </button>
                   </form>
                 </div>
+
+                {/* SECTION ABONNEMENT EN BAS DE LA PAGE PROFIL */}
+                <div className="pt-8 border-t border-slate-200">
+                  <SubscriptionSection profile={profile} handleUpdateSubscription={handleUpdateSubscription} />
+                </div>
               </div>
             )}
           </main>
+
+          {/* FOOTER */}
+          <footer className="mt-auto py-8 border-t border-slate-200 text-center text-xs text-slate-400 font-bold space-y-2">
+            <p>AlkyAI @ 2026 — Tous droits réservés</p>
+            <p className="text-[10px] text-slate-400">Transforme ta ville en terrain de jeu géolocalisé</p>
+          </footer>
 
           {/* MODALE SOUMISSION DE PREUVE PHOTO */}
           {selectedChallenge && (
