@@ -126,7 +126,6 @@
     const SUPABASE_ANON_KEY = "sb_publishable_Bha__1CDuR3ppdQUtSQTqQ_2_KJ2NgP";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // CONFIGURATION DES 4 FORMULES D'ABONNEMENT
     const SUBSCRIPTION_PLANS = [
       { id: 'gratuit', name: 'Gratuit', price: '0 €', limit: 1, color: 'border-slate-200 bg-slate-50' },
       { id: 'premium_399', name: 'Premium Bronze', price: '3,99 €/mois', limit: 3, color: 'border-blue-200 bg-blue-50/50' },
@@ -177,6 +176,10 @@
       const [username, setUsername] = useState('');
       const [birthdate, setBirthdate] = useState('2006-01-01');
       const [authError, setAuthError] = useState('');
+
+      // États pour la modification du profil
+      const [newUsername, setNewUsername] = useState('');
+      const [profileMessage, setProfileMessage] = useState({ text: '', type: '' });
 
       const [groupName, setGroupName] = useState('');
       const [groupSecret, setGroupSecret] = useState('');
@@ -235,12 +238,15 @@
               streak_days: 0,
               subscription_tier: 'gratuit',
               daily_challenges_limit: 1,
+              last_username_change: null,
               is_admin: false
             };
             await supabase.from('profiles').upsert([newProfile]);
             setProfile(newProfile);
+            setNewUsername(newProfile.username);
           } else {
             setProfile(data);
+            setNewUsername(data.username);
           }
         } catch (err) {
           console.error("Erreur profil:", err);
@@ -255,6 +261,63 @@
 
         if (!error && data) {
           setLeaderboard(data);
+        }
+      };
+
+      // Gérer la mise à jour du profil avec vérification des 14 jours et unicité du pseudo
+      const handleUpdateProfileInfo = async (e) => {
+        e.preventDefault();
+        setProfileMessage({ text: '', type: '' });
+
+        if (!newUsername.trim()) {
+          setProfileMessage({ text: "Le pseudonyme ne peut pas être vide.", type: 'error' });
+          return;
+        }
+
+        // 1. Vérifier si le pseudo a changé
+        if (newUsername !== profile.username) {
+          // Vérifier la règle des 14 jours
+          if (profile.last_username_change) {
+            const lastChange = new Date(profile.last_username_change);
+            const now = new Date();
+            const diffDays = (now - lastChange) / (1000 * 60 * 60 * 24);
+            if (diffDays < 14) {
+              const remainingDays = Math.ceil(14 - diffDays);
+              setProfileMessage({ 
+                text: `Tu dois attendre encore ${remainingDays} jour(s) avant de pouvoir changer à nouveau de pseudonyme.`, 
+                type: 'error' 
+              });
+              return;
+            }
+          }
+
+          // 2. Vérifier si le pseudo existe déjà dans la base de données
+          const { data: existingUser, error: checkError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('username', newUsername)
+            .single();
+
+          if (existingUser) {
+            setProfileMessage({ text: "Ce pseudonyme est déjà utilisé par un autre utilisateur. Choisis-en un autre.", type: 'error' });
+            return;
+          }
+        }
+
+        // 3. Enregistrer les modifications
+        const updatedData = {
+          ...profile,
+          username: newUsername,
+          last_username_change: newUsername !== profile.username ? new Date().toISOString() : profile.last_username_change
+        };
+
+        const { error } = await supabase.from('profiles').upsert([updatedData]);
+
+        if (error) {
+          setProfileMessage({ text: "Erreur lors de la mise à jour du profil.", type: 'error' });
+        } else {
+          setProfile(updatedData);
+          setProfileMessage({ text: "Informations mises à jour avec succès !", type: 'success' });
         }
       };
 
@@ -341,10 +404,12 @@
             streak_days: 0,
             subscription_tier: 'gratuit',
             daily_challenges_limit: 1,
+            last_username_change: new Date().toISOString(),
             is_admin: false
           };
           await supabase.from('profiles').upsert([newProfile]);
           setProfile(newProfile);
+          setNewUsername(username);
           setShowAuthModal(false);
           if (pendingTab) {
             setCurrentTab(pendingTab);
@@ -568,36 +633,16 @@
                     </div>
                   </div>
                 </div>
-
-                <div className="card-street rounded-[2.5rem] p-8 md:p-10 bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-xl relative overflow-hidden">
-                  <div className="absolute -right-10 -bottom-10 opacity-10 text-9xl font-black font-pop">VIP</div>
-                  <div className="relative z-10 max-w-2xl space-y-3">
-                    <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-cyan bg-cyan-950 px-3 py-1 rounded-full border border-cyan-800">
-                      FORMULES D'ABONNEMENT
-                    </span>
-                    <h2 className="text-2xl md:text-3xl font-black font-pop">Multiplie tes défis quotidiens !</h2>
-                    <p className="text-slate-300 text-xs md:text-sm font-medium leading-relaxed">
-                      Passe de 1 défi par jour à 3, 6 ou jusqu'à 10 défis quotidiens grâce aux formules Premium. Un classement 100% équitable préservé pour tous !
-                    </p>
-                    <div className="pt-2">
-                      <button onClick={() => navigateProtectedTab('vip')} className="px-6 py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider">
-                        DÉCOUVRIR LES OFFRES
-                      </button>
-                    </div>
-                  </div>
-                </div>
               </div>
             )}
 
             {currentTab === 'challenges' && (
               <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h1 className="text-3xl font-black font-pop text-slate-900">⚡ CATALOGUE DES DÉFIS</h1>
-                    <p className="text-slate-500 text-xs mt-1 font-semibold">
-                      {session ? `Ton quota : jusqu'à ${currentPlan.limit} défis / jour (Formule : ${currentPlan.name})` : "Connecte-toi pour voir et relever tes défis entre amis !"}
-                    </p>
-                  </div>
+                <div>
+                  <h1 className="text-3xl font-black font-pop text-slate-900">⚡ CATALOGUE DES DÉFIS</h1>
+                  <p className="text-slate-500 text-xs mt-1 font-semibold">
+                    {session ? `Ton quota : jusqu'à ${currentPlan.limit} défis / jour (Formule : ${currentPlan.name})` : "Connecte-toi pour voir et relever tes défis entre amis !"}
+                  </p>
                 </div>
 
                 {!session ? (
@@ -720,7 +765,7 @@
               </div>
             )}
 
-            {/* ONGLET ALKYAI VIP (4 FORMULES D'ABONNEMENT) */}
+            {/* ONGLET ALKYAI VIP */}
             {currentTab === 'vip' && session && (
               <div className="space-y-8 max-w-5xl mx-auto py-4">
                 <div className="text-center space-y-3">
@@ -779,25 +824,20 @@
                     );
                   })}
                 </div>
-
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center text-slate-500 text-xs font-medium space-y-1">
-                  <p>🔒 <strong>Sécurité & Règles :</strong> Les limites quotidiennes sont strictement vérifiées côté serveur pour éviter tout contournement.</p>
-                  <p>👶 <strong>Protection des mineurs :</strong> L'accord d'un parent ou tuteur légal est requis avant toute souscription payante.</p>
-                </div>
               </div>
             )}
 
-            {/* ONGLET PROFIL INDEPENDANT */}
+            {/* ESPACE PROFIL & INFOS PERSONNELLES AMÉLIORÉ */}
             {currentTab === 'profile' && session && (
               <div className="space-y-8 max-w-2xl mx-auto py-4">
                 <div className="card-street rounded-3xl p-8 bg-slate-50 space-y-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-6">
                     <div className="flex items-center gap-4">
                       <div className="w-16 h-16 gradient-alky rounded-2xl flex items-center justify-center text-2xl font-black font-pop text-white shadow-md">
                         {profile?.username?.substring(0, 2).toUpperCase() || 'U'}
                       </div>
                       <div>
-                        <h1 className="text-2xl font-black font-pop text-slate-900">{profile?.username || 'Utilisateur'}</h1>
+                        <h1 className="text-2xl font-black font-pop text-slate-900">{profile?.username}</h1>
                         <p className="text-xs text-slate-500 font-medium">{session.user.email}</p>
                       </div>
                     </div>
@@ -806,17 +846,54 @@
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 pt-2">
-                    <div className="bg-white p-4 rounded-2xl border border-slate-200 text-center">
-                      <span className="text-xs text-slate-400 font-bold uppercase">Solde Actuel</span>
-                      <p className="text-2xl font-black font-pop text-alky-blue mt-1">{profile?.alky_balance || 0} ALKY</p>
+                  {/* FORMULAIRE DE MODIFICATION DES INFOS PERSONNELLES & PSEUDO (RÈGLE DES 14 JOURS + UNICITÉ) */}
+                  <form onSubmit={handleUpdateProfileInfo} className="space-y-4">
+                    <h3 className="text-base font-black font-pop text-slate-900">⚙️ Modifier mon profil</h3>
+                    <p className="text-xs text-slate-500 font-medium">Ton pseudonyme ne peut être modifié qu'une seule fois tous les 14 jours et doit être unique.</p>
+
+                    {profileMessage.text && (
+                      <div className={`p-3 rounded-xl text-xs font-bold text-center ${profileMessage.type === 'error' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
+                        {profileMessage.text}
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-extrabold text-slate-700">Pseudonyme unique</label>
+                      <input 
+                        type="text" 
+                        value={newUsername} 
+                        onChange={e => setNewUsername(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue font-bold"
+                        required
+                      />
                     </div>
-                    <div className="bg-white p-4 rounded-2xl border border-slate-200 text-center">
-                      <span className="text-xs text-slate-400 font-bold uppercase">Formule Active</span>
-                      <p className="text-lg font-black font-pop text-alky-pink mt-1 uppercase">{currentPlan.name}</p>
-                      <span className="text-[10px] text-slate-400 font-bold">({currentPlan.limit} défis/jour)</span>
+
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Adresse Email</span>
+                        <p className="text-xs font-bold text-slate-800 mt-1 truncate">{session.user.email}</p>
+                      </div>
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block">Date de naissance</span>
+                        <p className="text-xs font-bold text-slate-800 mt-1">{profile?.birthdate || 'Non renseignée'}</p>
+                      </div>
                     </div>
-                  </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200 text-center">
+                        <span className="text-xs text-slate-400 font-bold uppercase">Solde Actuel</span>
+                        <p className="text-xl font-black font-pop text-alky-blue mt-1">{profile?.alky_balance || 0} ALKY</p>
+                      </div>
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200 text-center">
+                        <span className="text-xs text-slate-400 font-bold uppercase">Formule Active</span>
+                        <p className="text-base font-black font-pop text-alky-pink mt-1 uppercase">{currentPlan.name}</p>
+                      </div>
+                    </div>
+
+                    <button type="submit" className="w-full py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider">
+                      ENREGISTRER LES MODIFICATIONS
+                    </button>
+                  </form>
 
                   {isVipUser && (
                     <div className="pt-2 border-t border-slate-200">
@@ -946,7 +1023,7 @@
                     <input 
                       type="text" 
                       required 
-                      placeholder="Pseudonyme" 
+                      placeholder="Pseudonyme unique" 
                       value={username} 
                       onChange={e => setUsername(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue"
