@@ -170,10 +170,10 @@
       const [pendingTab, setPendingTab] = useState(null);
 
       // CLASSEMENT & GROUPES
-      const [leaderboardTab, setLeaderboardTab] = useState('solo'); // 'solo' ou 'groups'
+      const [leaderboardTab, setLeaderboardTab] = useState('solo');
       const [soloLeaderboard, setSoloLeaderboard] = useState([]);
       const [groupLeaderboard, setGroupLeaderboard] = useState([]);
-      const [selectedPublicUser, setSelectedPublicUser] = useState(null); // Profil d'un autre joueur
+      const [selectedPublicUser, setSelectedPublicUser] = useState(null);
       const [userLocation, setUserLocation] = useState(null);
 
       const [email, setEmail] = useState('');
@@ -217,7 +217,6 @@
       useEffect(() => {
         fetchAllLeaderboards();
 
-        // Abonnement en direct (Realtime) sur les mises à jour des profils
         const channel = supabase
           .channel('public:profiles')
           .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
@@ -265,9 +264,7 @@
         }
       };
 
-      // Récupération des classements Solo et Groupes
       const fetchAllLeaderboards = async () => {
-        // 1. Classement Solo (par Alky décroissant)
         const { data: soloData } = await supabase
           .from('profiles')
           .select('id, username, alky_balance, created_at, completed_challenges_count, group_name')
@@ -276,11 +273,12 @@
         if (soloData) {
           setSoloLeaderboard(soloData);
 
-          // 2. Calcul du Classement des Groupes en cumulant les Alky des membres
           const groupMap = {};
           soloData.forEach(user => {
-            const gName = user.group_name || 'Sans Groupe';
-            if (gName !== 'Sans Groupe') {
+            const gName = user.group_name ? user.group_name.trim() : '';
+            
+            // On ignore les profils qui n'ont pas de vrai groupe
+            if (gName && gName !== 'Sans groupe' && gName !== 'Sans Groupe') {
               if (!groupMap[gName]) {
                 groupMap[gName] = { name: gName, totalAlky: 0, memberCount: 0 };
               }
@@ -518,7 +516,6 @@
         }
       };
 
-      // Formater la date d'inscription ("Joue depuis...")
       const formatDaysPlayed = (dateString) => {
         if (!dateString) return "Membre récent";
         const created = new Date(dateString);
@@ -837,7 +834,7 @@
                     )
                   ) : (
                     groupLeaderboard.length === 0 ? (
-                      <p className="text-center text-slate-400 text-xs font-semibold py-8">Aucun groupe créé pour le moment.</p>
+                      <p className="text-center text-slate-400 text-xs font-semibold py-8">Aucun groupe actif dans le classement pour l'instant.</p>
                     ) : (
                       groupLeaderboard.map((grp, index) => (
                         <div key={index} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
