@@ -249,6 +249,7 @@
               completed_challenges_count: 0,
               group_name: null,
               group_code: null,
+              last_group_creation: null,
               created_at: new Date().toISOString(),
               is_admin: false
             };
@@ -393,7 +394,7 @@
         }
       };
 
-      // Création d'un groupe
+      // Création d'un groupe (Limité à 1 par mois / 30 jours)
       const handleCreateGroup = async (e) => {
         e.preventDefault();
         setGroupMessage({ text: '', type: '' });
@@ -403,10 +404,28 @@
           return;
         }
 
+        // Vérification de la règle d'1 création par mois (30 jours)
+        if (profile.last_group_creation) {
+          const lastCreation = new Date(profile.last_group_creation);
+          const now = new Date();
+          const diffDays = (now - lastCreation) / (1000 * 60 * 60 * 24);
+
+          if (diffDays < 30) {
+            const remainingDays = Math.ceil(30 - diffDays);
+            setGroupMessage({ 
+              text: `Tu ne peux créer qu'un seul groupe par mois. Tu dois encore attendre ${remainingDays} jour(s).`, 
+              type: 'error' 
+            });
+            return;
+          }
+        }
+
+        const nowIso = new Date().toISOString();
         const updatedProfile = {
           ...profile,
           group_name: groupName.trim(),
-          group_code: groupSecret.trim()
+          group_code: groupSecret.trim(),
+          last_group_creation: nowIso
         };
 
         const { error } = await supabase.from('profiles').upsert([updatedProfile]);
@@ -432,7 +451,6 @@
           return;
         }
 
-        // Chercher s'il existe un utilisateur dans ce groupe avec ce code secret
         const { data: groupMembers, error } = await supabase
           .from('profiles')
           .select('group_name, group_code')
@@ -568,6 +586,7 @@
             completed_challenges_count: 0,
             group_name: null,
             group_code: null,
+            last_group_creation: null,
             created_at: new Date().toISOString(),
             is_admin: false
           };
@@ -946,7 +965,7 @@
               </div>
             )}
 
-            {/* ONGLET GESTION DES GROUPES (CRÉATION ET REJOINDRE) */}
+            {/* ONGLET GESTION DES GROUPES (SANS GROUPE PAR DÉFAUT + CRÉATION 1 FOIS / MOIS) */}
             {currentTab === 'groups' && session && (
               <div className="space-y-8 max-w-3xl mx-auto py-6">
                 <div className="text-center space-y-2">
@@ -955,7 +974,7 @@
                     {profile?.group_name ? (
                       <span>Tu fais partie du groupe : <strong className="text-alky-blue font-bold">{profile.group_name}</strong></span>
                     ) : (
-                      <span>Tu ne fais partie d'aucun groupe actuellement. Crée le tien ou rejoins une équipe !</span>
+                      <span>Tu n'as pas de groupe. Tu peux en rejoindre un ou en créer un (limite de 1 création par mois).</span>
                     )}
                   </p>
                 </div>
@@ -985,6 +1004,7 @@
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
                       <h3 className="text-lg font-black font-pop text-slate-900">🛡️ Créer mon groupe</h3>
+                      <p className="text-[11px] text-slate-400 font-semibold">Attention : tu ne peux créer qu'un seul groupe par mois.</p>
                       <form onSubmit={handleCreateGroup} className="space-y-3">
                         <input 
                           type="text" 
@@ -1010,6 +1030,7 @@
 
                     <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
                       <h3 className="text-lg font-black font-pop text-slate-900">🔗 Rejoindre un groupe</h3>
+                      <p className="text-[11px] text-slate-400 font-semibold">Entre le code secret fourni par un membre de ton équipe.</p>
                       <form onSubmit={handleJoinGroup} className="space-y-3">
                         <input 
                           type="text" 
