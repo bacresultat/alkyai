@@ -870,7 +870,7 @@
             <nav className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
               <NavButton active={currentTab === 'home'} onClick={() => setCurrentTab('home')} label="ACCUEIL" />
               <NavButton active={currentTab === 'map-challenges'} onClick={() => navigateProtectedTab('map-challenges')} label="CARTE & DÉFIS" />
-              <NavButton active={currentTab === 'leaderboard'} onClick={() => setCurrentTab('leaderboard')} label="CLASSEMENT" />
+              <NavButton active={currentTab === 'leaderboard'} onClick={() => navigateProtectedTab('leaderboard')} label="CLASSEMENT" />
               <NavButton active={currentTab === 'groups'} onClick={() => navigateProtectedTab('groups')} label="GROUPES" />
               {profile?.is_admin && (
                 <NavButton active={currentTab === 'admin'} onClick={() => setCurrentTab('admin')} label="ADMIN" />
@@ -1124,7 +1124,7 @@
 
             {/* CARTE & DÉFIS */}
             {currentTab === 'map-challenges' && session && (
-              <div className="space-y-8">
+              <div className="space-y-6">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-blue-50/50 via-purple-50/30 to-pink-50/50 p-6 rounded-3xl border border-slate-200 shadow-sm">
                   <div>
                     <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-blue bg-blue-100 px-3 py-1 rounded-full">
@@ -1179,47 +1179,53 @@
                   </div>
                 )}
 
-                <div className="h-[400px] md:h-[460px] card-street rounded-[2.5rem] p-3 bg-slate-50 relative overflow-hidden shadow-lg border-2 border-slate-200">
-                  <MapView userLocation={userLocation} challengesToShow={userLocation ? dailyChallenges : []} />
-                </div>
+                {/* SECTION CARTE + LISTE DES DÉFIS CÔTE À CÔTE */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* LA CARTE (2 colonnes) */}
+                  <div className="lg:col-span-2 h-[450px] md:h-[520px] card-street rounded-[2.5rem] p-3 bg-slate-50 relative overflow-hidden shadow-lg border-2 border-slate-200">
+                    <MapView userLocation={userLocation} challengesToShow={userLocation ? dailyChallenges : []} />
+                  </div>
 
-                <div className="space-y-6 pt-4">
-                  <div className="flex items-center justify-between">
+                  {/* PANNEAU LATÉRAL DES DÉFIS (1 colonne à côté de la carte) */}
+                  <div className="card-street rounded-[2.5rem] p-6 bg-slate-50 flex flex-col space-y-4 max-h-[520px] overflow-y-auto">
                     <div>
-                      <h2 className="text-xl md:text-2xl font-black font-pop text-slate-900">⚡ Tes défis sur la carte</h2>
-                      <p className="text-slate-500 text-xs font-medium">
+                      <h2 className="text-base font-black font-pop text-slate-900">⚡ Défis disponibles</h2>
+                      <p className="text-slate-500 text-[11px] font-medium">
                         {userLocation ? (
-                          <span className="text-emerald-600 font-bold">Position enregistrée ! {dailyChallenges.length} défi(s) disponible(s).</span>
+                          <span className="text-emerald-600 font-bold">{dailyChallenges.length} défi(s) générés pour cette zone.</span>
                         ) : (
-                          <span className="text-amber-600 font-bold">Veuillez entrer une position dans la barre de recherche ci-dessus pour afficher vos défis.</span>
+                          <span className="text-amber-600 font-bold">Sélectionne une position dans la barre de recherche.</span>
                         )}
                       </p>
                     </div>
-                  </div>
 
-                  {userLocation && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                      {dailyChallenges.map((ch, idx) => (
-                        <div key={ch.id || idx} className="card-street rounded-3xl p-6 flex flex-col justify-between bg-slate-50 space-y-4">
-                          <div>
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-[10px] font-black font-pop uppercase px-3 py-1 bg-blue-100 text-blue-700 rounded-full shadow-sm">
+                    {!userLocation ? (
+                      <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-2">
+                        <span className="text-3xl">📍</span>
+                        <p className="text-xs font-semibold">Aucune position sélectionnée. Recherche un lieu pour voir tes défis apparaître ici.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {dailyChallenges.map((ch, idx) => (
+                          <div key={ch.id || idx} className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3 hover:border-alky-blue transition-all">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] font-black font-pop uppercase px-2.5 py-0.5 bg-blue-100 text-blue-700 rounded-full">
                                 {ch.category}
                               </span>
-                              <span className="text-xs font-black text-alky-pink bg-pink-50 px-2.5 py-1 rounded-full border border-pink-100 font-pop">
+                              <span className="text-[11px] font-black text-alky-pink bg-pink-50 px-2 py-0.5 rounded-full border border-pink-100 font-pop">
                                 {ch.points}
                               </span>
                             </div>
-                            <h3 className="text-lg font-black font-pop text-slate-900 mb-2">{ch.title}</h3>
-                            <p className="text-slate-500 text-xs font-medium leading-relaxed">{ch.desc}</p>
+                            <h3 className="text-sm font-black font-pop text-slate-900">{ch.title}</h3>
+                            <p className="text-slate-500 text-[11px] font-medium leading-relaxed">{ch.desc}</p>
+                            <button onClick={() => setSelectedChallenge(ch)} className="w-full gradient-alky text-white font-black font-pop py-2.5 rounded-xl text-[11px] shadow-sm btn-pop tracking-wider">
+                              ENVOYER PREUVE 📸
+                            </button>
                           </div>
-                          <button onClick={() => setSelectedChallenge(ch)} className="w-full gradient-alky text-white font-black font-pop py-3 rounded-xl text-xs shadow-sm btn-pop tracking-wider">
-                            ENVOYER UNE PREUVE PHOTO 📸
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
