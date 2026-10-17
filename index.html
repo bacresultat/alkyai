@@ -121,7 +121,7 @@
   <script type="text/babel">
     const { useState, useEffect } = React;
 
-    // CONFIGURATION SUPABASE AVEC DÉTECTION AUTO DU HASH URL
+    // CONFIGURATION SUPABASE
     const SUPABASE_URL = "https://hsvxubtiblbdqtpvascr.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_Bha__1CDuR3ppdQUtSQTqQ_2_KJ2NgP";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -182,12 +182,15 @@
 
       useEffect(() => {
         const hash = window.location.hash;
+        
+        // Gestion des onglets selon le hash
         if (hash.includes('vip-plans')) {
           setCurrentTab('vip-plans');
         } else if (hash.includes('groups')) {
           setCurrentTab('groups');
         }
 
+        // Récupération de la session au chargement
         supabase.auth.getSession().then(({ data: { session } }) => {
           if (session) {
             setSession(session);
