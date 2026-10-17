@@ -527,7 +527,11 @@
       };
 
       const handleUpdateSubscription = async (plan) => {
-        if (!session || !profile) return;
+        if (!session || !profile) {
+          setPendingTab('home');
+          setShowAuthModal(true);
+          return;
+        }
 
         const isMinor = new Date().getFullYear() - new Date(profile.birthdate).getFullYear() < 18;
         if (plan.id !== 'gratuit' && isMinor) {
@@ -697,7 +701,6 @@
               <NavButton active={currentTab === 'map'} onClick={() => setCurrentTab('map')} label="CARTE" />
               <NavButton active={currentTab === 'leaderboard'} onClick={() => setCurrentTab('leaderboard')} label="CLASSEMENT" />
               <NavButton active={currentTab === 'groups'} onClick={() => navigateProtectedTab('groups')} label="GROUPES" />
-              <NavButton active={currentTab === 'vip'} onClick={() => navigateProtectedTab('vip')} label="ALKYAI VIP" />
             </nav>
 
             <div>
@@ -756,21 +759,20 @@
             </div>
           </header>
 
-          {/* MENU DÉROULANT MOBILE (BURGER) */}
+          {/* MENU DÉROULANT MOBILE (BURGER) - SANS EMOJIS */}
           {isMobileMenuOpen && (
             <div className="md:hidden fixed inset-x-0 top-16 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-xl z-40 p-4 space-y-2">
-              <MobileBurgerButton active={currentTab === 'home'} onClick={() => { setCurrentTab('home'); setIsMobileMenuOpen(false); }} label="🏠 Accueil" />
-              <MobileBurgerButton active={currentTab === 'challenges'} onClick={() => { setCurrentTab('challenges'); setIsMobileMenuOpen(false); }} label="⚡ Défis" />
-              <MobileBurgerButton active={currentTab === 'map'} onClick={() => { setCurrentTab('map'); setIsMobileMenuOpen(false); }} label="🗺️ Carte" />
-              <MobileBurgerButton active={currentTab === 'leaderboard'} onClick={() => { setCurrentTab('leaderboard'); setIsMobileMenuOpen(false); }} label="🏆 Classement" />
-              <MobileBurgerButton active={currentTab === 'groups'} onClick={() => { navigateProtectedTab('groups'); setIsMobileMenuOpen(false); }} label="👥 Groupes" />
-              <MobileBurgerButton active={currentTab === 'vip'} onClick={() => { navigateProtectedTab('vip'); setIsMobileMenuOpen(false); }} label="👑 AlkyAI VIP" />
+              <MobileBurgerButton active={currentTab === 'home'} onClick={() => { setCurrentTab('home'); setIsMobileMenuOpen(false); }} label="ACCUEIL" />
+              <MobileBurgerButton active={currentTab === 'challenges'} onClick={() => { setCurrentTab('challenges'); setIsMobileMenuOpen(false); }} label="DÉFIS" />
+              <MobileBurgerButton active={currentTab === 'map'} onClick={() => { setCurrentTab('map'); setIsMobileMenuOpen(false); }} label="CARTE" />
+              <MobileBurgerButton active={currentTab === 'leaderboard'} onClick={() => { setCurrentTab('leaderboard'); setIsMobileMenuOpen(false); }} label="CLASSEMENT" />
+              <MobileBurgerButton active={currentTab === 'groups'} onClick={() => { navigateProtectedTab('groups'); setIsMobileMenuOpen(false); }} label="GROUPES" />
               <div className="pt-2 border-t border-slate-200">
                 <button 
                   onClick={() => { session ? setCurrentTab('profile') : setShowAuthModal(true); setIsMobileMenuOpen(false); }} 
                   className="w-full py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md tracking-wider text-center"
                 >
-                  {session ? '👤 Mon Profil' : '🔑 Mon Compte / Connexion'}
+                  {session ? 'Mon Profil' : 'Mon Compte / Connexion'}
                 </button>
               </div>
             </div>
@@ -899,6 +901,67 @@
                         <p className="text-white/70 text-[11px] md:text-xs mt-1 font-medium">Ton application de défis préférée</p>
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                {/* SECTION ABONNEMENTS / VIP DIRECTEMENT SUR LA PAGE D'ACCUEIL */}
+                <div className="space-y-6 pt-4">
+                  <div className="text-center space-y-3 px-2">
+                    <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-blue bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
+                      FORMULES D'ABONNEMENT ALKYAI
+                    </span>
+                    <h2 className="text-2xl md:text-4xl font-black font-pop text-slate-900">Choisis ton accès aux défis</h2>
+                    <p className="text-slate-500 text-xs md:text-sm font-medium max-w-xl mx-auto">
+                      Augmente ton nombre maximal de défis quotidiens et tes créations de groupes !
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {SUBSCRIPTION_PLANS.map((plan) => {
+                      const isCurrent = profile?.subscription_tier === plan.id;
+
+                      return (
+                        <div key={plan.id} className={`card-street rounded-3xl p-6 flex flex-col justify-between space-y-6 ${plan.color} relative overflow-hidden`}>
+                          {isCurrent && (
+                            <div className="absolute top-3 right-3 px-3 py-1 bg-emerald-500 text-white font-black text-[9px] rounded-full uppercase tracking-wider">
+                              Actif
+                            </div>
+                          )}
+                          <div className="space-y-4">
+                            <div>
+                              <h3 className="font-pop font-black text-slate-900 text-base">{plan.name}</h3>
+                              <p className="text-2xl font-black font-pop text-alky-blue mt-1">{plan.price}</p>
+                            </div>
+                            <div className="pt-2 border-t border-slate-200/60 space-y-2">
+                              <div>
+                                <span className="text-xs font-extrabold text-slate-700">Défis quotidiens :</span>
+                                <p className="text-sm font-black font-pop text-alky-pink">{plan.limit} défi{plan.limit > 1 ? 's' : ''} / jour</p>
+                              </div>
+                              <div>
+                                <span className="text-xs font-extrabold text-slate-700">Création de groupes :</span>
+                                <p className="text-sm font-black font-pop text-alky-purple">{plan.createLimit === 999 ? 'Illimité' : `${plan.createLimit} / mois`}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {isCurrent ? (
+                            <button 
+                              disabled
+                              className="w-full py-3 bg-slate-200 text-slate-500 font-black font-pop text-xs rounded-xl cursor-not-allowed"
+                            >
+                              OFFRE ACTUELLE
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => handleUpdateSubscription(plan)} 
+                              className="w-full py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider"
+                            >
+                              {plan.id === 'gratuit' ? 'REVENIR À GRATUIT' : 'CHOISIR CETTE OFFRE'}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -1194,68 +1257,6 @@
               </div>
             )}
 
-            {currentTab === 'vip' && session && (
-              <div className="space-y-6 md:space-y-8 max-w-5xl mx-auto py-2 md:py-4">
-                <div className="text-center space-y-3 px-2">
-                  <span className="text-xs font-black font-pop uppercase tracking-widest text-alky-blue bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
-                    FORMULES D'ABONNEMENT ALKYAI
-                  </span>
-                  <h1 className="text-2xl md:text-4xl font-black font-pop text-slate-900">Choisis ton accès aux défis</h1>
-                  <p className="text-slate-500 text-xs md:text-sm font-medium max-w-xl mx-auto">
-                    Augmente ton nombre maximal de défis quotidiens et tes créations de groupes !
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                  {SUBSCRIPTION_PLANS.map((plan) => {
-                    const isCurrent = profile?.subscription_tier === plan.id;
-
-                    return (
-                      <div key={plan.id} className={`card-street rounded-3xl p-6 flex flex-col justify-between space-y-6 ${plan.color} relative overflow-hidden`}>
-                        {isCurrent && (
-                          <div className="absolute top-3 right-3 px-3 py-1 bg-emerald-500 text-white font-black text-[9px] rounded-full uppercase tracking-wider">
-                            Actif
-                          </div>
-                        )}
-                        <div className="space-y-4">
-                          <div>
-                            <h3 className="font-pop font-black text-slate-900 text-base">{plan.name}</h3>
-                            <p className="text-2xl font-black font-pop text-alky-blue mt-1">{plan.price}</p>
-                          </div>
-                          <div className="pt-2 border-t border-slate-200/60 space-y-2">
-                            <div>
-                              <span className="text-xs font-extrabold text-slate-700">Défis quotidiens :</span>
-                              <p className="text-sm font-black font-pop text-alky-pink">{plan.limit} défi{plan.limit > 1 ? 's' : ''} / jour</p>
-                            </div>
-                            <div>
-                              <span className="text-xs font-extrabold text-slate-700">Création de groupes :</span>
-                              <p className="text-sm font-black font-pop text-alky-purple">{plan.createLimit === 999 ? 'Illimité' : `${plan.createLimit} / mois`}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {isCurrent ? (
-                          <button 
-                            disabled
-                            className="w-full py-3 bg-slate-200 text-slate-500 font-black font-pop text-xs rounded-xl cursor-not-allowed"
-                          >
-                            OFFRE ACTUELLE
-                          </button>
-                        ) : (
-                          <button 
-                            onClick={() => handleUpdateSubscription(plan)} 
-                            className="w-full py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider"
-                          >
-                            {plan.id === 'gratuit' ? 'REVENIR À GRATUIT' : 'CHOISIR CETTE OFFRE'}
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {currentTab === 'profile' && session && (
               <div className="space-y-6 md:space-y-8 max-w-2xl mx-auto py-2 md:py-4">
                 <div className="card-street rounded-3xl p-6 md:p-8 bg-slate-50 space-y-6 md:space-y-8">
@@ -1325,24 +1326,6 @@
                         <p className="text-base md:text-lg font-black font-pop text-alky-pink uppercase">{currentPlan.name}</p>
                         <span className="text-[11px] text-slate-500 font-bold block">{currentPlan.limit} défis par jour</span>
                       </div>
-                    </div>
-
-                    <div className="p-6 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-3xl space-y-3 mt-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] md:text-xs font-black font-pop uppercase tracking-widest text-alky-cyan">
-                          ⚡ BOOSTER TES DÉFIS
-                        </span>
-                        <span className="text-xs text-slate-400 font-bold">{currentPlan.price}</span>
-                      </div>
-                      <p className="text-xs text-slate-300 font-medium">
-                        Passe au niveau supérieur et obtiens plus de défis et de créations de groupes !
-                      </p>
-                      <button 
-                        onClick={() => setCurrentTab('vip')}
-                        className="w-full py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider"
-                      >
-                        DEVENIR VIP / CHANGER DE FORMULE 👑
-                      </button>
                     </div>
 
                     {isVipUser && (
