@@ -186,9 +186,11 @@
       const [newUsername, setNewUsername] = useState('');
       const [profileMessage, setProfileMessage] = useState({ text: '', type: '' });
 
+      // Gestion des groupes
       const [groupName, setGroupName] = useState('');
       const [groupSecret, setGroupSecret] = useState('');
       const [joinCode, setJoinCode] = useState('');
+      const [groupMessage, setGroupMessage] = useState({ text: '', type: '' });
 
       useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -245,6 +247,8 @@
               daily_challenges_limit: 1,
               last_username_change: null,
               completed_challenges_count: 0,
+              group_name: null,
+              group_code: null,
               created_at: new Date().toISOString(),
               is_admin: false
             };
@@ -267,7 +271,7 @@
       const fetchAllLeaderboards = async () => {
         const { data: soloData } = await supabase
           .from('profiles')
-          .select('id, username, alky_balance, created_at, completed_challenges_count, group_name')
+          .select('id, username, alky_balance, created_at, completed_challenges_count, group_name, group_code')
           .order('alky_balance', { ascending: false });
 
         if (soloData) {
@@ -277,8 +281,7 @@
           soloData.forEach(user => {
             const gName = user.group_name ? user.group_name.trim() : '';
             
-            // On ignore les profils qui n'ont pas de vrai groupe
-            if (gName && gName !== 'Sans groupe' && gName !== 'Sans Groupe') {
+            if (gName) {
               if (!groupMap[gName]) {
                 groupMap[gName] = { name: gName, totalAlky: 0, memberCount: 0 };
               }
@@ -390,6 +393,94 @@
         }
       };
 
+      // Création d'un groupe
+      const handleCreateGroup = async (e) => {
+        e.preventDefault();
+        setGroupMessage({ text: '', type: '' });
+
+        if (!groupName.trim() || !groupSecret.trim()) {
+          setGroupMessage({ text: "Remplis le nom du groupe et le code secret.", type: 'error' });
+          return;
+        }
+
+        const updatedProfile = {
+          ...profile,
+          group_name: groupName.trim(),
+          group_code: groupSecret.trim()
+        };
+
+        const { error } = await supabase.from('profiles').upsert([updatedProfile]);
+
+        if (!error) {
+          setProfile(updatedProfile);
+          setGroupMessage({ text: `Groupe "${groupName}" créé et rejoint avec succès !`, type: 'success' });
+          setGroupName('');
+          setGroupSecret('');
+          fetchAllLeaderboards();
+        } else {
+          setGroupMessage({ text: "Erreur lors de la création du groupe.", type: 'error' });
+        }
+      };
+
+      // Rejoindre un groupe existant via son code secret
+      const handleJoinGroup = async (e) => {
+        e.preventDefault();
+        setGroupMessage({ text: '', type: '' });
+
+        if (!joinCode.trim()) {
+          setGroupMessage({ text: "Entre un code d'invitation valide.", type: 'error' });
+          return;
+        }
+
+        // Chercher s'il existe un utilisateur dans ce groupe avec ce code secret
+        const { data: groupMembers, error } = await supabase
+          .from('profiles')
+          .select('group_name, group_code')
+          .eq('group_code', joinCode.trim())
+          .limit(1);
+
+        if (error || !groupMembers || groupMembers.length === 0) {
+          setGroupMessage({ text: "Aucun groupe ne correspond à ce code secret.", type: 'error' });
+          return;
+        }
+
+        const targetGroup = groupMembers[0];
+        const updatedProfile = {
+          ...profile,
+          group_name: targetGroup.group_name,
+          group_code: targetGroup.group_code
+        };
+
+        const { error: updateErr } = await supabase.from('profiles').upsert([updatedProfile]);
+
+        if (!updateErr) {
+          setProfile(updatedProfile);
+          setGroupMessage({ text: `Tu as rejoint le groupe "${targetGroup.group_name}" avec succès !`, type: 'success' });
+          setJoinCode('');
+          fetchAllLeaderboards();
+        } else {
+          setGroupMessage({ text: "Erreur lors de l'adhésion au groupe.", type: 'error' });
+        }
+      };
+
+      // Quitter son groupe actuel
+      const handleLeaveGroup = async () => {
+        if (!confirm("Veux-tu vraiment quitter ton groupe actuel ?")) return;
+
+        const updatedProfile = {
+          ...profile,
+          group_name: null,
+          group_code: null
+        };
+
+        const { error } = await supabase.from('profiles').upsert([updatedProfile]);
+        if (!error) {
+          setProfile(updatedProfile);
+          setGroupMessage({ text: "Tu as quitté ton groupe.", type: 'success' });
+          fetchAllLeaderboards();
+        }
+      };
+
       const handleUpdateSubscription = async (plan) => {
         if (!session || !profile) return;
 
@@ -475,6 +566,8 @@
             daily_challenges_limit: 1,
             last_username_change: new Date().toISOString(),
             completed_challenges_count: 0,
+            group_name: null,
+            group_code: null,
             created_at: new Date().toISOString(),
             is_admin: false
           };
@@ -768,14 +861,13 @@
               </div>
             )}
 
-            {/* ONGLET CLASSEMENT AVEC DEUX MODES (SOLO ET GROUPES) */}
+            {/* ONGLET CLASSEMENT (SOLO ET GROUPES EN LIVE) */}
             {currentTab === 'leaderboard' && (
               <div className="space-y-6 max-w-3xl mx-auto">
                 <div className="text-center space-y-2">
                   <h1 className="text-3xl font-black font-pop text-slate-900">🏆 CLASSEMENT EN DIRECT</h1>
                   <p className="text-xs text-slate-500 font-medium">Classement actualisé selon le nombre total d'Alky accumulés.</p>
                   
-                  {/* COMPTEUR EN LIVE */}
                   <div className="inline-flex items-center gap-4 bg-slate-100 px-4 py-2 rounded-2xl border border-slate-200 mt-2">
                     <span className="flex items-center gap-1.5 text-xs font-black text-emerald-600 font-pop">
                       <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping"></span>
@@ -788,7 +880,6 @@
                   </div>
                 </div>
 
-                {/* SÉLECTEUR SOLO / GROUPES */}
                 <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 max-w-md mx-auto">
                   <button 
                     onClick={() => setLeaderboardTab('solo')} 
@@ -804,7 +895,6 @@
                   </button>
                 </div>
 
-                {/* CONTENU DU CLASSEMENT */}
                 <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-3 shadow-sm">
                   {leaderboardTab === 'solo' ? (
                     soloLeaderboard.length === 0 ? (
@@ -856,56 +946,87 @@
               </div>
             )}
 
+            {/* ONGLET GESTION DES GROUPES (CRÉATION ET REJOINDRE) */}
             {currentTab === 'groups' && session && (
               <div className="space-y-8 max-w-3xl mx-auto py-6">
                 <div className="text-center space-y-2">
                   <h1 className="text-3xl font-black font-pop text-slate-900">👥 GESTION DES GROUPES</h1>
                   <p className="text-slate-500 text-xs font-medium">
-                    Connecté en tant que <strong className="text-alky-blue">{profile?.username || session?.user?.email}</strong>. Crée ton équipe ou rejoins un groupe existant.
+                    {profile?.group_name ? (
+                      <span>Tu fais partie du groupe : <strong className="text-alky-blue font-bold">{profile.group_name}</strong></span>
+                    ) : (
+                      <span>Tu ne fais partie d'aucun groupe actuellement. Crée le tien ou rejoins une équipe !</span>
+                    )}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
-                    <h3 className="text-lg font-black font-pop text-slate-900">🛡️ Créer mon groupe</h3>
-                    <div className="space-y-3">
-                      <input 
-                        type="text" 
-                        placeholder="Nom du groupe" 
-                        value={groupName} 
-                        onChange={e => setGroupName(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue"
-                      />
-                      <input 
-                        type="text" 
-                        placeholder="Code secret (ex: POTES2026)" 
-                        value={groupSecret} 
-                        onChange={e => setGroupSecret(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue"
-                      />
-                      <button onClick={() => alert("Groupe créé avec succès !")} className="w-full py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop">
-                        CRÉER LE GROUPE 🚀
-                      </button>
-                    </div>
+                {groupMessage.text && (
+                  <div className={`p-3 rounded-2xl text-xs font-bold text-center ${groupMessage.type === 'error' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
+                    {groupMessage.text}
                   </div>
+                )}
 
-                  <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
-                    <h3 className="text-lg font-black font-pop text-slate-900">🔗 Rejoindre un groupe</h3>
-                    <div className="space-y-3">
-                      <input 
-                        type="text" 
-                        placeholder="Entrer le code d'invitation" 
-                        value={joinCode} 
-                        onChange={e => setJoinCode(e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue"
-                      />
-                      <div className="h-10"></div>
-                      <button onClick={() => alert("Recherche et adhésion au groupe...")} className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop">
-                        REJOINDRE L'ÉQUIPE ✨
-                      </button>
+                {profile?.group_name ? (
+                  <div className="card-street rounded-3xl p-8 bg-slate-50 text-center space-y-4 max-w-md mx-auto">
+                    <span className="text-3xl">🛡️</span>
+                    <h3 className="text-xl font-black font-pop text-slate-900">{profile.group_name}</h3>
+                    <p className="text-xs text-slate-500 font-medium">Partage ton code secret avec tes amis pour qu'ils rejoignent ton équipe :</p>
+                    <div className="bg-white p-3 rounded-2xl border border-slate-200 font-mono font-bold text-alky-blue text-sm">
+                      {profile.group_code || 'Aucun code'}
+                    </div>
+                    <button 
+                      onClick={handleLeaveGroup}
+                      className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 font-black font-pop text-xs rounded-xl transition-colors"
+                    >
+                      QUITTER LE GROUPE
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
+                      <h3 className="text-lg font-black font-pop text-slate-900">🛡️ Créer mon groupe</h3>
+                      <form onSubmit={handleCreateGroup} className="space-y-3">
+                        <input 
+                          type="text" 
+                          placeholder="Nom du groupe" 
+                          value={groupName} 
+                          onChange={e => setGroupName(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue font-bold"
+                          required
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="Code secret (ex: POTES2026)" 
+                          value={groupSecret} 
+                          onChange={e => setGroupSecret(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue font-bold"
+                          required
+                        />
+                        <button type="submit" className="w-full py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop">
+                          CRÉER LE GROUPE 🚀
+                        </button>
+                      </form>
+                    </div>
+
+                    <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
+                      <h3 className="text-lg font-black font-pop text-slate-900">🔗 Rejoindre un groupe</h3>
+                      <form onSubmit={handleJoinGroup} className="space-y-3">
+                        <input 
+                          type="text" 
+                          placeholder="Entrer le code secret du groupe" 
+                          value={joinCode} 
+                          onChange={e => setJoinCode(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none focus:border-alky-blue font-bold"
+                          required
+                        />
+                        <div className="h-10"></div>
+                        <button type="submit" className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop">
+                          REJOINDRE L'ÉQUIPE ✨
+                        </button>
+                      </form>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
@@ -1122,7 +1243,7 @@
                 <div>
                   <h2 className="text-2xl font-black font-pop text-slate-900">{selectedPublicUser.username}</h2>
                   <p className="text-xs font-extrabold text-alky-blue mt-1">
-                    👥 Groupe : {selectedPublicUser.group_name || 'Sans groupe'}
+                    👥 Groupe : {selectedPublicUser.group_name || 'Aucun groupe'}
                   </p>
                 </div>
 
