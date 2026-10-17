@@ -125,6 +125,9 @@
       const [showAuthModal, setShowAuthModal] = useState(false);
       const [authMode, setAuthMode] = useState('login');
 
+      // État pour le classement en direct
+      const [leaderboard, setLeaderboard] = useState([]);
+
       // Formulaire
       const [email, setEmail] = useState('');
       const [password, setPassword] = useState('');
@@ -147,12 +150,40 @@
         return () => subscription.unsubscribe();
       }, []);
 
+      // Charger et écouter le classement en direct
+      useEffect(() => {
+        fetchLeaderboard();
+
+        // Écouter les changements en temps réel sur la table profiles
+        const channel = supabase
+          .channel('public:profiles')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+            fetchLeaderboard();
+          })
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      }, []);
+
       const fetchProfile = async (userId) => {
         try {
           const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
           if (data) setProfile(data);
         } catch (err) {
           console.error(err);
+        }
+      };
+
+      const fetchLeaderboard = async () => {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('username, alky_balance')
+          .order('alky_balance', { ascending: false });
+
+        if (!error && data) {
+          setLeaderboard(data);
         }
       };
 
@@ -195,7 +226,6 @@
         }
       };
 
-      // CONNEXION ET INSCRIPTION VIA GOOGLE
       const handleGoogleAuth = async () => {
         setAuthError('');
         const { error } = await supabase.auth.signInWithOAuth({
@@ -348,10 +378,24 @@
             )}
 
             {currentTab === 'leaderboard' && (
-              <div className="space-y-6">
-                <h1 className="text-3xl font-black font-pop text-slate-900">🏆 CLASSEMENT MONDIAL</h1>
-                <div className="card-street rounded-3xl p-10 text-center text-slate-500 text-xs font-semibold bg-slate-50">
-                  Compétition ouverte ! Sois le premier à marquer des points.
+              <div className="space-y-6 max-w-2xl mx-auto">
+                <h1 className="text-3xl font-black font-pop text-slate-900">🏆 CLASSEMENT EN DIRECT</h1>
+                <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-3">
+                  {leaderboard.length === 0 ? (
+                    <p className="text-center text-slate-400 text-xs font-semibold py-8">Aucun utilisateur dans le classement pour le moment.</p>
+                  ) : (
+                    leaderboard.map((user, index) => (
+                      <div key={index} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                        <div className="flex items-center gap-3">
+                          <span className="font-pop font-black text-alky-blue text-base w-6">#{index + 1}</span>
+                          <span className="font-black text-slate-800 text-sm">{user.username || 'Explorateur'}</span>
+                        </div>
+                        <span className="font-pop font-black text-alky-pink text-sm bg-pink-50 px-3 py-1 rounded-xl border border-pink-100">
+                          {user.alky_balance || 0} ALKY
+                        </span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}
@@ -385,7 +429,7 @@
             )}
           </main>
 
-          {/* MODALE D'AUTHENTIFICATION AVEC GOOGLE */}
+          {/* MODALE D'AUTHENTIFICATION */}
           {showAuthModal && (
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
               <div className="bg-white rounded-3xl p-8 max-w-md w-full relative border border-slate-200 shadow-2xl">
@@ -414,7 +458,6 @@
                   </div>
                 )}
 
-                {/* BOUTON GOOGLE */}
                 <button 
                   type="button"
                   onClick={handleGoogleAuth}
