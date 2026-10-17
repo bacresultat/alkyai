@@ -249,6 +249,7 @@
               completed_challenges_count: 0,
               group_name: null,
               group_code: null,
+              is_group_admin: false,
               group_creations_count: 0,
               last_group_creation_reset: new Date().toISOString(),
               created_at: new Date().toISOString(),
@@ -273,7 +274,7 @@
       const fetchAllLeaderboards = async () => {
         const { data: soloData } = await supabase
           .from('profiles')
-          .select('id, username, alky_balance, created_at, completed_challenges_count, group_name, group_code')
+          .select('id, username, alky_balance, created_at, completed_challenges_count, group_name, group_code, is_group_admin')
           .order('alky_balance', { ascending: false });
 
         if (soloData) {
@@ -285,12 +286,27 @@
             
             if (gName) {
               if (!groupMap[gName]) {
-                groupMap[gName] = { name: gName, totalAlky: 0, memberCount: 0, members: [] };
+                groupMap[gName] = { 
+                  name: gName, 
+                  totalAlky: 0, 
+                  memberCount: 0, 
+                  members: [], 
+                  adminCode: user.group_code || '' 
+                };
               }
               groupMap[gName].totalAlky += (user.alky_balance || 0);
               groupMap[gName].memberCount += 1;
-              groupMap[gName].members.push(user.username);
+              groupMap[gName].members.push({
+                username: user.username,
+                alky: user.alky_balance || 0,
+                isAdmin: user.is_group_admin
+              });
             }
+          });
+
+          // Trier les membres de chaque groupe par nombre de points décroissant pour trouver le top fournisseur
+          Object.values(groupMap).forEach(g => {
+            g.members.sort((a, b) => b.alky - a.alky);
           });
 
           const groupsArray = Object.values(groupMap).sort((a, b) => b.totalAlky - a.totalAlky);
@@ -396,7 +412,6 @@
         }
       };
 
-      // Création de groupe avec vérification de la limite mensuelle selon l'abonnement
       const handleCreateGroup = async (e) => {
         e.preventDefault();
         setGroupMessage({ text: '', type: '' });
@@ -409,7 +424,6 @@
         const currentPlanObj = SUBSCRIPTION_PLANS.find(p => p.id === profile.subscription_tier) || SUBSCRIPTION_PLANS[0];
         const maxCreations = currentPlanObj.createLimit;
 
-        // Vérification de la réinitialisation mensuelle (30 jours)
         let creationsCount = profile.group_creations_count || 0;
         const lastReset = profile.last_group_creation_reset ? new Date(profile.last_group_creation_reset) : new Date();
         const now = new Date();
@@ -431,6 +445,7 @@
           ...profile,
           group_name: groupName.trim(),
           group_code: groupSecret.trim(),
+          is_group_admin: true,
           group_creations_count: creationsCount + 1,
           last_group_creation_reset: diffDays >= 30 ? now.toISOString() : profile.last_group_creation_reset
         };
@@ -439,7 +454,7 @@
 
         if (!error) {
           setProfile(updatedProfile);
-          setGroupMessage({ text: `Groupe "${groupName}" créé et rejoint avec succès !`, type: 'success' });
+          setGroupMessage({ text: `Groupe "${groupName}" créé avec succès ! Tu es l'administrateur.`, type: 'success' });
           setGroupName('');
           setGroupSecret('');
           fetchAllLeaderboards();
@@ -448,7 +463,6 @@
         }
       };
 
-      // Rejoindre un groupe existant via son code secret (illimité)
       const handleJoinGroup = async (e) => {
         e.preventDefault();
         setGroupMessage({ text: '', type: '' });
@@ -473,7 +487,8 @@
         const updatedProfile = {
           ...profile,
           group_name: targetGroup.group_name,
-          group_code: targetGroup.group_code
+          group_code: targetGroup.group_code,
+          is_group_admin: false
         };
 
         const { error: updateErr } = await supabase.from('profiles').upsert([updatedProfile]);
@@ -488,14 +503,14 @@
         }
       };
 
-      // Quitter son groupe actuel
       const handleLeaveGroup = async () => {
         if (!confirm("Veux-tu vraiment quitter ton groupe actuel ?")) return;
 
         const updatedProfile = {
           ...profile,
           group_name: null,
-          group_code: null
+          group_code: null,
+          is_group_admin: false
         };
 
         const { error } = await supabase.from('profiles').upsert([updatedProfile]);
@@ -593,6 +608,7 @@
             completed_challenges_count: 0,
             group_name: null,
             group_code: null,
+            is_group_admin: false,
             group_creations_count: 0,
             last_group_creation_reset: new Date().toISOString(),
             created_at: new Date().toISOString(),
@@ -650,8 +666,11 @@
       const isVipUser = profile?.subscription_tier && profile.subscription_tier !== 'gratuit';
       const currentPlan = SUBSCRIPTION_PLANS.find(p => p.id === profile?.subscription_tier) || SUBSCRIPTION_PLANS[0];
 
-      // Trouver les membres du groupe actuel de l'utilisateur pour le fil d'activité
-      const currentGroupData = groupLeaderboard.find(g => g.name === profile?.group_name);
+      // Trouver les infos détaillées du groupe actuel et sa position dans le classement général des groupes
+      const currentGroupIndex = groupLeaderboard.findIndex(g => g.name === profile?.group_name);
+      const currentGroupData = currentGroupIndex !== -1 ? groupLeaderboard[currentGroupIndex] : null;
+      const groupRank = currentGroupIndex !== -1 ? currentGroupIndex + 1 : '-';
+      const topContributor = currentGroupData && currentGroupData.members.length > 0 ? currentGroupData.members[0] : null;
 
       return (
         <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans pb-24 md:pb-0 md:pt-20 relative overflow-x-hidden">
@@ -942,7 +961,10 @@
                               {user.username?.substring(0, 2).toUpperCase() || 'U'}
                             </div>
                             <div>
-                              <span className="font-black text-slate-800 text-sm block">{user.username}</span>
+                              <span className="font-black text-slate-800 text-sm flex items-center gap-1.5">
+                                {user.username} 
+                                {user.is_group_admin && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">Admin 👑</span>}
+                              </span>
                               <span className="text-[10px] text-slate-400 font-bold">Clique pour voir le profil</span>
                             </div>
                           </div>
@@ -976,16 +998,16 @@
               </div>
             )}
 
-            {/* ONGLET GESTION DES GROUPES (AVEC FIL D'ACTUALITÉ / JOURNAL D'ÉVÉNEMENTS) */}
+            {/* ONGLET GESTION DES GROUPES (DÉTAILS AVANCÉS DU GROUPE ACTUEL) */}
             {currentTab === 'groups' && session && (
               <div className="space-y-8 max-w-3xl mx-auto py-6">
                 <div className="text-center space-y-2">
                   <h1 className="text-3xl font-black font-pop text-slate-900">👥 GESTION DES GROUPES</h1>
                   <p className="text-slate-500 text-xs font-medium">
                     {profile?.group_name ? (
-                      <span>Tu fais partie du groupe : <strong className="text-alky-blue font-bold">{profile.group_name}</strong></span>
+                      <span>Tu fais partie du groupe : <strong className="text-alky-blue font-bold">{profile.group_name}</strong> {profile.is_group_admin ? <span className="text-amber-600 font-black">(👑 Administrateur)</span> : <span className="text-slate-400">(Membre)</span>}</span>
                     ) : (
-                      <span>Tu n'as pas de groupe. Rejoins une équipe ou crée la tienne (selon ton abonnement).</span>
+                      <span>Tu n'as pas de groupe. Rejoins une équipe ou crée la tienne (1 groupe par mois en formule gratuite).</span>
                     )}
                   </p>
                 </div>
@@ -998,13 +1020,44 @@
 
                 {profile?.group_name ? (
                   <div className="space-y-6">
-                    <div className="card-street rounded-3xl p-8 bg-slate-50 text-center space-y-4 max-w-md mx-auto">
-                      <span className="text-3xl">🛡️</span>
-                      <h3 className="text-xl font-black font-pop text-slate-900">{profile.group_name}</h3>
-                      <p className="text-xs text-slate-500 font-medium">Partage ton code secret avec tes amis pour qu'ils rejoignent ton équipe :</p>
-                      <div className="bg-white p-3 rounded-2xl border border-slate-200 font-mono font-bold text-alky-blue text-sm">
-                        {profile.group_code || 'Aucun code'}
+                    
+                    {/* CARTE STATISTIQUES GLOBALES DU GROUPE */}
+                    <div className="card-street rounded-3xl p-8 bg-slate-50 space-y-6">
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-200 pb-6">
+                        <div className="flex items-center gap-4 text-center md:text-left">
+                          <div className="w-16 h-16 gradient-alky rounded-3xl flex items-center justify-center text-3xl shadow-md text-white font-black">
+                            🛡️
+                          </div>
+                          <div>
+                            <h2 className="text-2xl font-black font-pop text-slate-900">{profile.group_name}</h2>
+                            <p className="text-xs text-alky-purple font-extrabold mt-0.5">Position au classement : <strong className="text-sm">#{groupRank}</strong></p>
+                          </div>
+                        </div>
+
+                        {profile.is_group_admin && (
+                          <div className="bg-white p-3 rounded-2xl border border-slate-200 text-center">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase block">Code Secret (Admin)</span>
+                            <span className="font-mono font-black text-alky-blue text-sm">{profile.group_code}</span>
+                          </div>
+                        )}
                       </div>
+
+                      {/* STATISTIQUES CLÉS */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200 text-center space-y-1">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase block">Membres</span>
+                          <p className="text-xl font-black font-pop text-slate-800">{currentGroupData ? currentGroupData.memberCount : 1}</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200 text-center space-y-1">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase block">Points Totaux</span>
+                          <p className="text-xl font-black font-pop text-alky-pink">{currentGroupData ? currentGroupData.totalAlky : profile.alky_balance || 0} ALKY</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200 text-center space-y-1">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase block">Top Fournisseur 🏆</span>
+                          <p className="text-sm font-black font-pop text-alky-blue truncate">{topContributor ? `${topContributor.username} (${topContributor.alky} pts)` : profile.username}</p>
+                        </div>
+                      </div>
+
                       <button 
                         onClick={handleLeaveGroup}
                         className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 font-black font-pop text-xs rounded-xl transition-colors"
@@ -1013,34 +1066,47 @@
                       </button>
                     </div>
 
-                    {/* FIL D'ACTIVITÉ / JOURNAL DU GROUPE (PAS DE CHAT LIBRE) */}
+                    {/* LISTE DE TOUS LES MEMBRES DU GROUPE */}
                     <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
-                      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                        <h4 className="text-sm font-black font-pop text-slate-900">📢 Journal d'activité du groupe</h4>
-                        <span className="text-[10px] bg-blue-50 text-alky-blue px-2.5 py-1 rounded-full font-bold">Informations en direct</span>
-                      </div>
+                      <h3 className="text-base font-black font-pop text-slate-900 border-b border-slate-200 pb-3">
+                        👥 Membres de l'équipe ({currentGroupData ? currentGroupData.memberCount : 1})
+                      </h3>
                       
-                      <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                        <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs flex items-center justify-between">
-                          <span className="text-slate-600 font-medium">✨ Vous avez rejoint l'équipe <strong>{profile.group_name}</strong>.</span>
-                          <span className="text-[10px] text-slate-400">Récemment</span>
-                        </div>
-                        {currentGroupData && currentGroupData.members && currentGroupData.members.map((member, idx) => (
-                          <div key={idx} className="p-3 bg-white rounded-xl border border-slate-200 text-xs flex items-center justify-between">
-                            <span className="text-slate-600 font-medium">🛡️ <strong>{member}</strong> fait partie de l'équipe et cumule des points.</span>
-                            <span className="text-[10px] text-slate-400">Actif</span>
+                      <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                        {currentGroupData && currentGroupData.members ? (
+                          currentGroupData.members.map((m, idx) => (
+                            <div key={idx} className="p-3 bg-white rounded-2xl border border-slate-200 flex items-center justify-between shadow-sm">
+                              <div className="flex items-center gap-3">
+                                <span className="font-pop font-black text-alky-blue text-sm w-6">#{idx + 1}</span>
+                                <div className="w-9 h-9 gradient-alky rounded-xl flex items-center justify-center font-black text-white text-xs shadow-sm">
+                                  {m.username.substring(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                  <span className="font-black text-slate-800 text-xs flex items-center gap-1.5">
+                                    {m.username}
+                                    {m.isAdmin && <span className="text-[9px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">Admin 👑</span>}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400 font-bold">Membre actif</span>
+                                </div>
+                              </div>
+                              <span className="font-pop font-black text-alky-pink text-xs bg-pink-50 px-3 py-1 rounded-xl border border-pink-100">
+                                {m.alky} ALKY
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-3 bg-white rounded-2xl border border-slate-200 flex items-center justify-between shadow-sm">
+                            <span className="font-black text-slate-800 text-xs">{profile.username} (Toi)</span>
+                            <span className="font-pop font-black text-alky-pink text-xs">{profile.alky_balance || 0} ALKY</span>
                           </div>
-                        ))}
+                        )}
                       </div>
-                      <p className="text-[10px] text-slate-400 text-center font-semibold pt-1">
-                        Cet espace est un journal d'activité automatique et informatif (pas de salon de discussion).
-                      </p>
                     </div>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
-                      <h3 className="text-lg font-black font-pop text-slate-900">🛡️ Créer mon groupe</h3>
+                      <h3 className="text-lg font-black font-pop text-slate-900">🛡️ Créer mon groupe (Devenir Admin)</h3>
                       <p className="text-[11px] text-slate-400 font-semibold">
                         Formule {currentPlan.name} : {currentPlan.createLimit === 999 ? 'Créations illimitées' : `${currentPlan.createLimit} création(s) par mois`}.
                       </p>
@@ -1062,14 +1128,14 @@
                           required
                         />
                         <button type="submit" className="w-full py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop">
-                          CRÉER LE GROUPE 🚀
+                          CRÉER ET DEVENIR ADMIN 👑
                         </button>
                       </form>
                     </div>
 
                     <div className="card-street rounded-3xl p-6 bg-slate-50 space-y-4">
                       <h3 className="text-lg font-black font-pop text-slate-900">🔗 Rejoindre un groupe</h3>
-                      <p className="text-[11px] text-slate-400 font-semibold">Tu peux rejoindre autant de groupes que tu le souhaites avec les codes secrets.</p>
+                      <p className="text-[11px] text-slate-400 font-semibold">Entre le code secret fourni par un administrateur pour rejoindre son équipe.</p>
                       <form onSubmit={handleJoinGroup} className="space-y-3">
                         <input 
                           type="text" 
@@ -1302,7 +1368,10 @@
                 </div>
 
                 <div>
-                  <h2 className="text-2xl font-black font-pop text-slate-900">{selectedPublicUser.username}</h2>
+                  <h2 className="text-2xl font-black font-pop text-slate-900 flex items-center justify-center gap-2">
+                    {selectedPublicUser.username}
+                    {selectedPublicUser.is_group_admin && <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full font-bold">Admin 👑</span>}
+                  </h2>
                   <p className="text-xs font-extrabold text-alky-blue mt-1">
                     👥 Groupe : {selectedPublicUser.group_name || 'Aucun groupe'}
                   </p>
