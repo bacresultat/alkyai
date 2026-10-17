@@ -176,6 +176,14 @@
       const [joinCode, setJoinCode] = useState('');
 
       useEffect(() => {
+        // Vérifie si l'URL contient un hash indiquant où rediriger (ex: #vip-plans ou #groups)
+        const hash = window.location.hash;
+        if (hash.includes('vip-plans')) {
+          setCurrentTab('vip-plans');
+        } else if (hash.includes('groups')) {
+          setCurrentTab('groups');
+        }
+
         supabase.auth.getSession().then(({ data: { session } }) => {
           setSession(session);
           if (session) fetchProfile(session.user.id);
@@ -185,10 +193,10 @@
           setSession(session);
           if (session) {
             fetchProfile(session.user.id);
-            if (pendingAction === 'vip') {
+            if (pendingAction === 'vip' || hash.includes('vip-plans')) {
               setCurrentTab('vip-plans');
               setPendingAction(null);
-            } else if (pendingAction === 'groups') {
+            } else if (pendingAction === 'groups' || hash.includes('groups')) {
               setCurrentTab('groups');
               setPendingAction(null);
             }
@@ -311,7 +319,6 @@
       const handleGoogleAuth = async () => {
         setAuthError('');
         
-        // Définition de l'URL de redirection ciblée selon l'action en attente
         let redirectUrl = window.location.origin + window.location.pathname;
         if (pendingAction === 'vip') {
           redirectUrl += '#vip-plans';
@@ -333,6 +340,7 @@
         setSession(null);
         setProfile(null);
         setCurrentTab('home');
+        window.location.hash = '';
       };
 
       const handleRequireAuth = (actionType) => {
@@ -350,7 +358,7 @@
           
           {/* HEADER DESKTOP */}
           <header className="hidden md:flex fixed top-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-xl border-b border-slate-200 z-50 px-8 items-center justify-between shadow-sm">
-            <div className="cursor-pointer flex items-center" onClick={() => setCurrentTab('home')}>
+            <div className="cursor-pointer flex items-center" onClick={() => { setCurrentTab('home'); window.location.hash=''; }}>
               <img 
                 src="logo.png" 
                 alt="AlkyAI Logo" 
@@ -361,11 +369,11 @@
             </div>
 
             <nav className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
-              <NavButton active={currentTab === 'home'} onClick={() => setCurrentTab('home')} label="ACCUEIL" />
-              <NavButton active={currentTab === 'challenges'} onClick={() => setCurrentTab('challenges')} label="DÉFIS" />
-              <NavButton active={currentTab === 'map'} onClick={() => setCurrentTab('map')} label="CARTE" />
-              <NavButton active={currentTab === 'leaderboard'} onClick={() => setCurrentTab('leaderboard')} label="CLASSEMENT" />
-              <NavButton active={currentTab === 'groups'} onClick={() => setCurrentTab('groups')} label="GROUPES" />
+              <NavButton active={currentTab === 'home'} onClick={() => { setCurrentTab('home'); window.location.hash=''; }} label="ACCUEIL" />
+              <NavButton active={currentTab === 'challenges'} onClick={() => { setCurrentTab('challenges'); window.location.hash=''; }} label="DÉFIS" />
+              <NavButton active={currentTab === 'map'} onClick={() => { setCurrentTab('map'); window.location.hash=''; }} label="CARTE" />
+              <NavButton active={currentTab === 'leaderboard'} onClick={() => { setCurrentTab('leaderboard'); window.location.hash=''; }} label="CLASSEMENT" />
+              <NavButton active={currentTab === 'groups'} onClick={() => { setCurrentTab('groups'); window.location.hash='groups'; }} label="GROUPES" />
             </nav>
 
             <div>
@@ -395,11 +403,11 @@
 
           {/* BARRE DE NAVIGATION MOBILE */}
           <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-xl border-t border-slate-200 z-50 px-2 flex items-center justify-around shadow-lg">
-            <MobileNavButton active={currentTab === 'home'} onClick={() => setCurrentTab('home')} label="Accueil" />
-            <MobileNavButton active={currentTab === 'challenges'} onClick={() => setCurrentTab('challenges')} label="Défis" />
-            <MobileNavButton active={currentTab === 'map'} onClick={() => setCurrentTab('map')} label="Carte" />
-            <MobileNavButton active={currentTab === 'leaderboard'} onClick={() => setCurrentTab('leaderboard')} label="Classement" />
-            <MobileNavButton active={currentTab === 'groups'} onClick={() => setCurrentTab('groups')} label="Groupes" />
+            <MobileNavButton active={currentTab === 'home'} onClick={() => { setCurrentTab('home'); window.location.hash=''; }} label="Accueil" />
+            <MobileNavButton active={currentTab === 'challenges'} onClick={() => { setCurrentTab('challenges'); window.location.hash=''; }} label="Défis" />
+            <MobileNavButton active={currentTab === 'map'} onClick={() => { setCurrentTab('map'); window.location.hash=''; }} label="Carte" />
+            <MobileNavButton active={currentTab === 'leaderboard'} onClick={() => { setCurrentTab('leaderboard'); window.location.hash=''; }} label="Classement" />
+            <MobileNavButton active={currentTab === 'groups'} onClick={() => { setCurrentTab('groups'); window.location.hash='groups'; }} label="Groupes" />
             <button 
               onClick={() => session ? setCurrentTab('profile') : setShowAuthModal(true)} 
               className="flex flex-col items-center justify-center font-black text-[11px] text-alky-blue uppercase font-pop"
