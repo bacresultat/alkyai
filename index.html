@@ -173,6 +173,7 @@
       const [showAgeModal, setShowAgeModal] = useState(false);
       const [authMode, setAuthMode] = useState('login');
       const [pendingTab, setPendingTab] = useState(null);
+      const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
       // CLASSEMENT & GROUPES
       const [leaderboardTab, setLeaderboardTab] = useState('solo');
@@ -676,7 +677,7 @@
       const topContributor = currentGroupData && currentGroupData.members.length > 0 ? currentGroupData.members[0] : null;
 
       return (
-        <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans pb-28 md:pb-0 md:pt-20 relative overflow-x-hidden">
+        <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans pb-12 md:pb-0 md:pt-20 relative overflow-x-hidden">
           
           {/* HEADER DESKTOP */}
           <header className="hidden md:flex fixed top-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-xl border-b border-slate-200 z-50 px-8 items-center justify-between shadow-sm">
@@ -724,24 +725,59 @@
             </div>
           </header>
 
-          {/* BARRE DE NAVIGATION MOBILE */}
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-xl border-t border-slate-200 z-50 px-2 flex items-center justify-around shadow-lg">
-            <MobileNavButton active={currentTab === 'home'} onClick={() => setCurrentTab('home')} label="Accueil" />
-            <MobileNavButton active={currentTab === 'challenges'} onClick={() => setCurrentTab('challenges')} label="Défis" />
-            <MobileNavButton active={currentTab === 'map'} onClick={() => setCurrentTab('map')} label="Carte" />
-            <MobileNavButton active={currentTab === 'leaderboard'} onClick={() => setCurrentTab('leaderboard')} label="Classement" />
-            <MobileNavButton active={currentTab === 'groups'} onClick={() => navigateProtectedTab('groups')} label="Groupes" />
-            <MobileNavButton active={currentTab === 'vip'} onClick={() => navigateProtectedTab('vip')} label="VIP" />
-            <button 
-              onClick={() => session ? setCurrentTab('profile') : setShowAuthModal(true)} 
-              className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${currentTab === 'profile' ? 'text-alky-blue font-black' : 'text-slate-400'}`}
-            >
-              <span className="text-[10px] uppercase font-black font-pop tracking-wider">{session ? 'Profil' : 'Compte'}</span>
-            </button>
-          </nav>
+          {/* HEADER MOBILE & BURGER */}
+          <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-xl border-b border-slate-200 z-50 px-4 flex items-center justify-between shadow-sm">
+            <div className="cursor-pointer flex items-center" onClick={() => setCurrentTab('home')}>
+              <img 
+                src="logo.png" 
+                alt="AlkyAI Logo" 
+                className="h-8 w-auto object-contain" 
+                style={{ mixBlendMode: 'multiply' }}
+                onError={(e) => { e.target.style.display='none'; }} 
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              {session && (
+                <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl">
+                  <span className="font-black text-alky-blue font-pop text-sm">{profile?.alky_balance || 0}</span>
+                  <span className="text-[10px] text-alky-pink font-extrabold">ALKY</span>
+                </div>
+              )}
+
+              {/* Bouton Burger */}
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl flex items-center justify-center text-slate-800 transition-colors shadow-sm"
+                aria-label="Menu"
+              >
+                <span className="text-xl font-bold">{isMobileMenuOpen ? '✕' : '☰'}</span>
+              </button>
+            </div>
+          </header>
+
+          {/* MENU DÉROULANT MOBILE (BURGER) */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden fixed inset-x-0 top-16 bg-white/95 backdrop-blur-xl border-b border-slate-200 shadow-xl z-40 p-4 space-y-2">
+              <MobileBurgerButton active={currentTab === 'home'} onClick={() => { setCurrentTab('home'); setIsMobileMenuOpen(false); }} label="🏠 Accueil" />
+              <MobileBurgerButton active={currentTab === 'challenges'} onClick={() => { setCurrentTab('challenges'); setIsMobileMenuOpen(false); }} label="⚡ Défis" />
+              <MobileBurgerButton active={currentTab === 'map'} onClick={() => { setCurrentTab('map'); setIsMobileMenuOpen(false); }} label="🗺️ Carte" />
+              <MobileBurgerButton active={currentTab === 'leaderboard'} onClick={() => { setCurrentTab('leaderboard'); setIsMobileMenuOpen(false); }} label="🏆 Classement" />
+              <MobileBurgerButton active={currentTab === 'groups'} onClick={() => { navigateProtectedTab('groups'); setIsMobileMenuOpen(false); }} label="👥 Groupes" />
+              <MobileBurgerButton active={currentTab === 'vip'} onClick={() => { navigateProtectedTab('vip'); setIsMobileMenuOpen(false); }} label="👑 AlkyAI VIP" />
+              <div className="pt-2 border-t border-slate-200">
+                <button 
+                  onClick={() => { session ? setCurrentTab('profile') : setShowAuthModal(true); setIsMobileMenuOpen(false); }} 
+                  className="w-full py-3 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md tracking-wider text-center"
+                >
+                  {session ? '👤 Mon Profil' : '🔑 Mon Compte / Connexion'}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* CONTENU PRINCIPAL */}
-          <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 md:p-8 relative z-10 space-y-8 md:space-y-12">
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 md:p-8 relative z-10 space-y-8 md:space-y-12 mt-12 md:mt-0">
             {currentTab === 'home' && (
               <div className="space-y-8 md:space-y-12">
                 <div className="bg-gradient-to-br from-blue-50/60 via-purple-50/40 to-pink-50/30 border-2 border-slate-200 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-14 flex flex-col md:flex-row items-center gap-6 md:gap-10 relative overflow-hidden shadow-sm">
@@ -763,7 +799,6 @@
                     <h1 className="text-2xl md:text-5xl font-black font-pop text-slate-900 tracking-wide leading-tight flex flex-wrap items-center justify-center md:justify-start gap-2">
                       <span>Relève des défis épiques, gagne des</span> 
                       <span className="gradient-text-alky">Alky !</span> 
-                      
                     </h1>
                     <p className="text-slate-600 text-xs md:text-base font-medium leading-relaxed max-w-xl">
                       <strong>AlkyAI</strong> transforme ta ville et ton quotidien en un immense terrain de jeu. Affronte tes amis, valide tes preuves en photo et prends la tête du classement en direct !
@@ -1582,15 +1617,17 @@
       );
     }
 
-    function MobileNavButton({ active, onClick, label }) {
+    function MobileBurgerButton({ active, onClick, label }) {
       return (
         <button
           onClick={onClick}
-          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
-            active ? 'text-alky-blue font-black' : 'text-slate-400'
+          className={`w-full text-left px-4 py-3 rounded-xl text-xs font-black font-pop tracking-wider transition-all ${
+            active 
+              ? 'gradient-alky text-white shadow-sm' 
+              : 'text-slate-700 hover:bg-slate-100'
           }`}
         >
-          <span className="text-[10px] uppercase font-black font-pop tracking-wider">{label}</span>
+          {label}
         </button>
       );
     }
