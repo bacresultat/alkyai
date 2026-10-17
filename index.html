@@ -138,18 +138,18 @@
       { id: 'premium_999', name: 'Premium Or', price: '9,99 €/mois', limit: 10, createLimit: 999, color: 'border-amber-300 bg-amber-50/50 shadow-md' }
     ];
 
-    // BANQUE DE DÉFIS QUOTIDIENS SIMULÉS BASÉS SUR LA GÉOLOCALISATION
+    // BANQUE DE DÉFIS QUOTIDIENS SIMULÉS (1 ALKY CHACUN)
     const DAILY_CHALLENGES_POOL = [
-      { id: 1, title: "20 Pompes sur un banc public", category: "SPORT", points: "+40 ALKY", latOffset: 0.002, lngOffset: 0.001, desc: "Trouve le parc ou la place la plus proche et enchaîne 20 pompes." },
-      { id: 2, title: "Selfie devant la fontaine locale", category: "CULTURE", points: "+30 ALKY", latOffset: -0.001, lngOffset: 0.003, desc: "Repère l'eau qui coule dans ton quartier et prends ton équipe en photo." },
-      { id: 3, title: "Ramasser 3 déchets urbains", category: "ÉCOLOGIE", points: "+50 ALKY", latOffset: 0.0015, lngOffset: -0.002, desc: "Nettoie un petit coin de ta rue et jette les déchets à la poubelle." },
-      { id: 4, title: "Sprint de 100m chronométré", category: "SPORT", points: "+45 ALKY", latOffset: -0.0025, lngOffset: -0.001, desc: "Choisis une ligne droite sécurisée et tape ton record entre amis." },
-      { id: 5, title: "Photo du plus vieux bâtiment du coin", category: "CULTURE", points: "+60 ALKY", latOffset: 0.003, lngOffset: 0.002, desc: "Trouve l'architecture la plus ancienne de ton secteur géographique." },
-      { id: 6, title: "Saluer un inconnu avec le signe Alky", category: "SOCIAL", points: "+35 ALKY", latOffset: -0.0015, lngOffset: -0.003, desc: "Fais preuve d'audace et répands la bonne humeur autour de toi." },
-      { id: 7, title: "Monter 5 étages par les escaliers", category: "SPORT", points: "+25 ALKY", latOffset: 0.001, lngOffset: 0.0025, desc: "Zéro ascenseur aujourd'hui, que des jambes !" },
-      { id: 8, title: "Prendre une photo de rue insolite", category: "CULTURE", points: "+35 ALKY", latOffset: -0.002, lngOffset: 0.0015, desc: "Trouve un détail rigolo ou étrange dans ton quartier." },
-      { id: 9, title: "Partager sa gourde d'eau", category: "VIE", points: "+20 ALKY", latOffset: 0.0025, lngOffset: -0.0015, desc: "L'hydratation c'est la base, surtout en pleine session de défis." },
-      { id: 10, title: "Faire une pyramide humaine", category: "SPORT", points: "+80 ALKY", latOffset: -0.003, lngOffset: -0.002, desc: "Attention à la stabilité ! Prends une photo mémorable de ton groupe." }
+      { id: 1, title: "20 Pompes sur un banc public", category: "SPORT", points: "+1 ALKY", latOffset: 0.002, lngOffset: 0.001, desc: "Trouve le parc ou la place la plus proche et enchaîne 20 pompes." },
+      { id: 2, title: "Selfie devant la fontaine locale", category: "CULTURE", points: "+1 ALKY", latOffset: -0.001, lngOffset: 0.003, desc: "Repère l'eau qui coule dans ton quartier et prends ton équipe en photo." },
+      { id: 3, title: "Ramasser 3 déchets urbains", category: "ÉCOLOGIE", points: "+1 ALKY", latOffset: 0.0015, lngOffset: -0.002, desc: "Nettoie un petit coin de ta rue et jette les déchets à la poubelle." },
+      { id: 4, title: "Sprint de 100m chronométré", category: "SPORT", points: "+1 ALKY", latOffset: -0.0025, lngOffset: -0.001, desc: "Choisis une ligne droite sécurisée et tape ton record entre amis." },
+      { id: 5, title: "Photo du plus vieux bâtiment du coin", category: "CULTURE", points: "+1 ALKY", latOffset: 0.003, lngOffset: 0.002, desc: "Trouve l'architecture la plus ancienne de ton secteur géographique." },
+      { id: 6, title: "Saluer un inconnu avec le signe Alky", category: "SOCIAL", points: "+1 ALKY", latOffset: -0.0015, lngOffset: -0.003, desc: "Fais preuve d'audace et répands la bonne humeur autour de toi." },
+      { id: 7, title: "Monter 5 étages par les escaliers", category: "SPORT", points: "+1 ALKY", latOffset: 0.001, lngOffset: 0.0025, desc: "Zéro ascenseur aujourd'hui, que des jambes !" },
+      { id: 8, title: "Prendre une photo de rue insolite", category: "CULTURE", points: "+1 ALKY", latOffset: -0.002, lngOffset: 0.0015, desc: "Trouve un détail rigolo ou étrange dans ton quartier." },
+      { id: 9, title: "Partager sa gourde d'eau", category: "VIE", points: "+1 ALKY", latOffset: 0.0025, lngOffset: -0.0015, desc: "L'hydratation c'est la base, surtout en pleine session de défis." },
+      { id: 10, title: "Faire une pyramide humaine", category: "SPORT", points: "+1 ALKY", latOffset: -0.003, lngOffset: -0.002, desc: "Attention à la stabilité ! Prends une photo mémorable de ton groupe." }
     ];
 
     function MapView({ userLocation, challengesToShow }) {
@@ -169,7 +169,6 @@
             .openPopup();
         }
 
-        // Ajouter les marqueurs des défis du jour autour de la position
         if (challengesToShow && challengesToShow.length > 0) {
           challengesToShow.forEach((ch, idx) => {
             const baseLat = userLocation ? userLocation.lat : 48.8566;
@@ -179,7 +178,7 @@
 
             L.marker([markerLat, markerLng])
               .addTo(map)
-              .bindPopup(`<b>⚡ Défi #${idx + 1}: ${ch.title}</b><br>${ch.points} — ${ch.category}`);
+              .bindPopup(`<b>Défi #${idx + 1}: ${ch.title}</b><br>${ch.points} — ${ch.category}`);
           });
         }
 
@@ -269,10 +268,8 @@
         };
       }, []);
 
-      // Générer les défis du jour selon la formule de l'utilisateur
       useEffect(() => {
         const limit = profile?.daily_challenges_limit || 1;
-        // Mélanger ou sélectionner les défis basés sur la date du jour pour que ça change chaque jour
         const todayStr = new Date().toDateString();
         let seed = 0;
         for (let i = 0; i < todayStr.length; i++) {
@@ -602,9 +599,7 @@
         e.preventDefault();
         if (!proofFile || !selectedChallenge) return;
 
-        // Simulation de validation de preuve photo et gain d'Alky
-        const ptsEarned = parseInt(selectedChallenge.points.replace(/[^0-9]/g, '')) || 30;
-        const newBalance = (profile.alky_balance || 0) + ptsEarned;
+        const newBalance = (profile.alky_balance || 0) + 1;
         const newCompletedCount = (profile.completed_challenges_count || 0) + 1;
 
         const updatedProfile = {
@@ -617,7 +612,7 @@
 
         if (!error) {
           setProfile(updatedProfile);
-          setProofMessage({ text: `Preuve validée avec succès ! +${ptsEarned} ALKY ajoutés à ton solde ! 🎉`, type: 'success' });
+          setProofMessage({ text: `Preuve validée avec succès ! +1 ALKY ajouté à ton solde ! 🎉`, type: 'success' });
           setTimeout(() => {
             setSelectedChallenge(null);
             setProofFile(null);
@@ -913,7 +908,7 @@
                     <div>
                       <div className="w-12 h-12 bg-purple-100 text-alky-purple rounded-2xl flex items-center justify-center font-black text-xl mb-4 shadow-sm">🏆</div>
                       <h3 className="text-lg md:text-xl font-black font-pop text-slate-900">3. Grimpe au classement</h3>
-                      <p className="text-slate-500 text-xs mt-2 font-medium leading-relaxed">Chaque défi validé te rapporte des Alky. Vois ton solde grimper et surclasse ta ville !</p>
+                      <p className="text-slate-500 text-xs mt-2 font-medium leading-relaxed">Chaque défi validé te rapporte 1 Alky. Vois ton solde grimper et surclasse ta ville !</p>
                     </div>
                     <button onClick={() => setCurrentTab('leaderboard')} className="w-full py-3 bg-purple-50 hover:bg-purple-100 text-alky-purple font-black font-pop text-xs rounded-xl transition-all">
                       Voir le classement
@@ -1027,7 +1022,7 @@
                   <div>
                     <h1 className="text-2xl md:text-3xl font-black font-pop text-slate-900">⚡ TES DÉFIS DU JOUR</h1>
                     <p className="text-slate-500 text-xs mt-1 font-semibold">
-                      {session ? `Formule : ${currentPlan.name} (${dailyChallenges.length} défi(s) disponible(s) aujourd'hui)` : "Connecte-toi pour découvrir tes défis personnalisés !"}
+                      {session ? `Formule : ${currentPlan.name} (${dailyChallenges.length} défi(s) disponible(s) aujourd'hui - 1 Alky chacun)` : "Connecte-toi pour découvrir tes défis personnalisés !"}
                     </p>
                   </div>
                   {session && (
@@ -1487,13 +1482,13 @@
                     </div>
                     <div className="bg-pink-50 p-3 rounded-xl border border-pink-100 flex justify-between items-center text-xs font-black text-slate-700">
                       <span>Récompense :</span>
-                      <span className="text-alky-pink font-pop">{selectedChallenge.points}</span>
+                      <span className="text-alky-pink font-pop">+1 ALKY</span>
                     </div>
                     <button 
                       type="submit" 
                       className="w-full py-3.5 gradient-alky text-white font-black font-pop text-xs rounded-xl shadow-md btn-pop tracking-wider"
                     >
-                      ENVOYER LA PREUVE ET GAGNER LES ALKY ✨
+                      ENVOYER LA PREUVE ET GAGNER 1 ALKY ✨
                     </button>
                   </form>
                 )}
