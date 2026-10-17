@@ -298,8 +298,12 @@
           return;
         }
 
-        if (profile.last_username_change) {
-          const lastChange = new Date(profile.last_username_change);
+        // Vérification des 14 jours (Supabase ou LocalStorage de secours)
+        const localLastChange = localStorage.getItem(`alky_last_change_${profile.id}`);
+        const lastChangeDateStr = profile.last_username_change || localLastChange;
+
+        if (lastChangeDateStr) {
+          const lastChange = new Date(lastChangeDateStr);
           const now = new Date();
           const diffDays = (now - lastChange) / (1000 * 60 * 60 * 24);
 
@@ -313,7 +317,8 @@
           }
         }
 
-        const { data: existingUser, error: checkError } = await supabase
+        // Vérification unicité du pseudonyme
+        const { data: existingUser } = await supabase
           .from('profiles')
           .select('id')
           .eq('username', newUsername)
@@ -327,13 +332,29 @@
           return;
         }
 
+        const nowIso = new Date().toISOString();
         const updatedData = {
           ...profile,
           username: newUsername,
-          last_username_change: new Date().toISOString()
+          last_username_change: nowIso
         };
 
-        const { error: updateError } = await supabase.from('profiles').upsert([updatedData]);
+        // Essai de sauvegarde Supabase
+        let { error: updateError } = await supabase.from('profiles').upsert([updatedData]);
+
+        // Fallback si la colonne last_username_change n'existe pas encore dans Supabase
+        if (updateError && updateError.message && updateError.message.includes('last_username_change')) {
+          const fallbackData = { ...profile, username: newUsername };
+          delete fallbackData.last_username_change;
+          const { error: fallbackErr } = await supabase.from('profiles').upsert([fallbackData]);
+          
+          if (!fallbackErr) {
+            localStorage.setItem(`alky_last_change_${profile.id}`, nowIso);
+            updateError = null;
+          } else {
+            updateError = fallbackErr;
+          }
+        }
 
         if (updateError) {
           setProfileMessage({ 
@@ -342,6 +363,7 @@
           });
         } else {
           setProfile(updatedData);
+          localStorage.setItem(`alky_last_change_${profile.id}`, nowIso);
           setProfileMessage({ 
             text: `Ton pseudonyme a bien été changé en "${newUsername}" !`, 
             type: 'success' 
